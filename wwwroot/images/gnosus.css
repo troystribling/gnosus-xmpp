@@ -1,0 +1,322 @@
+/******* global *******/
+body { 
+  background-color: #fff; 
+  font-family: arial, helvetica, verdana, sans-serif;
+  font-size:   25px;
+  margin: 0px;
+}
+.hidden {
+  display: none;
+}
+.clear {
+  clear: both;
+}
+.spacer {
+  height: 5px;
+}
+img {
+  border-style: none;
+}
+/******* display areas *******/
+#navigation-wrapper {
+  color: #888;
+  background-color: #000;
+  height: 50px;
+  font-weight: lighter;
+  letter-spacing: -1px;
+}
+#navigation {
+  margin: 0 auto;
+  width: 1000px;
+  text-align: left;
+}
+#messages { 
+  width: 1000px;
+  margin: 0 auto;
+  margin-top: 30px;
+}
+#page-wrapper {
+  margin: 0 auto;
+  margin-top: 30px;
+  width: 1000px;
+  text-align: left;
+}
+#page {
+  margin: 0px;
+}
+#footer-wrapper {
+  margin: 0 auto;
+  margin-top: 15px;
+  width: 1000px;
+  text-align: left;
+}
+#footer {
+  width: 30%;
+  float: left;
+}
+/******* page style *******/
+#page h1 {
+  font-size: 1.25em;
+}
+#page h2 {
+  font-size: 1.1em;
+}
+#page a {
+  color: #367da6;
+  text-decoration: none;
+}
+#page a:visited {
+  color: #367da6;
+  text-decoration: none;
+}
+#page a:hover {
+  color: #367da6;
+  text-decoration: none;
+}
+#page a:visited:hover {
+  color: #367da6;
+  text-decoration: none;
+}
+
+/******* navigation style *******/
+#navigation h1 {
+  font-size: 1.5em;
+  float: left;
+  padding: 0px;
+  margin: 0px;
+}
+#navigation strong {
+  color: #FFF;
+}
+#navigation a {
+  color: #888;
+  text-decoration: none;
+}
+#navigation a:visited {
+  color: #888;
+  text-decoration: none;
+}
+#navigation a:hover {
+  color: #367da6;
+  text-decoration: none;
+}
+#navigation a:visited:hover {
+  color: #367da6;
+  text-decoration: none;
+}
+#navigation ul {
+  list-style-type: none;
+  float: right;
+  margin-top: 5px;
+}
+#navigation li {
+  display: inline;
+  font-size: 1.1em;
+  margin: 0px;
+  margin-left: 3px;
+} 
+
+/*******  form style    *******/
+.text-box {
+  width: 10.75em;
+}
+/*******  login style   *******/
+.login label {
+  width: 4.2em;
+  float: left;
+  clear: left;
+  text-align: right;
+  margin-right: 10px;
+  margin-top:15px
+}
+.login input {
+  font-size: .9em;
+  margin-top:15px
+}
+.login-button {
+  width: 14.5em;
+  float: left;
+  text-align: right;
+  clear: both;
+}
+/******* register style *******/
+.register label {
+  width: 2.3em;
+  float: left;
+  clear: left;
+  text-align: right;
+  margin-right: 10px;
+  margin-top:15px;
+}
+.register input {
+  font-size: .9em;
+  margin-top:15px;
+}
+.register-button {
+  width: 12.6em;
+  float: left;
+  text-align: right;
+  clear: left;
+}
+/******* domain user style *******/
+.domain-user label {
+  width: 4.85em;
+  float: left;
+  clear: left;
+  text-align: right;
+  margin-right: 10px;
+  margin-top:15px;
+}
+.domain-user input {
+  font-size: .9em;
+  margin-top:15px;
+}
+.domain-user-button {
+  width: 15em;
+  float: left;
+  clear: left;
+  text-align: right;
+}
+.domain-user-section { 
+  background-color: #EEE;
+  height: 6.6em;
+  border: 1px solid #DDD;
+}
+/******* profile style *******/
+.profile label {
+  width: 4.85em;
+  float: left;
+  clear: left;
+  text-align: right;
+  margin-right: 10px;
+  margin-top:15px;
+}
+.profile input {
+  font-size: .9em;
+  margin-top:15px;
+}
+.profile-button {
+  width: 15em;
+  float: left;
+  clear: left;
+  text-align: right;
+}
+.profile-section { 
+  background-color: #EEE;
+  height: 8.75em;
+  margin-top: 40px;
+  border: 1px solid #DDD;
+}
+/******* system user style *******/
+.system-user label {
+  width: 8.6em;
+  float: left;
+  clear: left;
+  text-align: right;
+  margin-right: 10px;
+  margin-top:15px;
+}
+.system-user input {
+  font-size: .9em;
+  margin-top:15px;
+}
+.system-user select {
+  font-size: .9em;
+  margin-top: 15px;
+}
+.system-user-button {
+  width: 19em;
+  margin-top: 15px;
+  float: left;
+  clear: left;
+  text-align: right;
+}
+.system-user-section { 
+  background-color: #EEE;
+  height: 15em;
+  border: 1px solid #DDD;
+}
+/******* create domain style *******/
+.create-domain input {
+  font-size: .9em;
+  margin-top:15px;
+}
+.create-domain-button {
+  width: 9.9em;
+  float: left;
+  text-align: right;
+  clear: both;
+}
+/******* domain style *******/
+.domain input {
+  font-size: .9em;
+  margin-left:15px;
+  margin-top:15px;
+}
+.domain-button {
+  width: 10.5em;
+  float: left;
+  clear: left;
+  text-align: right;
+}
+.domain-section { 
+  background-color: #EEE;
+  height: 4.75em;
+  border: 1px solid #DDD;
+}
+/******* info table style *******/
+table.info {
+  text-align: left;
+  margin-top: 10px;
+  border: 1px solid #DDD;
+  border-collapse: collapse;
+}
+.info .even {
+  background-color: #FFF;
+}
+.info .odd {
+  background-color: #EBEBEB;
+}
+.info input {
+  font-size: 0.9em;
+}
+.info th {
+  background-color: #EEE;
+  padding: 5px 15px;
+  text-align: center;
+  border: 1px solid #DDD;
+}
+.info td {
+  padding: 5px 15px;
+  text-align: center;
+  font-size: 0.9em;
+  border: 1px solid #DDD;
+}
+
+/******* tool bar *******/
+#toolbar { 
+  display: table;
+}
+
+#toolbar p { 
+  display: table-cell;
+}
+
+/******* flash messages *******/
+#messages p { 
+  margin: 0px;
+}
+
+#messages .notice { 
+  background-color: #FFE7BA;
+  border: 2px solid #FFA500;
+  padding: 20px;
+  margin-bottom: 2px;
+}
+
+#messages .error { 
+  background-color: #F09090;
+  border: 2px solid #660000;
+  padding: 20px;
+  margin-bottom: 2px;
+}
