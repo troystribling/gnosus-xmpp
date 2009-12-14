@@ -81,50 +81,50 @@ add_domain(Domain) ->
 add_domain(Domain, {add_domain_config, State}) ->
     case add_domain_config(Domain) of
 	ok ->
-	    xmppaas_logger:message({add_domain_succeeded, [Domain, add_domain_config]}),
+	    gnosus_logger:message({add_domain_succeeded, [Domain, add_domain_config]}),
 	    add_domain(Domain, {add_authentication, [update_domains|State]});
 	error ->
-	    xmppaas_logger:alarm({add_domain_failed, [Domain, add_domain_config]}),
+	    gnosus_logger:alarm({add_domain_failed, [Domain, add_domain_config]}),
 	    {error, State}
     end;
 
 add_domain(Domain, {add_authentication, State}) ->
     case add_authentication(Domain, internal) of
 	ok ->
-	    xmppaas_logger:message({add_domain_succeeded, [Domain, add_authentication]}),
+	    gnosus_logger:message({add_domain_succeeded, [Domain, add_authentication]}),
 	    add_domain(Domain, {add_modules, [add_authentication|State], modules()});
 	error ->
-	    xmppaas_logger:alarm({add_domain_failed, [Domain, add_authentication]}),
+	    gnosus_logger:alarm({add_domain_failed, [Domain, add_authentication]}),
 	    {error, State}
     end;
 
 add_domain(Domain, {add_modules, State, Modules}) ->
     case add_modules(Domain, Modules) of
 	ok ->
-	    xmppaas_logger:message({add_domain_succeeded, [Domain, add_modules]}),
+	    gnosus_logger:message({add_domain_succeeded, [Domain, add_modules]}),
 	    add_domain(Domain, {start_modules, [add_modules|State], Modules});
 	error ->
-	    xmppaas_logger:alarm({add_domain_failed, [Domain, add_modules]}),
+	    gnosus_logger:alarm({add_domain_failed, [Domain, add_modules]}),
 	    {error, State}
     end;
 
 add_domain(Domain, {start_modules, State, Modules}) ->
     case start_modules(Domain, Modules) of
 	ok ->
-	    xmppaas_logger:message({add_domain_succeeded, [Domain, start_modules]}),
+	    gnosus_logger:message({add_domain_succeeded, [Domain, start_modules]}),
 	    add_domain(Domain, {register_route, [start_modules|State]});
 	error ->
-	    xmppaas_logger:alarm({add_domain_failed, [Domain, start_modules]}),
+	    gnosus_logger:alarm({add_domain_failed, [Domain, start_modules]}),
 	    {error, State}
     end;
 
 add_domain(Domain, {register_route, State}) ->
     case register_route(Domain) of
 	ok ->
-	    xmppaas_logger:message({add_domain_succeeded, [Domain, register_route]}),
+	    gnosus_logger:message({add_domain_succeeded, [Domain, register_route]}),
 	    {ok, [register_route|State]};
 	error ->
-	    xmppaas_logger:alarm({add_domain_failed, [Domain, register_route]}),
+	    gnosus_logger:alarm({add_domain_failed, [Domain, register_route]}),
 	    {error, State}
     end;
 
@@ -135,30 +135,30 @@ add_domain(Domain, _) ->
 add_domain_and_user(Domain, Uid, Password) ->
     case add_domain(Domain) of
 	{ok, State} ->
-	    xmppaas_logger:message({add_domain_and_user_succeeded, [Domain, Uid, add_domain]}),
+	    gnosus_logger:message({add_domain_and_user_succeeded, [Domain, Uid, add_domain]}),
 	    add_domain_and_user(Domain, Uid, Password, {register_user, State}) ;
 	{error, State} ->
-	    xmppaas_logger:alarm({add_domain_and_user_failed, [Domain, Uid, add_domain]}),
+	    gnosus_logger:alarm({add_domain_and_user_failed, [Domain, Uid, add_domain]}),
 	    {error, State}
     end.
 
 add_domain_and_user(Domain, Uid, Password, {register_user, State}) ->
     case register_user(Uid, Domain, Password) of
 	ok ->
-	    xmppaas_logger:message({add_domain_and_user_succeeded, [Domain, Uid, register_user]}),
+	    gnosus_logger:message({add_domain_and_user_succeeded, [Domain, Uid, register_user]}),
 	    add_domain_and_user(Domain, Uid, Password, {add_domain_admin_access_control, [register_user|State]}) ;
 	error ->
-	    xmppaas_logger:alarm({add_domain_and_user_failed, [Domain, Uid, register_user]}),
+	    gnosus_logger:alarm({add_domain_and_user_failed, [Domain, Uid, register_user]}),
 	    {error, State}
     end;
 
 add_domain_and_user(Domain, Uid, _Password, {add_domain_admin_access_control, State}) ->
     case add_domain_admin_access_control(Uid, Domain) of
 	ok ->
-	    xmppaas_logger:message({add_domain_and_user_succeeded, [Domain, Uid, add_domain_admin_access_control]}),
+	    gnosus_logger:message({add_domain_and_user_succeeded, [Domain, Uid, add_domain_admin_access_control]}),
 	    {ok, [add_domain_admin_access_control|State]};
 	error ->
-	    xmppaas_logger:alarm({add_domain_and_user_failed, [Domain, Uid, add_domain_admin_access_control]}),
+	    gnosus_logger:alarm({add_domain_and_user_failed, [Domain, Uid, add_domain_admin_access_control]}),
 	    {error, State}
     end;
 
@@ -173,50 +173,50 @@ remove_domain(Domain) ->
 remove_domain(Domain, {unregister_route, State}) ->
     case unregister_route(Domain) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_succeeded, [Domain, unregister_route]}),
+	    gnosus_logger:message({remove_domain_succeeded, [Domain, unregister_route]}),
 	    remove_domain(Domain, {stop_modules, [unregister_route|State], modules(Domain)});
 	error ->
-	    xmppaas_logger:alarm({remove_domain_failed, [Domain, unregister_route]}),
+	    gnosus_logger:alarm({remove_domain_failed, [Domain, unregister_route]}),
 	    {error, State}
     end;
 
 remove_domain(Domain, {stop_modules, State, Modules}) ->
     case stop_modules(Domain, Modules) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_succeeded, [Domain, stop_modules]}),
+	    gnosus_logger:message({remove_domain_succeeded, [Domain, stop_modules]}),
 	    remove_domain(Domain, {remove_domain_config, [stop_modules|State]});
 	error ->
-	    xmppaas_logger:alarm({remove_domain_failed, [Domain, stop_modules]}),
+	    gnosus_logger:alarm({remove_domain_failed, [Domain, stop_modules]}),
 	    {error, State}
     end;
 
 remove_domain(Domain, {remove_domain_config, State}) ->
     case remove_domain_config(Domain) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_succeeded, [Domain, remove_domain_config]}),
+	    gnosus_logger:message({remove_domain_succeeded, [Domain, remove_domain_config]}),
 	    remove_domain(Domain, {remove_authentication, [remove_domains|State]});
 	error ->
-	    xmppaas_logger:alarm({remove_domain_failed, [Domain, remove_domain_config]}),
+	    gnosus_logger:alarm({remove_domain_failed, [Domain, remove_domain_config]}),
 	    {error, State}
     end;
 
 remove_domain(Domain, {remove_authentication, State}) ->
     case remove_authentication(Domain) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_succeeded, [Domain, remove_authentication]}),
+	    gnosus_logger:message({remove_domain_succeeded, [Domain, remove_authentication]}),
 	    remove_domain(Domain, {remove_modules, [remove_authentication|State]});
 	error ->
-	    xmppaas_logger:alarm({remove_domain_failed, [Domain, remove_authentication]}),
+	    gnosus_logger:alarm({remove_domain_failed, [Domain, remove_authentication]}),
 	    {error, State}
     end;
 
 remove_domain(Domain, {remove_modules, State}) ->
     case remove_modules(Domain) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_succeeded, [Domain, remove_modules]}),
+	    gnosus_logger:message({remove_domain_succeeded, [Domain, remove_modules]}),
 	    {ok, [remove_modules|State]};
 	error ->
-	    xmppaas_logger:alarm({remove_domain_failed, [Domain, remove_modules]}),
+	    gnosus_logger:alarm({remove_domain_failed, [Domain, remove_modules]}),
 	    {error, State}
     end;
 
@@ -235,30 +235,30 @@ remove_domains_and_users(Domains) ->
 remove_domain_and_users(Domain) ->
     case remove_domain_admin_access_control(Domain) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_and_users_succeeded, [Domain, remove_domain_admin_access_control]}),
+	    gnosus_logger:message({remove_domain_and_users_succeeded, [Domain, remove_domain_admin_access_control]}),
 	    remove_domain_and_users(Domain, {unregister_all_users, [remove_domain_admin_access_control]}) ;
 	error ->
-	    xmppaas_logger:alarm({remove_domain_and_users_failed, [Domain, remove_domain_admin_access_control]}),
+	    gnosus_logger:alarm({remove_domain_and_users_failed, [Domain, remove_domain_admin_access_control]}),
 	    {error, []}
     end.
 
 remove_domain_and_users(Domain, {unregister_all_users, State}) ->
     case unregister_all_users(Domain) of
 	ok ->
-	    xmppaas_logger:message({remove_domain_and_users_succeeded, [Domain, unregister_all_users]}),
+	    gnosus_logger:message({remove_domain_and_users_succeeded, [Domain, unregister_all_users]}),
 	    remove_domain_and_users(Domain, {remove_domain, [unregister_all_users|State]}) ;
 	error ->
-	    xmppaas_logger:alarm({remove_domain_and_users_failed, [Domain, unregister_all_users]}),
+	    gnosus_logger:alarm({remove_domain_and_users_failed, [Domain, unregister_all_users]}),
 	    {error, State}
     end;
 
 remove_domain_and_users(Domain, {remove_domain, State}) ->
     case remove_domain(Domain) of
 	{ok, DomainState} ->
-	    xmppaas_logger:message({remove_domain_and_users_succeeded, [Domain, remove_domain]}),
+	    gnosus_logger:message({remove_domain_and_users_succeeded, [Domain, remove_domain]}),
 	    {ok, DomainState++State};
 	{error, DomainState} ->
-	    xmppaas_logger:alarm({remove_domain_and_users_failed, [Domain, remove_domain]}),
+	    gnosus_logger:alarm({remove_domain_and_users_failed, [Domain, remove_domain]}),
 	    {error, DomainState++State}
     end;
 

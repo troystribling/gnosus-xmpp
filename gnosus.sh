@@ -29,7 +29,7 @@ prod()
 shell() 
 {
     exec erl \
-	-sname xmppaas@$HOST \
+	-sname gnosus@$HOST \
 	-setcookie 12345 \
 	-pa $PWD/ebin $PWD/include \
 	-boot start_sasl \
@@ -40,7 +40,7 @@ shell()
 create_tables()
 {
     exec erl \
-	-sname xmppaas@$HOST \
+	-sname gnosus@$HOST \
 	-setcookie 12345 \
 	-mnesia extra_db_nodes "['ejabberd@ubuntu']" \
 	-pa $PWD/ebin $PWD/include \

@@ -14,11 +14,12 @@
 %%================================================================================
 start() ->
     % wait_for_tables(),
+	crypto:start(),
     application:start(gnosus).
 
 %%--------------------------------------------------------------------------------
 stop() ->
-    application:stop(xmppaas).
+    application:stop(gnosus).
 
 %%================================================================================
 shell() ->
@@ -51,9 +52,9 @@ do_create_ejabberd_tables() ->
 wait_for_tables() ->
     case mnesia:wait_for_tables(mnesia:system_info(local_tables), infinity) of
         {timeout, BadTables} -> 
-	    xmppaas_logger:warning({mnesia_start_timeout, BadTables});
+	    gnosus_logger:warning({mnesia_start_timeout, BadTables});
         {error, Reason} -> 
-	    xmppaas_logger:warning({mnesia_start_error, Reason});
+	    gnosus_logger:warning({mnesia_start_error, Reason});
         _ -> 
-	    xmppaas_logger:message({started, mnesia})
+	    gnosus_logger:message({started, mnesia})
     end.
