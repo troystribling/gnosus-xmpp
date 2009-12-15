@@ -10,6 +10,9 @@
 
 -behavior(application).
 
+%% include
+-include_lib("gnosus.hrl").
+
 %%====================================================================
 start(_, _) -> 
 	nitrogen:start(gnosus).
@@ -37,8 +40,8 @@ stop(_) ->
 %%
 %% route("/web/newroute/" ++ PathInfo) -> {web_index, PathInfo};
 %%--------------------------------------------------------------------
-route(Path) -> 
-	nitrogen:route(Path).
+route(Path) ->
+    nitrogen:route(Path).
 
 %%--------------------------------------------------------------------
 %% request/1 is executed before every Nitrogen page, and lets
@@ -50,4 +53,4 @@ route(Path) ->
 %% issue a client-side redirect to a new page.
 %%--------------------------------------------------------------------
 request(Module) -> 
-	nitrogen:request(Module).
+    gnosus_authorization:authorize(Module).

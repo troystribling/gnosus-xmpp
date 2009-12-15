@@ -4,9 +4,9 @@
  
 %% API
 -export([
-	find/1,
-	find_all_by_domain/1,
-	authenticate/2
+    find/1,
+    find_all_by_domain/1,
+    authenticate/2
 ]).
  
 %% include

@@ -5,20 +5,20 @@
  
 %% API
 -export([
-	create_table/2,
-	delete_table/1,
- 	clear_table/1,
-	write_row/1,
-	delete_row/1,
-	read_row/1,
-	read_row/3,
-	q/1,
-	limit/2,
-	fold/3,
-	foreach/2,
-	transaction/1,
-	count/1,
-	dirty_select/2
+    create_table/2,
+    delete_table/1,
+    clear_table/1,
+    write_row/1,
+    delete_row/1,
+    read_row/1,
+    read_row/3,
+    q/1,
+    limit/2,
+    fold/3,
+    foreach/2,
+    transaction/1,
+    count/1,
+    dirty_select/2
 ]).
  
 %% include

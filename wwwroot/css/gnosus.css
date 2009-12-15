@@ -19,11 +19,12 @@ img {
 }
 /******* display areas *******/
 #navigation-wrapper {
-  color: #888;
-  background-color: #000;
+  color: #000;
+  background-color: #FFF;
   height: 50px;
   font-weight: lighter;
   letter-spacing: -1px;
+  border-bottom: 2px solid #DDD;
 }
 #navigation {
   margin: 0 auto;
