@@ -226,9 +226,9 @@ remove_domain(Domain, _) ->
 %%--------------------------------------------------------------------------------
 remove_domains_and_users(Domains) ->
     lists:foldl(fun(Domain, {ok, _State}) ->
-			remove_domain_and_users(Domain);
-		   (_, {error, State}) ->
-			{error, State}
+			            remove_domain_and_users(Domain);
+		            (_, {error, State}) ->
+			            {error, State}
 		end, {ok, []}, Domains).		  
 
 %%--------------------------------------------------------------------------------
