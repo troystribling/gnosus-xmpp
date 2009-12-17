@@ -21,25 +21,26 @@ navigation() ->
 %%--------------------------------------------------------------------------------
 body() ->
     Body = [
-      #p{},
-      #label { text="username" },
-      #textbox { id=userTextBox, next=emailTextBox },
+        #p{body=[
+            #label{text="username" },
+            #textbox{id=userTextBox, next=emailTextBox }
+        ], class="form login"},
 
-      #p{},  
-      #label { text="password" },
-      #password { id=passwordTextBox, next=confirmTextBox },
+        #p{body=[
+            #label{text="password" },
+            #password{id=passwordTextBox, next=confirmTextBox }
+        ], class="form login"},
 
-      #p{},  
-      #button { id=loginButton, text="Continue", postback=continue }
+        #p{body=#button{id=loginButton, text="login", postback=continue}, class="form-button login-button"}
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
-      #is_required { text="username required" }
+      #is_required{text="username required"}
     ]}),
 
-    wf:wire(loginButton, passwordTextBox, #validate { validators=[
-      #is_required { text="password required" },
-      #min_length { length=6, text="Password must be at least 6 characters long." }
+    wf:wire(loginButton, passwordTextBox, #validate {validators=[
+      #is_required {text="password required"},
+      #min_length {length=6, text="must be at least 6 characters long"}
     ]}),
 
     wf:render(Body).

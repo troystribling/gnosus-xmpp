@@ -21,18 +21,18 @@ navigation() ->
 %%--------------------------------------------------------------------------------
 body() ->
     Body = [
-      #p{},
-      #label { text="email" },
-      #textbox { id=emailTextBox, next=emailTextBox },
+        #p{body=[
+            #label{text="email"},
+            #textbox {id=emailTextBox, next=emailTextBox}
+        ], class="form register"},
 
-      #p{},  
-      #button { id=registerButton, text="register", postback=continue }
+        #p{body=#button{ id=registerButton, text="register", postback=continue}, class="form-button register-button"}
     ],
 
-    wf:wire(registerButton, emailTextBox, #validate { validators=[
+    wf:wire(registerButton, emailTextBox, #validate {validators=[
         #is_required { text="email address required" },
-        #is_email { text="enter a valid email address" },
-        #custom { text="email address is registered", tag=some_tag, function=fun validate_email/2 }
+        #is_email { text="invalid email address" },
+        #custom { text="email address registered", tag=some_tag, function=fun validate_email/2}
     ]}),
 
     wf:render(Body).
