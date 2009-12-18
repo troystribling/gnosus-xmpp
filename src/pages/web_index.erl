@@ -31,7 +31,7 @@ body() ->
             #password{id=passwordTextBox, next=confirmTextBox }
         ], class="form login"},
 
-        #p{body=#button{id=loginButton, text="login", postback=continue}, class="form-button login-button"}
+        #p{body=#link{id=loginButton, text="login", postback=continue, class="form-button"}, class="form login-button"}
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
