@@ -75,7 +75,7 @@ warning({authentication_failed, M}) ->
     error_logger:info_msg("authentication failed for: ~p~n", [M]);
 
 warning({authentication_authorization_failed, M}) ->
-    error_logger:info_msg("authentication authorization failed for path: ~p~n", [M]);
+    error_logger:info_msg("authentication authorization failed for request: ~p~n", [M]);
 
 warning(X) ->
     error_logger:warning_msg("~p~n", [X]).

@@ -18,7 +18,7 @@
 %%================================================================================
 authorize(Module) ->
     case lists:member(Module, ?NOAUTHENTICATE_ROUTES) of
-        false -> is_authenticated();
+        false -> is_authenticated(Module);
         true -> is_admin(Module)
     end.
                         
@@ -33,19 +33,20 @@ is_admin(Module) ->
                     gnosus_logger:message({admin_authorized, Uid}),                     
                     ok;
                 _ -> 
+                    wf:flash("access denied")
                     gnosus_logger:alarm({admin_authorization_failed, Uid}),                     
                     wf:clear_user(),
-                    wf:redirect("web/index")
+                    wf:redirect("/")
             end
             
     end.
 
 %%--------------------------------------------------------------------------------
-is_authenticated() ->
+is_authenticated(Module) ->
     case wf:user() of
         undefined -> 
-            gnosus_logger:warning({authentication_authorization_failed, wf:get_path_info()}),                     
-            wf:redirect("web/index");
+            gnosus_logger:warning({authentication_authorization_failed, Module}),                     
+            wf:redirect("/");
         _Uid -> ok
     end.   
     

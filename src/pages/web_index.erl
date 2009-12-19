@@ -60,6 +60,6 @@ event(logout) ->
     gnosus_logger:message({terminate_session, wf:user()}),
     wf:clear_user(),
     wf:flash("logged out"),
-    wf:redirect("web/login");
+    wf:redirect("/");
 
 event(_) -> ok.
