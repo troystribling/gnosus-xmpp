@@ -31,7 +31,7 @@ body() ->
             #password{id=passwordTextBox, next=confirmTextBox }
         ], class="form login"},
 
-        #p{body=#link{id=loginButton, text="login", postback=continue, class="form-button"}, class="form login-button"}
+        #p{body=#link{id=loginButton, text="login", postback=login, class="form-button"}, class="form login-button"}
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
@@ -39,21 +39,27 @@ body() ->
     ]}),
 
     wf:wire(loginButton, passwordTextBox, #validate {validators=[
-      #is_required {text="password required"},
-      #min_length {length=6, text="must be at least 6 characters long"}
+      #is_required {text="password required"}
     ]}),
 
     wf:render(Body).
 	
 %%--------------------------------------------------------------------------------
-event(continue) ->
+event(login) ->
     [Uid] = wf:q(userTextBox),
     [Password] = wf:q(passwordTextBox),
     case user_model:authenticate(Uid, Password) of
         true ->
+            wf:user(Uid),
             wf:redirect("web/domain");
         false ->
             wf:flash("authentication failed")
     end;
+
+event(logout) ->
+    gnosus_logger:message({terminate_session, wf:user()}),
+    wf:clear_user(),
+    wf:flash("logged out"),
+    wf:redirect("web/login");
 
 event(_) -> ok.

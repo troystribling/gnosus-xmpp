@@ -1,6 +1,6 @@
-%% register
+%% hosts info
 %%--------------------------------------------------------------------------------
--module (web_domain).
+-module (web_hosts).
 
 %% API
 -compile(export_all).
@@ -15,14 +15,14 @@ main() ->
 %%--------------------------------------------------------------------------------
 navigation() ->
 	#list{body=[ 
-        #listitem{body="domain"},
+        #listitem{body="host"},
         #listitem{body=#link{text="admin", url="/web_users"}},
 	    #listitem{body=#link{text="logout", url="/web_logout"}}
 	]}.
 
 %%--------------------------------------------------------------------------------
 body() ->
-    #label{text="domain"}.
+    #label{text="hosts"}.
 	
 %%--------------------------------------------------------------------------------
 event(_) -> ok.

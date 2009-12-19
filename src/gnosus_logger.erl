@@ -25,9 +25,6 @@ message({authenticated, M}) ->
 message({terminate_session, M}) ->
     error_logger:info_msg("terminated session: ~p~n", [M]);
 
-message({authentication_authorized, M}) ->
-    error_logger:info_msg("authentication authorized for request: ~p, from: ~p~n", M);
-
 message({admin_authorized, M}) ->
     error_logger:info_msg("admin authorized for request: ~p, from: ~p~n", M);
 

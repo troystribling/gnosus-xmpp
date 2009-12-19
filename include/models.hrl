@@ -19,8 +19,8 @@
 }).
 
 %% domains
--record(domains, {
-	  domain,
+-record(hosts, {
+	  host,
 	  uid
 }).
 

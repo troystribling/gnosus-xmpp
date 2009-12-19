@@ -26,32 +26,9 @@ prod()
 	-s gnosus
 }
 
-shell() 
-{
-    exec erl \
-	-sname gnosus@$HOST \
-	-setcookie 12345 \
-	-pa $PWD/ebin $PWD/include \
-	-boot start_sasl \
-	-s mnesia \
-	-s gnosus shell
-}
-
-create_tables()
-{
-    exec erl \
-	-sname gnosus@$HOST \
-	-setcookie 12345 \
-	-mnesia extra_db_nodes "['ejabberd@ubuntu']" \
-	-pa $PWD/ebin $PWD/include \
-	-boot start_sasl \
-	-s gnosus create_tables
-}
-
-
 usage()
 {
-    echo "gnosus.sh prod|dev|shell|create_tables|delete_tables|clear_tables"
+    echo "gnosus.sh prod|dev"
     exit
 }
 

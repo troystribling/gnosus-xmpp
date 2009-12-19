@@ -15,11 +15,11 @@
     find/1,
     find_by_email/1,
     count/0,
-    set_password/2,
-    set_email/2,
-    set_registration_status/2,
-    set_role/2,
-    set_product/2,
+    password/2,
+    email/2,
+    registration_status/2,
+    role/2,
+    product/2,
     register/1,
     new_user/3,
     new_admin/3,
@@ -107,7 +107,7 @@ delete(Uid) ->
  
 
 %%================================================================================
-set_password(Uid, Password) ->
+password(Uid, Password) ->
 	case find(Uid) of
     	notfound ->
             notfound;
@@ -116,7 +116,7 @@ set_password(Uid, Password) ->
     end.
 
 %%================================================================================
-set_email(Uid, EMail) ->
+email(Uid, EMail) ->
     case find(Uid) of
         notfound ->
             notfound;
@@ -125,7 +125,7 @@ set_email(Uid, EMail) ->
     end.
 
 %%--------------------------------------------------------------------------------
-set_registration_status(Uid, RegistrationStatus) ->
+registration_status(Uid, RegistrationStatus) ->
     case find(Uid) of
         notfound ->
             notfound;
@@ -134,7 +134,7 @@ set_registration_status(Uid, RegistrationStatus) ->
     end.
 
 %%--------------------------------------------------------------------------------
-set_role(Uid, Role) ->
+role(Uid, Role) ->
     case find(Uid) of
         notfound ->
             notfound;
@@ -143,7 +143,7 @@ set_role(Uid, Role) ->
     end.
 
 %%--------------------------------------------------------------------------------
-set_product(Uid, Product) ->
+product(Uid, Product) ->
     case find(Uid) of
         notfound ->
             notfound;
@@ -229,7 +229,11 @@ update(_) ->
 %%--------------------------------------------------------------------------------
 authenticate(Uid, Password) ->
     case find(Uid) of
-        notfound ->
+        notfound -> 
+            gnosus_logger:warning({authentication_failed, Uid}),                     
+            false;
+        error -> 
+            gnosus_logger:warning({authentication_failed, Uid}),                     
             false;
         User ->
 	    	[Count, Failed, Auth] = case User#users.password =:= Password of
@@ -239,6 +243,7 @@ authenticate(Uid, Password) ->
 											[User#users.login_count, User#users.failed_login_count+1, false]
 									end,
 	    	write(User#users{login_count=Count, failed_login_count=Failed, last_login=now(), updated_at = now()}),   
+            gnosus_logger:message({authenticated, Uid}),                     
 	    	Auth
     end.
 
