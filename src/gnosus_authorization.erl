@@ -27,13 +27,13 @@ is_admin(Module) ->
     case lists:member(Module, ?ADMIN_ROUTES) of
         false -> ok;
         true ->
-            #users{uid=Uid, role=Role} = user_model:find(wf:user()),
+            #users{uid=Uid, role=Role} = wf:user(),
             case Role of
                 admin ->
                     gnosus_logger:message({admin_authorized, Uid}),                     
                     ok;
                 _ -> 
-                    wf:flash("access denied")
+                    wf:flash("access denied"),
                     gnosus_logger:alarm({admin_authorization_failed, Uid}),                     
                     wf:clear_user(),
                     wf:redirect("/")
@@ -47,6 +47,6 @@ is_authenticated(Module) ->
         undefined -> 
             gnosus_logger:warning({authentication_authorization_failed, Module}),                     
             wf:redirect("/");
-        _Uid -> ok
+        _User -> ok
     end.   
     

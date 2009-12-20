@@ -20,12 +20,18 @@
 
 %% domains
 -record(hosts, {
-	  host,
-	  uid
+    host,
+    uid
 }).
 
 %% ejabberd password database
 -record(passwd,  {
-	  us, 
-	  password
+    us, 
+	password
+}).
+
+%% config
+-record(config,  {
+    key, 
+    value
 }).

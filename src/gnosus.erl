@@ -14,6 +14,7 @@ start() ->
     create_tables(),
     wait_for_tables(),
 	crypto:start(),
+	gnosus_utils:load_config_file(),
     application:start(gnosus).
 
 %%--------------------------------------------------------------------------------
@@ -23,20 +24,20 @@ stop() ->
 %%================================================================================
 create_tables() ->
     mnesia:change_table_copy_type(schema, node(), disc_copies),
-    % do_create_ejabberd_tables(),
+    do_create_ejabberd_tables(),
     do_create_tables(),
     wait_for_tables().
  
 %%================================================================================
 do_create_tables() ->
     user_model:create_table(),
+    config_model:create_table(),
     host_model:create_table().
     
 %%--------------------------------------------------------------------------------
-% do_create_ejabberd_tables() ->
-%     mnesia:add_table_copy(acl, node(), ram_copies),
-%     mnesia:add_table_copy(passwd, node(), ram_copies),
-%     ok.
+do_create_ejabberd_tables() ->
+    mnesia:add_table_copy(acl, node(), ram_copies),
+    mnesia:add_table_copy(passwd, node(), ram_copies).
     
 %%--------------------------------------------------------------------------------
 local_tables() ->

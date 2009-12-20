@@ -6,11 +6,13 @@
 -compile(export_all).
 
 %% include
--include_lib ("nitrogen/include/wf.inc").
+-include_lib("models.hrl").
+-include_lib("gnosus.hrl").
+-include_lib("nitrogen/include/wf.inc").
 
 %%================================================================================
 main() -> 
-	#template { file="./wwwroot/template.html"}.
+    #template{file="./wwwroot/template.html"}.
 
 %%--------------------------------------------------------------------------------
 navigation() ->
@@ -23,15 +25,16 @@ body() ->
     Body = [
         #p{body=[
             #label{text="username" },
-            #textbox{id=userTextBox, next=emailTextBox }
+            #textbox{id=userTextBox, next=passwordTextBox }
         ], class="form login"},
 
         #p{body=[
             #label{text="password" },
-            #password{id=passwordTextBox, next=confirmTextBox }
+            #password{id=passwordTextBox, next=loginButton }
         ], class="form login"},
 
-        #p{body=#link{id=loginButton, text="login", postback=login, class="form-button"}, class="form login-button"}
+        #p{body=#link{id=loginButton, text="login", postback=login, class="form-button"}, 
+           class="form login-button"}
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
@@ -44,22 +47,17 @@ body() ->
 
     wf:render(Body).
 	
-%%--------------------------------------------------------------------------------
+%%================================================================================
 event(login) ->
     [Uid] = wf:q(userTextBox),
     [Password] = wf:q(passwordTextBox),
     case user_model:authenticate(Uid, Password) of
         true ->
-            wf:user(Uid),
-            wf:redirect("web/domain");
+            wf:user(user_model:find(Uid)),
+            wf:redirect("/web/host/create");
         false ->
             wf:flash("authentication failed")
     end;
 
-event(logout) ->
-    gnosus_logger:message({terminate_session, wf:user()}),
-    wf:clear_user(),
-    wf:flash("logged out"),
-    wf:redirect("/");
-
+%%--------------------------------------------------------------------------------
 event(_) -> ok.

@@ -172,11 +172,11 @@ img {
 .register-button {
   width: 15.6em;
 }
-/******* domain user style *******/
-.domain-user label {
+/******* host user style *******/
+.host-user label {
   width: 4.85em;
 }
-.domain-user-button {
+.host-user-button {
   width: 15em;
 }
 /******* profile style *******/
@@ -186,31 +186,31 @@ img {
 .profile-button {
   width: 15em;
 }
-/******* system user style *******/
-.system-user label {
+/******* user system style *******/
+.user-system label {
   width: 8.6em;
 }
-.system-user input {
+.user-system input {
   font-size: .9em;
   margin-top:15px;
 }
-.system-user select {
+.user-system select {
   font-size: .9em;
   margin-top: 15px;
 }
-.system-user-button {
+.user-system-button {
   width: 19em;
 }
-/******* create domain style *******/
-.create-domain input {
+/******* host create style *******/
+.host-create input {
 }
-.create-domain-button {
-  width: 9.9em;
+.host-create-button {
+  width: 15.0em;
 }
-/******* domain style *******/
-.domain input {
+/******* host style *******/
+.host input {
 }
-.domain-button {
+.host-button {
   width: 10.5em;
 }
 /******* data table style *******/

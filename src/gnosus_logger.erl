@@ -61,6 +61,9 @@ message({user_deleted, M}) ->
 message({registered_user, M}) ->
     error_logger:info_msg("registered user: ~p~n", [M]);
 
+message({config_loaded, M}) ->
+    error_logger:info_msg("configuration loaded: ~p~n", [M]);
+
 message(X) ->
     error_logger:info_msg("~p~n", [X]).
  
@@ -125,6 +128,9 @@ alarm({domain_show_invalid, M}) ->
 
 alarm({admin_authorization_failed, M}) ->
     error_logger:error_msg("admin authorization failed for request: ~p from: ~p~n", M);
+
+alarm({config_load_failed, M}) ->
+    error_logger:error_msg("error loading config: ~p~n", [M]);
 
 alarm(X) ->
     error_logger:error_msg("~p~n", [X]).

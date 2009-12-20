@@ -10,7 +10,6 @@ db/*
 *.DAT
 *.LOG
 *.log
-*.cfg
 Makefile
 *.status
 *.so

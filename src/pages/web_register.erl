@@ -6,11 +6,13 @@
 -compile(export_all).
 
 %% include
+-include_lib("models.hrl").
+-include_lib("gnosus.hrl").
 -include_lib ("nitrogen/include/wf.inc").
 
 %%================================================================================
 main() -> 
-	#template { file="./wwwroot/template.html"}.
+    #template{file="./wwwroot/template.html"}.
 
 %%--------------------------------------------------------------------------------
 navigation() ->
@@ -23,10 +25,10 @@ body() ->
     Body = [
         #p{body=[
             #label{text="email"},
-            #textbox {id=emailTextBox, next=emailTextBox}
+            #textbox {id=emailTextBox, next=registerButton}
         ], class="form register"},
 
-        #p{body=#link{ id=registerButton, text="register", postback=continue, class="form-button"}, class="form register-button"}
+        #p{body=#link{ id=registerButton, text="register", postback=register, class="form-button"}, class="form register-button"}
     ],
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[
@@ -37,14 +39,14 @@ body() ->
 
     wf:render(Body).
 	
-%%--------------------------------------------------------------------------------
-event(continue) ->
+%%================================================================================
+event(register) ->
     [Name] = wf:q(emailTextBox),
     wf:flash(wf:f("an email will be sent to: ~s", [Name])),
     ok;
 
 event(_) -> ok.
 
-%%--------------------------------------------------------------------------------
+%%================================================================================
 validate_email(_Tag, _Value) ->
     true.	
