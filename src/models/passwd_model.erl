@@ -5,7 +5,7 @@
 %% API
 -export([
     find/1,
-    find_all_by_domain/1,
+    find_all_by_host/1,
     authenticate/2
 ]).
  
@@ -15,7 +15,7 @@
 -include_lib("stdlib/include/qlc.hrl").
  
 %%--------------------------------------------------------------------------------
-find_all_by_domain(Domain) ->
+find_all_by_host(Domain) ->
 	gnosus_dbi:dirty_select(passwd, [{#passwd{us = '$1', _ = '_'}, [{'==', {element, 2, '$1'}, Domain}], ['$1']}]).
 
 %%--------------------------------------------------------------------------------

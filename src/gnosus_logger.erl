@@ -28,38 +28,32 @@ message({terminate_session, M}) ->
 message({admin_authorized, M}) ->
     error_logger:info_msg("admin authorized for request: ~p, from: ~p~n", M);
 
-message({domain_created, M}) ->
-    error_logger:info_msg("domain: ~p, created for user: ~p~n", M);
+message({apply_method_succeeded, M}) ->
+    error_logger:info_msg("apply method succeeded for method: ~p, with arguments: ~p~n", M);
 
-message({add_domain_succeeded, M}) ->
-    error_logger:info_msg("add domain: ~p, transaction succeeded at ~p~n", M);
+message({add_host_succeeded, M}) ->
+    error_logger:info_msg("add host: ~p, transaction succeeded", [M]);
 
-message({remove_domain_succeeded, M}) ->
-    error_logger:info_msg("remove domain: ~p, transaction succeeded at ~p~n", M);
+message({remove_host_succeeded, M}) ->
+    error_logger:info_msg("remove host: ~p, transaction succeeded for user: ~p~n", M);
 
-message({add_domain_and_user_succeeded, M}) ->
-    error_logger:info_msg("add domain and user transaction succeeded for domain: ~p and user: ~p at ~p~n", M);
+message({add_host_user_succeeded, M}) ->
+    error_logger:info_msg("add user: ~p, succeeded for host: ~p~n", M);
 
-message({remove_domain_and_users_succeeded, M}) ->
-    error_logger:info_msg("remove domain and users transaction succeeded for domain: ~p at ~p~n", M);
+message({remove_host_user_succeeded, M}) ->
+    error_logger:info_msg("remove user: ~p, succeeded for host: ~p~n", M);
 
-message({domain_deleted, M}) ->
-    error_logger:info_msg("domain: ~p, deleted for user: ~p~n", M);
+message({add_user_succeeded, M}) ->
+    error_logger:info_msg("add user: ~p, succeeded", [M]);
 
-message({domain_user_deleted, M}) ->
-    error_logger:info_msg("user: ~p, deleted for domain: ~p~n", M);
+message({remove_user_succeeded, M}) ->
+    error_logger:info_msg("remove user: ~p, succeeded", [M]);
 
-message({domain_user_created, M}) ->
-    error_logger:info_msg("user: ~p, created for domain: ~p~n", M);
+message({user_registered, M}) ->
+    error_logger:info_msg("user registered: ~p~n", [M]);
 
-message({user_created, M}) ->
-    error_logger:info_msg("user: ~p, created", [M]);
-
-message({user_deleted, M}) ->
-    error_logger:info_msg("user: ~p, deleted", [M]);
-
-message({registered_user, M}) ->
-    error_logger:info_msg("registered user: ~p~n", [M]);
+message({user_registeration_succeeded, M}) ->
+    error_logger:info_msg("user registeration succeeded: ~p~n", [M]);
 
 message({config_loaded, M}) ->
     error_logger:info_msg("configuration loaded: ~p~n", [M]);
@@ -84,29 +78,26 @@ warning(X) ->
     error_logger:warning_msg("~p~n", [X]).
  
 %%--------------------------------------------------------------------------------
-alarm({domain_deletion_failed, M}) ->
-    error_logger:error_msg("domain: ~p, deletion failed for user: ~p~n", M);
+alarm({apply_method_failed, M}) ->
+    error_logger:error_msg("apply method failed for method: ~p, with arguments: ~p~n", M);
 
-alarm({domain_creation_failed, M}) ->
-    error_logger:error_msg("domain: ~p, creation failed for user: ~p~n", M);
+alarm({add_host_failed, M}) ->
+    error_logger:error_msg("add host: ~p, transaction failed, starting rollback~n", [M]);
 
-alarm({add_domain_failed, M}) ->
-    error_logger:error_msg("add domain: ~p, transaction failed at ~p~n", M);
+alarm({remove_host_failed, M}) ->
+    error_logger:error_msg("remove host: ~p, transaction failed, starting rollback~n", [M]);
 
-alarm({remove_domain_failed, M}) ->
-    error_logger:error_msg("remove domain: ~p, transaction failed at ~p~n", M);
+alarm({add_host_and_users_failed, M}) ->
+    error_logger:error_msg("add host and user transaction failed for host: ~p and user: ~p~n", M);
 
-alarm({add_domain_and_user_failed, M}) ->
-    error_logger:error_msg("add domain and user transaction failed for domain: ~p and user: ~p at ~p~n", M);
+alarm({remove_host_and_users_failed, M}) ->
+    error_logger:error_msg("remove host and user transaction failed for host: ~p, starting rollback~n", M);
+        
+alarm({add_host_user_failed, M}) ->
+    error_logger:error_msg("add user: ~p, failed for host: ~p~n", M);
 
-alarm({remove_domain_and_users_failed, M}) ->
-    error_logger:error_msg("remove domain and users transaction failed for domain: ~p at ~p~n", M);
-
-alarm({domain_user_creation_failed, M}) ->
-    error_logger:error_msg("user: ~p, creation failed for domain: ~p~n", M);
-
-alarm({domain_user_deletion_failed, M}) ->
-    error_logger:error_msg("user: ~p, deletion failed for domain: ~p~n", M);
+alarm({remove_host_user_failed, M}) ->
+    error_logger:error_msg("remove user: ~p, failed for host: ~p~n", M);
 
 alarm({user_creation_failed, M}) ->
     error_logger:error_msg("user: ~p, creation failed", [M]);
@@ -114,17 +105,11 @@ alarm({user_creation_failed, M}) ->
 alarm({user_deletion_failed, M}) ->
     error_logger:error_msg("user: ~p, deletion failed", [M]);
 
-alarm({domain_user_deletion_invalid, M}) ->
-    error_logger:error_msg("user: ~p, does not own domain: ~p and tried to delete user~n", M);
+alarm({host_user_deletion_invalid, M}) ->
+    error_logger:error_msg("user: ~p, does not own host: ~p and tried to delete user~n", M);
 
-alarm({domain_user_creation_invalid, M}) ->
-    error_logger:error_msg("user: ~p, does not own domain: ~p and tried to create user~n", M);
-
-alarm({domain_deletion_invalid, M}) ->
-    error_logger:error_msg("user: ~p, does not own domain: ~p and tried to delete it~n", M);
-
-alarm({domain_show_invalid, M}) ->
-    error_logger:error_msg("user: ~p, does not own domain: ~p and tried to show it~n", M);
+alarm({host_access_invalid, M}) ->
+    error_logger:error_msg("user: ~p, does not own host: ~p and tried to modify it: ~p~n", M);
 
 alarm({admin_authorization_failed, M}) ->
     error_logger:error_msg("admin authorization failed for request: ~p from: ~p~n", M);

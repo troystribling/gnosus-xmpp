@@ -10,6 +10,7 @@
     clear_table/0,
     find/1,
     modules/0,
+    modules/1,
     ejabberd/0,
     write_config/1
 ]).
@@ -55,6 +56,10 @@ modules() ->
     DefMods = find(default_modules),
     OptMods = find(optional_modules),
     DefMods#config.value++OptMods#config.value.
+
+%%--------------------------------------------------------------------------------
+modules(_Host) ->
+    modules().
 
 %%--------------------------------------------------------------------------------
 ejabberd() ->   
