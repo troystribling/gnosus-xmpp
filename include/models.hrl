@@ -30,8 +30,8 @@
 	password
 }).
 
-%% config
--record(config,  {
+%% gnosus configuration
+-record(gnosus,  {
     key, 
     value
 }).

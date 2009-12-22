@@ -32,10 +32,13 @@ message({apply_method_succeeded, M}) ->
     error_logger:info_msg("apply method succeeded for method: ~p, with arguments: ~p~n", M);
 
 message({add_host_succeeded, M}) ->
-    error_logger:info_msg("add host: ~p, transaction succeeded", [M]);
+    error_logger:info_msg("add host: ~p, transaction succeeded~n", [M]);
 
 message({remove_host_succeeded, M}) ->
-    error_logger:info_msg("remove host: ~p, transaction succeeded for user: ~p~n", M);
+    error_logger:info_msg("remove host transaction succeededn for host: ~p~n", [M]);
+
+message({remove_host_and_users_succeeded, M}) ->
+    error_logger:info_msg("remove host and users transaction succeeded for host: ~p~n", M);
 
 message({add_host_user_succeeded, M}) ->
     error_logger:info_msg("add user: ~p, succeeded for host: ~p~n", M);
@@ -57,6 +60,9 @@ message({user_registeration_succeeded, M}) ->
 
 message({config_loaded, M}) ->
     error_logger:info_msg("configuration loaded: ~p~n", [M]);
+
+message({rollback_succeeded}) ->
+    error_logger:error_msg("rollback succeeded~n");
 
 message(X) ->
     error_logger:info_msg("~p~n", [X]).
@@ -87,11 +93,11 @@ alarm({add_host_failed, M}) ->
 alarm({remove_host_failed, M}) ->
     error_logger:error_msg("remove host: ~p, transaction failed, starting rollback~n", [M]);
 
-alarm({add_host_and_users_failed, M}) ->
+alarm({add_host_and_user_failed, M}) ->
     error_logger:error_msg("add host and user transaction failed for host: ~p and user: ~p~n", M);
 
 alarm({remove_host_and_users_failed, M}) ->
-    error_logger:error_msg("remove host and user transaction failed for host: ~p, starting rollback~n", M);
+    error_logger:error_msg("remove host and user transaction failed for host: ~p, starting rollback~n", [M]);
         
 alarm({add_host_user_failed, M}) ->
     error_logger:error_msg("add user: ~p, failed for host: ~p~n", M);
@@ -115,7 +121,10 @@ alarm({admin_authorization_failed, M}) ->
     error_logger:error_msg("admin authorization failed for request: ~p from: ~p~n", M);
 
 alarm({config_load_failed, M}) ->
-    error_logger:error_msg("error loading config: ~p~n", [M]);
+    error_logger:error_msg("config load failed: ~p~n", [M]);
+
+alarm({rollback_failed, M}) ->
+    error_logger:error_msg("rollback failed for methods:~p with aruments: ~p~n", [M]);
 
 alarm(X) ->
     error_logger:error_msg("~p~n", [X]).

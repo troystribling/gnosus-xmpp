@@ -3,20 +3,36 @@
 
 %% API
 -export([
-	 add_user/3,
-	 remove_user/1,
-	 remove_user/2,
-	 remove_all_users/1,
-	 add_access_control/3,
-	 add_host_admin_access_control/1,
-	 add_host_admin_access_control/2,
-	 remove_access_control/2,
-	 remove_host_admin_access_control/1,
-	 add_host/1,
-	 add_host_and_user/3,
-	 remove_host/1,
-	 remove_host_and_users/1,
-	 remove_hosts_and_users/1
+    add_user/1,
+	add_user/3,
+	remove_user/1,
+	remove_user/2,
+	remove_all_users/1,
+	add_access_control/3,
+	add_host_admin_access_control/1,
+	add_host_admin_access_control/2,
+	remove_access_control/2,
+	remove_host_admin_access_control/1,
+	add_host/1,
+	add_host_and_user/3,
+	remove_host/1,
+	remove_host_and_users/1,
+	remove_hosts_and_users/1,
+	ejabberd_hosts/0,
+	modules/1,
+	password/1,
+	add_host_config/1,
+	remove_host_config/1,
+	add_module_configs/1,
+	remove_module_configs/1,
+	add_authentication_method/1,
+	remove_authentication_method/1,
+	add_modules/1,
+	add_module/3,
+	remove_modules/1,
+	remove_module/2,
+	add_route/1,
+	remove_route/1
 ]).
 
 %% include
@@ -100,142 +116,55 @@ remove_host_admin_access_control(Host) ->
 %%================================================================================
 add_host(Host) ->
     Args = [{host, Host}],
-    case apply_method_list(Args, [add_module_configs, add_authentication, add_host_config, add_modules, add_route]) of
+    case apply_method_list([add_module_configs, add_authentication_method, add_host_config, add_modules, add_route], Args) of
 	    {ok, State} ->
 	        gnosus_logger:message({add_host_succeeded, Host}),
 	        {ok, State};
 	    {error, State} ->
 	        gnosus_logger:alarm({add_host_failed, Host}),
-	        {error, State}
+	        rollback(Args, add_to_remove(State))
     end.
 
 %%--------------------------------------------------------------------------------
 add_host_and_user(Host, Uid, Password) ->
     Args = [{host, Host}, {uid, Uid}, {password, Password}],
     case add_host(Host) of
-	    {ok, State} ->
-	        apply_method_list(Args, [add_user, add_host_admin_access_control], State);
+	    {ok, _} ->
+	        case apply_method_list([add_user, add_host_admin_access_control], Args) of
+        	    {ok, State} ->
+        	        gnosus_logger:message({add_host_and_user_succeeded, [Host, Uid]}),
+        	        {ok, State};
+        	    {error, State} ->
+        	        gnosus_logger:alarm({add_host_and_user_failed, [Host, Uid]}),
+        	        rollback(Args, add_to_remove(State))
+    	    end;
 	    {error, State} ->
 	        gnosus_logger:alarm({add_host_and_user_failed, [Host, Uid]}),
 	        {error, State}
     end.
                              
-%%--------------------------------------------------------------------------------
-% add_domain(Host) ->
-%     add_domain(Host, {add_host_config, []}).
-% 
-% add_domain(Host, {add_host_config, State}) ->
-%     case add_host_config(Host) of
-%   ok ->
-%       gnosus_logger:message({add_domain_succeeded, [Host, add_host_config]}),
-%       add_domain(Host, {add_authentication, [update_domains|State]});
-%   error ->
-%       gnosus_logger:alarm({add_domain_failed, [Host, add_host_config]}),
-%       {error, State}
-%     end;
-% 
-% add_domain(Host, {add_authentication, State}) ->
-%     case add_authentication(Host, internal) of
-%   ok ->
-%       gnosus_logger:message({add_domain_succeeded, [Host, add_authentication]}),
-%       add_domain(Host, {add_modules, [add_authentication|State], modules()});
-%   error ->
-%       gnosus_logger:alarm({add_domain_failed, [Host, add_authentication]}),
-%       {error, State}
-%     end;
-% 
-% add_domain(Host, {add_modules, State, Modules}) ->
-%     case add_modules(Host, Modules) of
-%   ok ->
-%       gnosus_logger:message({add_domain_succeeded, [Host, add_modules]}),
-%       add_domain(Host, {start_modules, [add_modules|State], Modules});
-%   error ->
-%       gnosus_logger:alarm({add_domain_failed, [Host, add_modules]}),
-%       {error, State}
-%     end;
-% 
-% add_domain(Host, {start_modules, State, Modules}) ->
-%     case start_modules(Host, Modules) of
-%   ok ->
-%       gnosus_logger:message({add_domain_succeeded, [Host, start_modules]}),
-%       add_domain(Host, {register_route, [start_modules|State]});
-%   error ->
-%       gnosus_logger:alarm({add_domain_failed, [Host, start_modules]}),
-%       {error, State}
-%     end;
-% 
-% add_domain(Host, {register_route, State}) ->
-%     case register_route(Host) of
-%   ok ->
-%       gnosus_logger:message({add_domain_succeeded, [Host, register_route]}),
-%       {ok, [register_route|State]};
-%   error ->
-%       gnosus_logger:alarm({add_domain_failed, [Host, register_route]}),
-%       {error, State}
-%     end;
-% 
-% add_domain(Host, _) ->
-%     add_domain(Host).
-%
-%%--------------------------------------------------------------------------------
-% add_domain_and_user(Host, Uid, Password) ->
-%     case add_domain(Host) of
-%   {ok, State} ->
-%       gnosus_logger:message({add_domain_and_user_succeeded, [Host, Uid, add_domain]}),
-%       add_domain_and_user(Host, Uid, Password, {register_user, State}) ;
-%   {error, State} ->
-%       gnosus_logger:alarm({add_domain_and_user_failed, [Host, Uid, add_domain]}),
-%       {error, State}
-%     end.
-% 
-% add_domain_and_user(Host, Uid, Password, {register_user, State}) ->
-%     case register_user(Uid, Host, Password) of
-%   ok ->
-%       gnosus_logger:message({add_domain_and_user_succeeded, [Host, Uid, register_user]}),
-%       add_domain_and_user(Host, Uid, Password, {add_domain_admin_access_control, [register_user|State]}) ;
-%   error ->
-%       gnosus_logger:alarm({add_domain_and_user_failed, [Host, Uid, register_user]}),
-%       {error, State}
-%     end;
-% 
-% add_domain_and_user(Host, Uid, _Password, {add_domain_admin_access_control, State}) ->
-%     case add_domain_admin_access_control(Uid, Host) of
-%   ok ->
-%       gnosus_logger:message({add_domain_and_user_succeeded, [Host, Uid, add_domain_admin_access_control]}),
-%       {ok, [add_domain_admin_access_control|State]};
-%   error ->
-%       gnosus_logger:alarm({add_domain_and_user_failed, [Host, Uid, add_domain_admin_access_control]}),
-%       {error, State}
-%     end;
-% 
-% add_domain_and_user(Host, Uid, Password, _) ->
-%     add_domain_and_user(Host, Uid, Password).
-% 
-% 
 %%================================================================================
 remove_host(Host) ->
-    remove_host(Host, []).
-
-%%--------------------------------------------------------------------------------
-remove_host(Host, State) ->
-    case apply_method_list([{host, Host}], [remove_route, remove_modules, remove_host_config, remove_authentication, remove_module_configs], State) of
+    Args = [{host, Host}],
+    case apply_method_list([remove_route, remove_modules, remove_host_config, remove_authentication_method, remove_module_configs], Args) of
    	    {ok, State} ->
    	        gnosus_logger:message({remove_host_succeeded, Host}),
    	        {ok, State};
    	    {error, State} ->
    	        gnosus_logger:alarm({remove_host_failed, Host}),
-   	        {error, State}
+	        rollback(Args, remove_to_add(State))
     end.
 
 %%--------------------------------------------------------------------------------
 remove_host_and_users(Host) ->
     Args = [{host, Host}],
-    case apply_method_list(Args, [remove_host_admin_access_control, remove_all_users]) of
-	    {ok, State} ->
-	        remove_host(Host, State);
+    case apply_method_list([remove_host_admin_access_control, remove_all_users], Args) of
+	    {ok, _State} ->
+	        gnosus_logger:alarm({remove_host_and_users_succeeded, Host}),
+	        remove_host(Host);
 	    {error, State} ->
 	        gnosus_logger:alarm({remove_host_and_users_failed, Host}),
-	        {error, State}
+	        rollback(Args, remove_to_add(State))
     end.
 
 %%--------------------------------------------------------------------------------
@@ -246,125 +175,74 @@ remove_hosts_and_users(Hosts) ->
 			            {error, State}
 		end, {ok, []}, Hosts).		  
 
-%%--------------------------------------------------------------------------------
-% remove_domain(Host) ->
-%     remove_domain(Host, {unregister_route, []}).
-% 
-% remove_domain(Host, {unregister_route, State}) ->
-%     case unregister_route(Host) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_succeeded, [Host, unregister_route]}),
-%       remove_domain(Host, {stop_modules, [unregister_route|State], modules(Host)});
-%   error ->
-%       gnosus_logger:alarm({remove_domain_failed, [Host, unregister_route]}),
-%       {error, State}
-%     end;
-% 
-% remove_domain(Host, {stop_modules, State, Modules}) ->
-%     case stop_modules(Host, Modules) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_succeeded, [Host, stop_modules]}),
-%       remove_domain(Host, {remove_host_config, [stop_modules|State]});
-%   error ->
-%       gnosus_logger:alarm({remove_domain_failed, [Host, stop_modules]}),
-%       {error, State}
-%     end;
-% 
-% remove_domain(Host, {remove_host_config, State}) ->
-%     case remove_host_config(Host) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_succeeded, [Host, remove_host_config]}),
-%       remove_domain(Host, {remove_authentication, [remove_domains|State]});
-%   error ->
-%       gnosus_logger:alarm({remove_domain_failed, [Host, remove_host_config]}),
-%       {error, State}
-%     end;
-% 
-% remove_domain(Host, {remove_authentication, State}) ->
-%     case remove_authentication(Host) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_succeeded, [Host, remove_authentication]}),
-%       remove_domain(Host, {remove_modules, [remove_authentication|State]});
-%   error ->
-%       gnosus_logger:alarm({remove_domain_failed, [Host, remove_authentication]}),
-%       {error, State}
-%     end;
-% 
-% remove_domain(Host, {remove_modules, State}) ->
-%     case remove_modules(Host) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_succeeded, [Host, remove_modules]}),
-%       {ok, [remove_modules|State]};
-%   error ->
-%       gnosus_logger:alarm({remove_domain_failed, [Host, remove_modules]}),
-%       {error, State}
-%     end;
-% 
-% remove_domain(Host, _) ->
-%     remove_domain(Host).
-% 
-%%--------------------------------------------------------------------------------
-% remove_domain_and_users(Host) ->
-%     case remove_domain_admin_access_control(Host) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_and_users_succeeded, [Host, remove_domain_admin_access_control]}),
-%       remove_domain_and_users(Host, {unregister_all_users, [remove_domain_admin_access_control]}) ;
-%   error ->
-%       gnosus_logger:alarm({remove_domain_and_users_failed, [Host, remove_domain_admin_access_control]}),
-%       {error, []}
-%     end.
-% 
-% remove_domain_and_users(Host, {unregister_all_users, State}) ->
-%     case unregister_all_users(Host) of
-%   ok ->
-%       gnosus_logger:message({remove_domain_and_users_succeeded, [Host, unregister_all_users]}),
-%       remove_domain_and_users(Host, {remove_domain, [unregister_all_users|State]}) ;
-%   error ->
-%       gnosus_logger:alarm({remove_domain_and_users_failed, [Host, unregister_all_users]}),
-%       {error, State}
-%     end;
-% 
-% remove_domain_and_users(Host, {remove_domain, State}) ->
-%     case remove_domain(Host) of
-%   {ok, HostState} ->
-%       gnosus_logger:message({remove_domain_and_users_succeeded, [Host, remove_domain]}),
-%       {ok, HostState++State};
-%   {error, HostState} ->
-%       gnosus_logger:alarm({remove_domain_and_users_failed, [Host, remove_domain]}),
-%       {error, HostState++State}
-%     end;
-% 
-% remove_domain_and_users(Host, _) ->
-%     remove_domain_and_users(Host).
-% 
-% 
 %%================================================================================
-hosts() ->
+ejabberd_hosts() ->
     rpc:call(ejabberd(), ejabberd_config, get_global_option, [hosts]).
 
 %%--------------------------------------------------------------------------------
-modules(Host) ->   
-    config_model:modules(Host).
-
-%%--------------------------------------------------------------------------------
-ejabberd() ->   
-    config_model:ejabberd().
-
-%%--------------------------------------------------------------------------------
 host(Args) ->
-    lists:keyfind(host, 0, Args).
+    {host, Val} = lists:keyfind(host, 1, Args),
+    Val.
 
 %%--------------------------------------------------------------------------------
 password(Args) ->
-    lists:keyfind(password, 0, Args).
+    {host, Val} = lists:keyfind(password, 1, Args),
+    Val.
 
 %%--------------------------------------------------------------------------------
 uid(Args) ->
-    lists:keyfind(uid, 0, Args).
+    {host, Val} = lists:keyfind(uid, 1, Args),
+    Val.
+
+%%--------------------------------------------------------------------------------
+modules(Host) ->   
+    gnosus_model:modules(Host).
+
+%%--------------------------------------------------------------------------------
+ejabberd() ->   
+    gnosus_model:ejabberd().
+
+%%--------------------------------------------------------------------------------
+add_to_remove(MethodList) ->
+    lists:map(fun(M)->list_to_atom("remove"++(atom_to_list(M)--"add"))end, MethodList).
+
+%%--------------------------------------------------------------------------------
+remove_to_add(MethodList) ->
+    lists:map(fun(M)->list_to_atom("add"++(atom_to_list(M)--"remove"))end, MethodList).
+
+%%================================================================================
+apply_method_list(MethodList, Args) ->
+    apply_method_list(MethodList, Args, []).
+
+%%--------------------------------------------------------------------------------
+apply_method_list([Method|MethodList], Args, State) ->
+    case apply(ejabberd, Method, [Args]) of
+	    ok ->
+	        gnosus_logger:message({apply_method_succeeded, [Method, Args]}),
+	        case MethodList of
+	            [] -> {ok, [Method|State]};
+	            _ -> apply_method_list(MethodList, Args, [Method|State])
+            end;
+	    error ->
+	        gnosus_logger:alarm({apply_method_failed, [Method, Args]}),
+	        {error, State}
+    end.
+
+%%--------------------------------------------------------------------------------
+rollback(Args, MethodList) ->
+    case apply_method_list(Args, MethodList) of
+	    {ok, State} ->
+            gnosus_logger:message({rollback_succeeded}),
+            {error, State};
+	    {error, State} ->
+            gnosus_logger:alarm({rollback_failed, [MethodList--State, Args]}),
+            {error, State}
+    end.
+    
 
 %%================================================================================
 add_host_config(Args) ->   
-    case rpc:call(ejabberd(), ejabberd_config, add_global_option, [hosts, hosts()++[host(Args)]]) of
+    case rpc:call(ejabberd(), ejabberd_config, add_global_option, [hosts, ejabberd_hosts()++[host(Args)]]) of
 	    {atomic, ok} ->
 	        ok;
 	    _ ->
@@ -373,7 +251,7 @@ add_host_config(Args) ->
 
 %%--------------------------------------------------------------------------------
 remove_host_config(Args) ->  
-    case rpc:call(ejabberd(), ejabberd_config, add_global_option, [hosts, lists:delete(host(Args), hosts())]) of
+    case rpc:call(ejabberd(), ejabberd_config, add_global_option, [hosts, lists:delete(host(Args), ejabberd_hosts())]) of
 	    {atomic, ok} ->
 	        ok;
 	    _ ->
@@ -400,7 +278,7 @@ remove_module_configs(Args) ->
     end.
 
 %%--------------------------------------------------------------------------------
-add_authentication(Args) ->
+add_authentication_method(Args) ->
     case rpc:call(ejabberd(), ejabberd_config, add_local_option, [{auth_method, host(Args)}, internal]) of
 	    {atomic, ok} ->
 	        ok;
@@ -409,7 +287,7 @@ add_authentication(Args) ->
     end.
     
 %%--------------------------------------------------------------------------------
-remove_authentication(Args) ->
+remove_authentication_method(Args) ->
     case rpc:call(ejabberd(), ejabberd_config, remove_local_option, [{auth_method, host(Args)}]) of
 	    {atomic, ok} ->
 	        ok;
@@ -469,22 +347,4 @@ remove_route(Args) ->
 	        ok;
 	    _ ->
 	        error
-    end.
-
-%%================================================================================
-apply_method_list(Args, MethodList) ->
-    apply_method_list(Args, MethodList, []).
-
-%%--------------------------------------------------------------------------------
-apply_method_list(Args, [Method|MethodList], State) ->
-    case apply(ejabberd, Method, Args) of
-	    ok ->
-	        gnosus_logger:message({apply_method_succeeded, [Method, Args]}),
-	        case MethodList of
-	            [] -> {ok, [Method|State]};
-	            _ -> apply_method_list(Args, MethodList, [Method|State])
-            end;
-	    error ->
-	        gnosus_logger:alarm({apply_method_failed, [Method, Args]}),
-	        {error, State}
     end.

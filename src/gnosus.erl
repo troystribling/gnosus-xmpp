@@ -4,17 +4,17 @@
 %% API
 -export([
 	start/0, 
-	stop/0
+	stop/0,
+	create_tables/0
 ]).
 
 %% include
 
 %%================================================================================
 start() ->
-    create_tables(),
     wait_for_tables(),
 	crypto:start(),
-	gnosus_utils:load_config_file(),
+	gnosus_model:load_config_file(),
     application:start(gnosus).
 
 %%--------------------------------------------------------------------------------
@@ -26,12 +26,13 @@ create_tables() ->
     mnesia:change_table_copy_type(schema, node(), disc_copies),
     do_create_ejabberd_tables(),
     do_create_tables(),
-    wait_for_tables().
+    wait_for_tables(),
+    init:stop().
  
 %%================================================================================
 do_create_tables() ->
     user_model:create_table(),
-    config_model:create_table(),
+    gnosus_model:create_table(),
     host_model:create_table().
     
 %%--------------------------------------------------------------------------------
