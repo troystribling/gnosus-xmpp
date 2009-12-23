@@ -16,10 +16,11 @@
 	add_host/1,
 	add_host_and_user/3,
 	remove_host/1,
-	remove_host_and_users/1,
-	remove_hosts_and_users/1,
+	remove_host_and_users/2,
+	remove_hosts_and_users/2,
 	ejabberd_hosts/0,
-	modules/1,
+	start_modules/1,
+	stop_modules/1,
 	password/1,
 	add_host_config/1,
 	remove_host_config/1,
@@ -70,23 +71,21 @@ remove_user(Uid, Host) ->
     end.
 
 %%--------------------------------------------------------------------------------
-remove_all_users(Args) when is_list(Args) ->
-    remove_all_users(host(Args));
-    
-remove_all_users(Host) ->
+remove_all_users(Args) ->
+    Host = host(Args),
     lists:foldl(fun({Uid, _UserHost}, ok) ->
-			           remove_user(Uid, Host);
-		           (_, error) ->
-			           error
-		        end, ok, passwd_model:find_all_by_host(Host)).		  
+                         remove_user(Uid, Host);
+                     (_, error) ->
+                         error
+                  end, ok, passwd_model:find_all_by_host(Host)).        
 
 %%--------------------------------------------------------------------------------
 add_access_control(Host, Acl, AclSpec) ->
     case rpc:call(ejabberd(), acl, add, [Host, Acl, AclSpec]) of
-	{atomic, ok} ->
-	    ok;
-	_ ->
-	    error
+    	{atomic, ok} ->
+    	    ok;
+    	_ ->
+    	    error
     end.
 
 %%--------------------------------------------------------------------------------
@@ -107,11 +106,8 @@ remove_access_control(Host, Acl) ->
     end.
 
 %%--------------------------------------------------------------------------------
-remove_host_admin_access_control(Args)  when is_list(Args) ->
-    remove_host_admin_access_control(host(Args));
-
-remove_host_admin_access_control(Host) ->
-    remove_access_control(Host, admin).
+remove_host_admin_access_control(Args) ->
+    remove_access_control(host(Args), admin).
 
 %%================================================================================
 add_host(Host) ->
@@ -122,25 +118,25 @@ add_host(Host) ->
 	        {ok, State};
 	    {error, State} ->
 	        gnosus_logger:alarm({add_host_failed, Host}),
-	        rollback(Args, add_to_remove(State))
+	        rollback(add_to_remove(State), Args)
     end.
 
 %%--------------------------------------------------------------------------------
 add_host_and_user(Host, Uid, Password) ->
     Args = [{host, Host}, {uid, Uid}, {password, Password}],
     case add_host(Host) of
-	    {ok, _} ->
-	        case apply_method_list([add_user, add_host_admin_access_control], Args) of
-        	    {ok, State} ->
+	    {ok, S1} ->
+	        case apply_method_list([add_user, add_host_admin_access_control], Args, S1) of
+        	    {ok, S2} ->
         	        gnosus_logger:message({add_host_and_user_succeeded, [Host, Uid]}),
-        	        {ok, State};
-        	    {error, State} ->
+        	        {ok, S2};
+        	    {error, S2} ->
         	        gnosus_logger:alarm({add_host_and_user_failed, [Host, Uid]}),
-        	        rollback(Args, add_to_remove(State))
+        	        rollback(add_to_remove(S2), Args)
     	    end;
-	    {error, State} ->
+	    {error, S1} ->
 	        gnosus_logger:alarm({add_host_and_user_failed, [Host, Uid]}),
-	        {error, State}
+	        {error, S1}
     end.
                              
 %%================================================================================
@@ -152,25 +148,31 @@ remove_host(Host) ->
    	        {ok, State};
    	    {error, State} ->
    	        gnosus_logger:alarm({remove_host_failed, Host}),
-	        rollback(Args, remove_to_add(State))
+	        rollback(remove_to_add(State), Args)
     end.
 
 %%--------------------------------------------------------------------------------
-remove_host_and_users(Host) ->
-    Args = [{host, Host}],
-    case apply_method_list([remove_host_admin_access_control, remove_all_users], Args) of
-	    {ok, _State} ->
-	        gnosus_logger:alarm({remove_host_and_users_succeeded, Host}),
-	        remove_host(Host);
-	    {error, State} ->
+remove_host_and_users(Host, Uid) ->
+    Args = [{host, Host}, {uid, Uid}],
+    case remove_host(Host) of
+	    {ok, S1} ->
+            case apply_method_list([remove_host_admin_access_control, remove_all_users], Args, S1) of
+           	    {ok, S2} ->
+           	        gnosus_logger:message({remove_host_and_users_succeeded, Host}),
+           	        {ok, S2};
+           	    {error, S2} ->
+           	        gnosus_logger:alarm({remove_host_and_users_failed, Host}),
+        	        rollback(remove_to_add(S2), Args)
+    	    end;
+	    {error, S1} ->
 	        gnosus_logger:alarm({remove_host_and_users_failed, Host}),
-	        rollback(Args, remove_to_add(State))
+	        {error, S1}
     end.
 
 %%--------------------------------------------------------------------------------
-remove_hosts_and_users(Hosts) ->
+remove_hosts_and_users(Hosts, Uid) ->
     lists:foldl(fun(Host, {ok, _State}) ->
-			            remove_host_and_users(Host);
+			            remove_host_and_users(Host, Uid);
 		            (_, {error, State}) ->
 			            {error, State}
 		end, {ok, []}, Hosts).		  
@@ -186,17 +188,21 @@ host(Args) ->
 
 %%--------------------------------------------------------------------------------
 password(Args) ->
-    {host, Val} = lists:keyfind(password, 1, Args),
+    {password, Val} = lists:keyfind(password, 1, Args),
     Val.
 
 %%--------------------------------------------------------------------------------
 uid(Args) ->
-    {host, Val} = lists:keyfind(uid, 1, Args),
+    {uid, Val} = lists:keyfind(uid, 1, Args),
     Val.
 
 %%--------------------------------------------------------------------------------
-modules(Host) ->   
-    gnosus_model:modules(Host).
+start_modules(Host) ->   
+    gnosus_model:start_modules(Host).
+
+%%--------------------------------------------------------------------------------
+stop_modules(Host) ->   
+    gnosus_model:stop_modules(Host).
 
 %%--------------------------------------------------------------------------------
 ejabberd() ->   
@@ -215,6 +221,9 @@ apply_method_list(MethodList, Args) ->
     apply_method_list(MethodList, Args, []).
 
 %%--------------------------------------------------------------------------------
+apply_method_list([], _Args, _State) -> 
+    {ok, []};
+
 apply_method_list([Method|MethodList], Args, State) ->
     case apply(ejabberd, Method, [Args]) of
 	    ok ->
@@ -229,10 +238,11 @@ apply_method_list([Method|MethodList], Args, State) ->
     end.
 
 %%--------------------------------------------------------------------------------
-rollback(Args, MethodList) ->
-    case apply_method_list(Args, MethodList) of
+rollback(MethodList, Args) ->
+    gnosus_logger:message({rollback_starting, MethodList}),
+    case apply_method_list(MethodList, Args) of
 	    {ok, State} ->
-            gnosus_logger:message({rollback_succeeded}),
+            gnosus_logger:message({rollback_succeeded, MethodList}),
             {error, State};
 	    {error, State} ->
             gnosus_logger:alarm({rollback_failed, [MethodList--State, Args]}),
@@ -259,31 +269,31 @@ remove_host_config(Args) ->
     end.
     
 %%--------------------------------------------------------------------------------
-add_module_configs(Args) ->   
+add_module_configs(Args) ->  
     Host = host(Args),
-    case rpc:call(ejabberd(), ejabberd_config, add_local_option, [{modules, Host}, modules(Host)]) of
-	    {atomic, ok} ->
-	        ok;
-	    _ ->
-	        error
+    case rpc:call(ejabberd(), ejabberd_config, add_local_option, [{modules, Host}, start_modules(Host)]) of
+          {atomic, ok} ->
+              ok;
+          _ ->
+              error
     end.
 
 %%--------------------------------------------------------------------------------
 remove_module_configs(Args) ->   
     case rpc:call(ejabberd(), ejabberd_config, remove_local_option, [{modules, host(Args)}]) of
-	    {atomic, ok} ->
-	        ok;
-	    _ ->
-	        error
+          {atomic, ok} ->
+              ok;
+          _ ->
+              error
     end.
 
 %%--------------------------------------------------------------------------------
 add_authentication_method(Args) ->
     case rpc:call(ejabberd(), ejabberd_config, add_local_option, [{auth_method, host(Args)}, internal]) of
-	    {atomic, ok} ->
-	        ok;
-	    _ ->
-	        error
+          {atomic, ok} ->
+              ok;
+          _ ->
+              error
     end.
     
 %%--------------------------------------------------------------------------------
@@ -302,7 +312,7 @@ add_modules(Args) ->
 			           add_module(Host, Module, Opts);
 		           (_, error) ->
 			           error
-		        end, ok, modules(Host)).		  
+		        end, ok, start_modules(Host)).		  
 
 %%--------------------------------------------------------------------------------
 add_module(Host, Module, Opts) ->
@@ -320,7 +330,7 @@ remove_modules(Args) ->
 			           remove_module(Host, Module);
 		           (_, error) ->
 			           error
-		        end, ok, modules(Host)).		  
+		        end, ok, stop_modules(Host)).		  
 
 %%--------------------------------------------------------------------------------
 remove_module(Host, Module) ->
@@ -334,17 +344,17 @@ remove_module(Host, Module) ->
 %%--------------------------------------------------------------------------------
 add_route(Args) ->
     case rpc:call(ejabberd(), ejabberd_local, register_host, [host(Args)]) of
-	    {register_host, _} ->
-	        ok;
-	    _ ->
-	        error
+          {register_host, _} ->
+              ok;
+          _ ->
+              error
     end.
 
 %%--------------------------------------------------------------------------------
 remove_route(Args) ->
     case rpc:call(ejabberd(), ejabberd_local, unregister_host, [host(Args)]) of
-	    {unregister_host, _} ->
-	        ok;
-	    _ ->
-	        error
+          {unregister_host, _} ->
+              ok;
+          _ ->
+              error
     end.

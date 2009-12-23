@@ -9,8 +9,8 @@
     delete_table/0,
     clear_table/0,
     find/1,
-    modules/0,
-    modules/1,
+    start_modules/1,
+    stop_modules/1,
     ejabberd/0,
     tld/0,
     load_config_file/0
@@ -69,14 +69,17 @@ find(Key) ->
      end.
 
 %%================================================================================
-modules() ->
+start_modules(_Host) ->
+    DefMods = find(default_modules),
+    OptMods = find(optional_modules),
+    SpecMods = find(special_modules),
+    DefMods#gnosus.value++OptMods#gnosus.value++SpecMods#gnosus.value.
+
+%%--------------------------------------------------------------------------------
+stop_modules(_Host) ->
     DefMods = find(default_modules),
     OptMods = find(optional_modules),
     DefMods#gnosus.value++OptMods#gnosus.value.
-
-%%--------------------------------------------------------------------------------
-modules(_Host) ->
-    modules().
 
 %%--------------------------------------------------------------------------------
 ejabberd() ->   
@@ -102,6 +105,8 @@ write_config(Config) ->
                                write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
                           optional_modules ->                              
                                write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
+                          special_modules ->                              
+                                write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
                           _ ->
                                write(#gnosus{key=Key, value=Value}) 
                       end

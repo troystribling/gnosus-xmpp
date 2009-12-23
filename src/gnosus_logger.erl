@@ -38,7 +38,7 @@ message({remove_host_succeeded, M}) ->
     error_logger:info_msg("remove host transaction succeededn for host: ~p~n", [M]);
 
 message({remove_host_and_users_succeeded, M}) ->
-    error_logger:info_msg("remove host and users transaction succeeded for host: ~p~n", M);
+    error_logger:info_msg("remove host and users transaction succeeded for host: ~p~n", [M]);
 
 message({add_host_user_succeeded, M}) ->
     error_logger:info_msg("add user: ~p, succeeded for host: ~p~n", M);
@@ -61,8 +61,11 @@ message({user_registeration_succeeded, M}) ->
 message({config_loaded, M}) ->
     error_logger:info_msg("configuration loaded: ~p~n", [M]);
 
-message({rollback_succeeded}) ->
-    error_logger:error_msg("rollback succeeded~n");
+message({rollback_succeeded, M}) ->
+    error_logger:info_msg("rollback succeeded: ~p~n", [M]);
+
+message({rollback_starting, M}) ->
+    error_logger:info_msg("rollback starting: ~p~n", [M]);
 
 message(X) ->
     error_logger:info_msg("~p~n", [X]).
@@ -75,10 +78,10 @@ warning({mnesia_start_error, M}) ->
     error_logger:warning_msg("mnesia start error: ~p~n", [M]);
  
 warning({authentication_failed, M}) ->
-    error_logger:info_msg("authentication failed for: ~p~n", [M]);
+    error_logger:warning_msg("authentication failed for: ~p~n", [M]);
 
 warning({authentication_authorization_failed, M}) ->
-    error_logger:info_msg("authentication authorization failed for request: ~p~n", [M]);
+    error_logger:warning_msg("authentication authorization failed for request: ~p~n", [M]);
 
 warning(X) ->
     error_logger:warning_msg("~p~n", [X]).
@@ -94,7 +97,7 @@ alarm({remove_host_failed, M}) ->
     error_logger:error_msg("remove host: ~p, transaction failed, starting rollback~n", [M]);
 
 alarm({add_host_and_user_failed, M}) ->
-    error_logger:error_msg("add host and user transaction failed for host: ~p and user: ~p~n", M);
+    error_logger:error_msg("add host and user transaction failed for host: ~p and user: ~p, starting rollback~n", M);
 
 alarm({remove_host_and_users_failed, M}) ->
     error_logger:error_msg("remove host and user transaction failed for host: ~p, starting rollback~n", [M]);
