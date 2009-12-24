@@ -34,6 +34,9 @@ message({apply_method_succeeded, M}) ->
 message({add_host_succeeded, M}) ->
     error_logger:info_msg("add host: ~p, transaction succeeded~n", [M]);
 
+message({add_host_ui_succeeded, M}) ->
+    error_logger:info_msg("add host succeeded for host: ~p and user:~p~n", M);
+
 message({add_host_and_user_succeeded, M}) ->
     error_logger:info_msg("add host and users transaction succeeded for host: ~p and user: ~p~n", M);
 
@@ -54,9 +57,6 @@ message({add_user_succeeded, M}) ->
 
 message({remove_user_succeeded, M}) ->
     error_logger:info_msg("remove user: ~p, succeeded", [M]);
-
-message({host_creation_succeeded, M}) ->
-    error_logger:info_msg("host creation succeeded for host: ~p and user:~p~n", M);
 
 message({user_registered, M}) ->
     error_logger:info_msg("user registered: ~p~n", [M]);
@@ -114,10 +114,10 @@ alarm({add_host_user_failed, M}) ->
 alarm({remove_host_user_failed, M}) ->
     error_logger:error_msg("remove user: ~p, failed for host: ~p~n", M);
 
-alarm({user_creation_failed, M}) ->
+alarm({add_user_failed, M}) ->
     error_logger:error_msg("user: ~p, creation failed", [M]);
 
-alarm({user_deletion_failed, M}) ->
+alarm({remove_user_failed, M}) ->
     error_logger:error_msg("user: ~p, deletion failed", [M]);
 
 alarm({host_user_deletion_invalid, M}) ->

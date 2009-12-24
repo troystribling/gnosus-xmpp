@@ -17,9 +17,15 @@ main() ->
 %%--------------------------------------------------------------------------------
 navigation() ->
 	#list{body=[ 
-        #listitem{body="host"},
-        #listitem{body=#link{text="admin", url="/web_users"}},
+        #listitem{body="<strong>host</strong"},
+        #listitem{body=#link{text="admin", url="/web/users"}},
 	    #listitem{body=#link{text="logout", postback=logout}}
+	]}.
+
+%%--------------------------------------------------------------------------------
+toolbar() ->
+	#list{body=[ 
+	    #listitem{body=#link{text="new host", postback=add_host, class="up-button"}}
 	]}.
 
 %%--------------------------------------------------------------------------------
@@ -32,7 +38,7 @@ body() ->
                 ]}] ++ lists:map(fun(H) ->
                                     #tablerow{cells=[
                                         #tablecell{text=H#hosts.host},
-                                        #tablecell{text=integer_to_list(H#hosts.num_users)},
+                                        #tablecell{text="0"},
                                         #tablecell{text="0"}
                                     ]} 
                                 end, host_model:find_all_by_uid(User#users.uid)),
@@ -41,6 +47,14 @@ body() ->
 %%================================================================================
 event(logout) ->
     gnosus_utils:logout();
+
+%%--------------------------------------------------------------------------------
+event(add_host) ->
+    wf:redirect("/web/host/add");
+
+%%--------------------------------------------------------------------------------
+event(remove_host) ->
+    wf:redirect("/web/host/add");
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.

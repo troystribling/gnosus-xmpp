@@ -33,7 +33,7 @@ body() ->
             #password{id=passwordTextBox, next=loginButton }
         ], class="form login"},
 
-        #p{body=#link{id=loginButton, text="login", postback=login, class="form-button"}, 
+        #p{body=#link{id=loginButton, text="login", postback=login, class="up-button form-button"}, 
            class="form login-button"}
     ],
 

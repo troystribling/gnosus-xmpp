@@ -85,7 +85,7 @@ hosts_list() ->
 
 %%--------------------------------------------------------------------------------
 new(Host, Uid) ->
-    write(#hosts{uid=Uid, host=Host, num_users=1}).
+    write(#hosts{uid=Uid, host=Host}).
 
 %%================================================================================
 write(D) when is_record(D, hosts) ->

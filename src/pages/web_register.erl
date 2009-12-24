@@ -28,7 +28,7 @@ body() ->
             #textbox {id=emailTextBox, next=registerButton}
         ], class="form register"},
 
-        #p{body=#link{ id=registerButton, text="register", postback=register, class="form-button"}, class="form register-button"}
+        #p{body=#link{ id=registerButton, text="register", postback=register, class="up-button form-button"}, class="form register-button"}
     ],
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[

@@ -17,6 +17,19 @@ body {
 img {
     border-style: none;
 }
+.up-button {
+    height:32px;
+    background-image:url('/images/button-up-background.png');
+    background-repeat:repeat-x;
+    border: 1px solid #999;
+    font-size: inherit;
+    font-weight: inherit;
+    margin-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: right;
+    clear: both;
+}
 /******* display areas *******/
 #navigation-wrapper {
     color: #000;
@@ -33,6 +46,7 @@ img {
 }
 #subtitle-wrapper {
     margin: 0 auto;
+    margin-bottom: 40px;
     padding-left: 100px;
     width: 1000px;
     text-align: left;
@@ -42,7 +56,6 @@ img {
 }
 #toolbar-wrapper {
     margin: 0 auto;
-    margin-top: 30px;
     width: 1000px;
     text-align: left;
 }
@@ -51,7 +64,6 @@ img {
 }
 #breadcrumbs-wrapper {
     margin: 0 auto;
-    margin-top: 30px;
     width: 1000px;
     text-align: left;
 }
@@ -60,7 +72,6 @@ img {
 }
 #page-wrapper {
     margin: 0 auto;
-    margin-top: 30px;
     width: 1000px;
     text-align: left;
 }
@@ -96,7 +107,7 @@ img {
     margin: 0px;
 }
 #navigation strong {
-    color: #FFF;
+    color: #000;
 }
 #navigation a {
     color: #888;
@@ -107,11 +118,11 @@ img {
     text-decoration: none;
 }
 #navigation a:hover {
-    color: #367da6;
+    color: #800;
     text-decoration: none;
 }
 #navigation a:visited:hover {
-    color: #367da6;
+    color: #800;
     text-decoration: none;
 }
 #navigation ul {
@@ -125,7 +136,6 @@ img {
     margin: 0px;
     margin-left: 10px;
 } 
-
 /*******  form style    *******/
 .form label {
     float: left;
@@ -141,20 +151,6 @@ img {
     font-size: inherit;
     font-weight: inherit;
     margin-top: 15px
-}
-.form-button {
-    height:32px;
-    background-image:url('/images/button-background.png');
-    background-repeat:repeat-x;
-    border: 1px solid #999;
-    font-size: inherit;
-    font-weight: inherit;
-    margin-top: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-    float: right;
-    text-align: right;
-    clear: both;
 }
 .form a {
     color: #000;
@@ -175,6 +171,9 @@ img {
     color: #000;
     outline: none;
     text-decoration: none;
+}
+.form-button {
+    float: right;
 }
 /*******  login style   *******/
 .login label {
@@ -219,10 +218,11 @@ img {
 .user-system-button {
   width: 19em;
 }
-/******* host create style *******/
-.host-create input {
+/******* host add style *******/
+.host-add input {
+    font-size: .9em;
 }
-.host-create-button {
+.host-add-button {
   width: 15.0em;
 }
 /******* host style *******/
@@ -230,6 +230,40 @@ img {
 }
 .host-button {
   width: 10.5em;
+}
+/******* toolbar style *******/
+#toolbar a {
+    color: #000;
+    margin:0px;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar a:visited {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar a:hover {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar a:visited:hover {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+#toolbar li {
+    display: inline;
+    font-size: 1.0em;
+    margin: 0px;
+} 
+.toolbar-button {
 }
 /******* data table style *******/
 table.data {
@@ -243,9 +277,6 @@ table.data {
 }
 .data .odd {
   background-color: #EBEBEB;
-}
-.data input {
-  font-size: 0.9em;
 }
 .data th {
   background-color: #EEE;
