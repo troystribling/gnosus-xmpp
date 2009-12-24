@@ -24,7 +24,19 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 body() ->
-    #label{text="hosts"}.
+    User = wf:user(),
+    Rows = [#tablerow{cells=[
+                #tableheader{text="host"},
+                #tableheader{text="users"},
+                #tableheader{text="online users"}
+                ]}] ++ lists:map(fun(H) ->
+                                    #tablerow{cells=[
+                                        #tablecell{text=H#hosts.host},
+                                        #tablecell{text=integer_to_list(H#hosts.num_users)},
+                                        #tablecell{text="0"}
+                                    ]} 
+                                end, host_model:find_all_by_uid(User#users.uid)),
+    #table{rows=Rows, class="data"}.
 	
 %%================================================================================
 event(logout) ->

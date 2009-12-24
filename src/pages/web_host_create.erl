@@ -46,7 +46,25 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(create_host) -> 
-    wf:redirect("/web/host");
+    User = wf:user(),
+    [Host] = wf:q(hostTextBox),
+    case ejabberd:add_host_and_user(Host, User#users.uid, User#users.password) of
+        {ok, _} ->
+            Hosts = wf:session(hosts),
+            wf:session(hosts, Hosts++[Host]),
+            case host_model:new(Host, User#users.uid) of
+                ok ->
+                    gnosus_logger:message({host_creation_succeeded, [Host, User#users.uid]}),
+                    gnosus_utils:host_page_redirect();
+                error ->
+                    ejebberd:remove_host_and_users(Host, User#users.uid),
+                    gnosus_logger:alarm({host_database_update_failed, [Host, User#users.uid]}),
+                    wf:flash("host database update failed")            
+            end;
+        {error, _} ->
+            wf:flash("host creation failed")            
+    end;
+    
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.

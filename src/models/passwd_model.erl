@@ -15,8 +15,8 @@
 -include_lib("stdlib/include/qlc.hrl").
  
 %%--------------------------------------------------------------------------------
-find_all_by_host(Domain) ->
-	gnosus_dbi:dirty_select(passwd, [{#passwd{us = '$1', _ = '_'}, [{'==', {element, 2, '$1'}, Domain}], ['$1']}]).
+find_all_by_host(Host) ->
+	gnosus_dbi:dirty_select(passwd, [{#passwd{us = '$1', _ = '_'}, [{'==', {element, 2, '$1'}, Host}], ['$1']}]).
 
 %%--------------------------------------------------------------------------------
 find(all) ->
@@ -27,8 +27,8 @@ find(Jid) ->
 	JidTokens = string:tokens(Jid,"@"),
     case length(JidTokens) of
 	2 ->	    
-	    [Uid, Domain] = JidTokens,
-	     case gnosus_dbi:read_row({passwd, {Uid, Domain}}) of
+	    [Uid, Host] = JidTokens,
+	     case gnosus_dbi:read_row({passwd, {Uid, Host}}) of
 		 [] ->
 		     notfound;
 		 aborted ->

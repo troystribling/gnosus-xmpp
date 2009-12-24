@@ -54,7 +54,8 @@ event(login) ->
     case user_model:authenticate(Uid, Password) of
         true ->
             wf:user(user_model:find(Uid)),
-            wf:redirect("/web/host/create");
+            wf:session(hosts, host_model:hosts_list_by_uid(Uid)),
+            gnosus_utils:start_page_redirect();
         false ->
             wf:flash("authentication failed")
     end;

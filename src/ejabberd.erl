@@ -158,10 +158,10 @@ remove_host_and_users(Host, Uid) ->
 	    {ok, S1} ->
             case apply_method_list([remove_host_admin_access_control, remove_all_users], Args, S1) of
            	    {ok, S2} ->
-           	        gnosus_logger:message({remove_host_and_users_succeeded, Host}),
+           	        gnosus_logger:message({remove_host_and_users_succeeded, [Host, Uid]}),
            	        {ok, S2};
            	    {error, S2} ->
-           	        gnosus_logger:alarm({remove_host_and_users_failed, Host}),
+           	        gnosus_logger:alarm({remove_host_and_users_failed, [Host, Uid]}),
         	        rollback(remove_to_add(S2), Args)
     	    end;
 	    {error, S1} ->

@@ -45,8 +45,8 @@ find(all) ->
     gnosus_dbi:q(qlc:q([X || X <- mnesia:table(hosts)]));
  
 %%--------------------------------------------------------------------------------
-find(Domain) ->
-    case gnosus_dbi:read_row({hosts, Domain}) of
+find(Host) ->
+    case gnosus_dbi:read_row({hosts, Host}) of
         [] ->
             notfound;
 	aborted ->
@@ -64,13 +64,13 @@ count() ->
     gnosus_dbi:count(hosts).
  
 %%--------------------------------------------------------------------------------
-delete(Domain) ->
-    gnosus_dbi:delete_row({hosts, Domain}).
+delete(Host) ->
+    gnosus_dbi:delete_row({hosts, Host}).
 
 %%--------------------------------------------------------------------------------
 delete_by_uid(Uid) ->
-    lists:foldl(fun(Domain, ok) ->
-			delete(Domain);
+    lists:foldl(fun(Host, ok) ->
+			delete(Host);
 		   (_, error) ->
 			error
 		end, ok, hosts_list_by_uid(Uid)).		  
@@ -83,13 +83,13 @@ hosts_list_by_uid(Uid) ->
 hosts_list() ->
     lists:foldl(fun(D,L) -> [D#hosts.host|L] end, [], find(all)).
 
+%%--------------------------------------------------------------------------------
+new(Host, Uid) ->
+    write(#hosts{uid=Uid, host=Host, num_users=1}).
+
 %%================================================================================
 write(D) when is_record(D, hosts) ->
     gnosus_dbi:write_row(D);
 write(_) ->
     error.
-
-%%--------------------------------------------------------------------------------
-new(Domain, Uid) ->
-    write(#hosts{uid=Uid, host=Domain}).
 

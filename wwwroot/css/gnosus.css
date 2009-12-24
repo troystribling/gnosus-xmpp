@@ -40,6 +40,24 @@ img {
 #subtitle {
     margin: 0px;
 }
+#toolbar-wrapper {
+    margin: 0 auto;
+    margin-top: 30px;
+    width: 1000px;
+    text-align: left;
+}
+#toolbar {
+    margin: 0px;
+}
+#breadcrumbs-wrapper {
+    margin: 0 auto;
+    margin-top: 30px;
+    width: 1000px;
+    text-align: left;
+}
+#breadcrumbs {
+    margin: 0px;
+}
 #page-wrapper {
     margin: 0 auto;
     margin-top: 30px;

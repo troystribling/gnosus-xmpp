@@ -21,7 +21,8 @@
 %% domains
 -record(hosts, {
     host,
-    uid
+    uid,
+    num_users
 }).
 
 %% ejabberd password database

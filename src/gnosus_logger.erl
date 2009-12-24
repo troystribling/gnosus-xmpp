@@ -34,11 +34,14 @@ message({apply_method_succeeded, M}) ->
 message({add_host_succeeded, M}) ->
     error_logger:info_msg("add host: ~p, transaction succeeded~n", [M]);
 
+message({add_host_and_user_succeeded, M}) ->
+    error_logger:info_msg("add host and users transaction succeeded for host: ~p and user: ~p~n", M);
+
 message({remove_host_succeeded, M}) ->
     error_logger:info_msg("remove host transaction succeededn for host: ~p~n", [M]);
 
 message({remove_host_and_users_succeeded, M}) ->
-    error_logger:info_msg("remove host and users transaction succeeded for host: ~p~n", [M]);
+    error_logger:info_msg("remove host and users transaction succeeded for host: ~p and user: ~p~n", M);
 
 message({add_host_user_succeeded, M}) ->
     error_logger:info_msg("add user: ~p, succeeded for host: ~p~n", M);
@@ -51,6 +54,9 @@ message({add_user_succeeded, M}) ->
 
 message({remove_user_succeeded, M}) ->
     error_logger:info_msg("remove user: ~p, succeeded", [M]);
+
+message({host_creation_succeeded, M}) ->
+    error_logger:info_msg("host creation succeeded for host: ~p and user:~p~n", M);
 
 message({user_registered, M}) ->
     error_logger:info_msg("user registered: ~p~n", [M]);
@@ -100,7 +106,7 @@ alarm({add_host_and_user_failed, M}) ->
     error_logger:error_msg("add host and user transaction failed for host: ~p and user: ~p, starting rollback~n", M);
 
 alarm({remove_host_and_users_failed, M}) ->
-    error_logger:error_msg("remove host and user transaction failed for host: ~p, starting rollback~n", [M]);
+    error_logger:error_msg("remove host and user transaction failed for host: ~p and user: ~p, starting rollback~n", M);
         
 alarm({add_host_user_failed, M}) ->
     error_logger:error_msg("add user: ~p, failed for host: ~p~n", M);
@@ -116,6 +122,9 @@ alarm({user_deletion_failed, M}) ->
 
 alarm({host_user_deletion_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to delete user~n", M);
+
+alarm({host_database_update_failed, M}) ->
+    error_logger:error_msg("host database update failed for user: ~p, and host~n", M);
 
 alarm({host_access_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to modify it: ~p~n", M);
