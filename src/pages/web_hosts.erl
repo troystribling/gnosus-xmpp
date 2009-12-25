@@ -36,12 +36,15 @@ body() ->
                 #tableheader{text="users"},
                 #tableheader{text="online users"}
                 ]}] ++ lists:map(fun(H) ->
-                                    #tablerow{cells=[
-                                        #tablecell{text=H#hosts.host},
-                                        #tablecell{text="0"},
-                                        #tablecell{text="0"}
-                                    ]} 
-                                end, host_model:find_all_by_uid(User#users.uid)),
+                                     #tablerow{cells=[
+                                         #tablecell{body=[
+                                             #link{body=#image{image="/images/data-delete.png"}, postback=remove_host, class="data-edit-controls"},
+                                             #p{body=H#hosts.host, class="data-item"}
+                                         ]},
+                                         #tablecell{text="0"},
+                                         #tablecell{text="0"}
+                                     ], class="data-edit"} 
+                                 end, host_model:find_all_by_uid(User#users.uid)),
     #table{rows=Rows, class="data"}.
 	
 %%================================================================================

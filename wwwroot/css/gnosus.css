@@ -17,19 +17,6 @@ body {
 img {
     border-style: none;
 }
-.up-button {
-    height:32px;
-    background-image:url('/images/button-up-background.png');
-    background-repeat:repeat-x;
-    border: 1px solid #999;
-    font-size: inherit;
-    font-weight: inherit;
-    margin-top: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-    text-align: right;
-    clear: both;
-}
 /******* display areas *******/
 #navigation-wrapper {
     color: #000;
@@ -136,6 +123,20 @@ img {
     margin: 0px;
     margin-left: 10px;
 } 
+/******* up-button style *******/
+.up-button {
+    height:32px;
+    background-image:url('/images/button-up-background.png');
+    background-repeat:repeat-x;
+    border: 1px solid #999;
+    font-size: inherit;
+    font-weight: inherit;
+    margin-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: right;
+    clear: both;
+}
 /*******  form style    *******/
 .form label {
     float: left;
@@ -267,30 +268,35 @@ img {
 }
 /******* data table style *******/
 table.data {
-  text-align: left;
-  margin-top: 10px;
-  border: 1px solid #DDD;
-  border-collapse: collapse;
-}
-.data .even {
-  background-color: #FFF;
-}
-.data .odd {
-  background-color: #EBEBEB;
+    text-align: left;
+    margin-top: 10px;
+    border: 1px solid #DDD;
+    border-collapse: collapse;
 }
 .data th {
-  background-color: #EEE;
-  padding: 5px 15px;
-  text-align: center;
-  border: 1px solid #DDD;
+    background-color: #DDD;
+    padding: 5px 15px;
+    text-align: center;
+    border: 1px solid #CCC;
 }
 .data td {
-  padding: 5px 15px;
-  text-align: center;
-  font-size: 0.9em;
-  border: 1px solid #DDD;
+    padding: 5px 15px;
+    text-align: center;
+    font-size: 0.9em;
+    border: 1px solid #CCC;
 }
-
+tr.data-edit {
+}
+tr.data-edit-select {
+    background-color: #DDD;
+}
+.data-edit-controls {
+    float: left;
+    margin: 0px 5px 0px 0px;
+}
+.data-item {
+    display: inline;
+}
 /******* validation messages *******/
 .LV_invalid { 
     background-color: #FFF;
