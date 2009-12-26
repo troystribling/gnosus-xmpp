@@ -259,7 +259,7 @@ p.form {
 .toolbar-button {
 }
 /******* data table style *******/
-table.data {
+.data table {
     text-align: left;
     margin-top: 10px;
     border: 1px solid #DDD;
@@ -289,7 +289,7 @@ tr.data-edit-select {
 }
 .data-edit-controls {
     position: absolute;
-    left: -14px;
+    right: -14px;
     padding: 0px;
     z-index: 1;
     display: none;

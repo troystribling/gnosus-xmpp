@@ -30,25 +30,7 @@ toolbar() ->
 
 %%--------------------------------------------------------------------------------
 body() ->
-    User = wf:user(),
-    Rows = [#tablerow{cells=[
-                #tableheader{text="host"},
-                #tableheader{text="users"},
-                #tableheader{text="online users"}
-                ]}] ++ lists:map(fun(H) ->
-                                     #tablerow{cells=[
-                                         #tablecell{body=
-                                            #p{body=[
-                                                #link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, 
-                                                      class="data-edit-controls"},
-                                                H#hosts.host
-                                            ], class="data-item"}
-                                         },
-                                         #tablecell{text="0"},
-                                         #tablecell{text="0"}
-                                     ], class="data-edit"} 
-                                 end, host_model:find_all_by_uid(User#users.uid)),
-    #table{rows=Rows, class="data"}.
+    #panel{body=table_data(), id=tableData, class="data"}.
 	
 %%================================================================================
 event(logout) ->
@@ -60,8 +42,32 @@ event(add_host) ->
 
 %%--------------------------------------------------------------------------------
 event({remove_host, Host}) ->
-    gnosus_utils:remove_host(Host);
+    case gnosus_utils:remove_host(Host) of
+        ok -> wf:update(tableData, table_data());            
+        Result -> Result
+    end;
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
 
+%%================================================================================
+table_data() ->
+    User = wf:user(),
+    Rows = [#tablerow{cells=[
+                #tableheader{text="host"},
+                #tableheader{text="users"},
+                #tableheader{text="online users"}
+                ]}] ++ lists:map(fun(H) ->
+                                     #tablerow{cells=[
+                                         #tablecell{body=H#hosts.host},
+                                         #tablecell{text="0"},
+                                         #tablecell{body=
+                                            #p{body=[
+                                                #link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, 
+                                                      class="data-edit-controls"},
+                                               "0"
+                                            ], class="data-item"}
+                                         }
+                                     ], class="data-edit"} 
+                                 end, host_model:find_all_by_uid(User#users.uid)),
+    #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.

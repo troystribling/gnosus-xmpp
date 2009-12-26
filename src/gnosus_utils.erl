@@ -74,7 +74,7 @@ remove_host(Host) ->
             case host_model:delete(Host) of
                 ok ->
                     gnosus_logger:message({remove_host_ui_succeeded, [Host, User#users.uid]}),
-                    gnosus_utils:host_page_redirect();
+                    ok;
                 error ->
                     ejebberd:add_host_and_users(Host, User#users.uid, User#users.password),
                     gnosus_logger:alarm({host_database_update_failed, [Host, User#users.uid]}),

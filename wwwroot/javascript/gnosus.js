@@ -17,7 +17,3 @@ function init_data_edit_row() {
         }
     ); 
 }
-
-$(document).ready(function() { 
-    init_data_edit_row();
-}); 
