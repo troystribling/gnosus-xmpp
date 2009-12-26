@@ -43,6 +43,9 @@ message({add_host_and_user_succeeded, M}) ->
 message({remove_host_succeeded, M}) ->
     error_logger:info_msg("remove host transaction succeededn for host: ~p~n", [M]);
 
+message({remove_host_ui_succeeded, M}) ->
+    error_logger:info_msg("remove host succeeded for host: ~p and user:~p~n", M);
+
 message({remove_host_and_users_succeeded, M}) ->
     error_logger:info_msg("remove host and users transaction succeeded for host: ~p and user: ~p~n", M);
 
@@ -106,7 +109,7 @@ alarm({add_host_and_user_failed, M}) ->
     error_logger:error_msg("add host and user transaction failed for host: ~p and user: ~p, starting rollback~n", M);
 
 alarm({remove_host_and_users_failed, M}) ->
-    error_logger:error_msg("remove host and user transaction failed for host: ~p and user: ~p, starting rollback~n", M);
+    error_logger:error_msg("remove host and user transaction failed for host: ~p and user: ~p~n", M);
         
 alarm({add_host_user_failed, M}) ->
     error_logger:error_msg("add user: ~p, failed for host: ~p~n", M);

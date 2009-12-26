@@ -75,20 +75,8 @@ img {
     width: 30%;
     float: left;
 }
-/******* page style *******/
-#page h1 {
-    font-size: 1.25em;
-}
-#page p {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-#page h2 {
-    font-size: 1.1em;
-}
 /******* navigation style *******/
-#navigation h1 {
-    font-size: 1.5em;
+#navigation img {
     float: left;
     padding: 0px;
     margin: 0px;
@@ -116,6 +104,7 @@ img {
     list-style-type: none;
     float: right;
     margin-top: 10px;
+    margin-bottom: 0px;
 }
 #navigation li {
     display: inline;
@@ -146,6 +135,9 @@ img {
     text-align: right;
     margin-right: 10px;
     margin-top: 20px
+}
+p.form {
+    margin: 0px;
 }
 .form input {
     width: 12.5em;
@@ -290,12 +282,17 @@ tr.data-edit {
 tr.data-edit-select {
     background-color: #DDD;
 }
-.data-edit-controls {
-    float: left;
-    margin: 0px 5px 0px 0px;
-}
 .data-item {
-    display: inline;
+    position: relative;
+    padding: 0px;
+    margin: 0px;
+}
+.data-edit-controls {
+    position: absolute;
+    left: -14px;
+    padding: 0px;
+    z-index: 1;
+    display: none;
 }
 /******* validation messages *******/
 .LV_invalid { 

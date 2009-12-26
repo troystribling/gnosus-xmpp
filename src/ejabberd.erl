@@ -15,7 +15,7 @@
 	remove_host_admin_access_control/1,
 	add_host/1,
 	add_host_and_user/3,
-	remove_host/1,
+	remove_host/2,
 	remove_host_and_users/2,
 	remove_hosts_and_users/2,
 	ejabberd_hosts/0,
@@ -140,32 +140,37 @@ add_host_and_user(Host, Uid, Password) ->
     end.
                              
 %%================================================================================
-remove_host(Host) ->
-    Args = [{host, Host}],
-    case apply_method_list([remove_route, remove_modules, remove_host_config, remove_authentication_method, remove_module_configs], Args) of
-   	    {ok, State} ->
+remove_host(Host, Uid) ->
+    remove_host(Host, Uid, []).
+    
+%%--------------------------------------------------------------------------------
+remove_host(Host, Uid, State) ->
+    Args = [{host, Host}, {uid, Uid}],
+    case apply_method_list([remove_route, remove_modules, remove_host_config, remove_authentication_method, remove_module_configs], Args, State) of
+   	    {ok, S} ->
    	        gnosus_logger:message({remove_host_succeeded, Host}),
-   	        {ok, State};
-   	    {error, State} ->
+   	        {ok, S};
+   	    {error, S} ->
    	        gnosus_logger:alarm({remove_host_failed, Host}),
-	        rollback(remove_to_add(State), Args)
+	        rollback(remove_to_add(S), Args)
     end.
 
 %%--------------------------------------------------------------------------------
 remove_host_and_users(Host, Uid) ->
     Args = [{host, Host}, {uid, Uid}],
-    case remove_host(Host) of
+    case apply_method_list([remove_host_admin_access_control, remove_all_users], Args) of
 	    {ok, S1} ->
-            case apply_method_list([remove_host_admin_access_control, remove_all_users], Args, S1) of
+            case remove_host(Host, S1) of
            	    {ok, S2} ->
            	        gnosus_logger:message({remove_host_and_users_succeeded, [Host, Uid]}),
            	        {ok, S2};
            	    {error, S2} ->
            	        gnosus_logger:alarm({remove_host_and_users_failed, [Host, Uid]}),
-        	        rollback(remove_to_add(S2), Args)
+        	        {error, S2}
     	    end;
 	    {error, S1} ->
 	        gnosus_logger:alarm({remove_host_and_users_failed, Host}),
+	        rollback(remove_to_add(S1), Args),
 	        {error, S1}
     end.
 
@@ -214,7 +219,7 @@ add_to_remove(MethodList) ->
 
 %%--------------------------------------------------------------------------------
 remove_to_add(MethodList) ->
-    lists:map(fun(M)->list_to_atom("add"++(atom_to_list(M)--"remove"))end, MethodList).
+    lists:map(fun(M)->list_to_atom("add"++(atom_to_list(M)--"remove"))end, lists:delete(remove_all_users, MethodList)).
 
 %%================================================================================
 apply_method_list(MethodList, Args) ->
@@ -260,12 +265,12 @@ add_host_config(Args) ->
     end.
 
 %%--------------------------------------------------------------------------------
-remove_host_config(Args) ->  
+remove_host_config(Args) -> 
     case rpc:call(ejabberd(), ejabberd_config, add_global_option, [hosts, lists:delete(host(Args), ejabberd_hosts())]) of
-	    {atomic, ok} ->
-	        ok;
-	    _ ->
-	        error
+          {atomic, ok} ->
+              ok;
+          _ ->
+              error
     end.
     
 %%--------------------------------------------------------------------------------

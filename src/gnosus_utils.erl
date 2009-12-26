@@ -8,7 +8,7 @@
     host_page_redirect/0,
     start_page_redirect/0,
     add_host/0,
-    remove_host/0
+    remove_host/1
 ]).
  
 %% include
@@ -65,9 +65,8 @@ add_host() ->
     end.
 
 %%--------------------------------------------------------------------------------
-remove_host() ->
+remove_host(Host) ->
     User = wf:user(),
-    [Host] = wf:q(hostTextBox),
     case ejabberd:remove_host_and_users(Host, User#users.uid) of
         {ok, _} ->
             Hosts = wf:session(hosts),

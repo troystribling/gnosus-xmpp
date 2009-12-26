@@ -37,10 +37,13 @@ body() ->
                 #tableheader{text="online users"}
                 ]}] ++ lists:map(fun(H) ->
                                      #tablerow{cells=[
-                                         #tablecell{body=[
-                                             #link{body=#image{image="/images/data-delete.png"}, postback=remove_host, class="data-edit-controls"},
-                                             #p{body=H#hosts.host, class="data-item"}
-                                         ]},
+                                         #tablecell{body=
+                                            #p{body=[
+                                                #link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, 
+                                                      class="data-edit-controls"},
+                                                H#hosts.host
+                                            ], class="data-item"}
+                                         },
                                          #tablecell{text="0"},
                                          #tablecell{text="0"}
                                      ], class="data-edit"} 
@@ -56,8 +59,8 @@ event(add_host) ->
     wf:redirect("/web/host/add");
 
 %%--------------------------------------------------------------------------------
-event(remove_host) ->
-    wf:redirect("/web/host/add");
+event({remove_host, Host}) ->
+    gnosus_utils:remove_host(Host);
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
