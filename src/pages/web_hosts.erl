@@ -16,11 +16,7 @@ main() ->
 
 %%--------------------------------------------------------------------------------
 navigation() ->
-	#list{body=[ 
-        #listitem{body="<strong>host</strong"},
-        #listitem{body=#link{text="admin", url="/web/users"}},
-	    #listitem{body=#link{text="logout", postback=logout}}
-	]}.
+    gnosus_utils:navigation(hosts).   
 
 %%--------------------------------------------------------------------------------
 toolbar() ->
@@ -59,7 +55,7 @@ table_data() ->
                 #tableheader{text="online users"}
                 ]}] ++ lists:map(fun(H) ->
                                      #tablerow{cells=[
-                                         #tablecell{body=H#hosts.host},
+                                         #tablecell{body=#link{text=H#hosts.host, url="/web/host/"++wf:html_encode(H#hosts.host, true)}},
                                          #tablecell{text="0"},
                                          #tablecell{body=
                                             #p{body=[

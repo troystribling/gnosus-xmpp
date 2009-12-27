@@ -5,7 +5,7 @@
 %% API
 -export([
     fields/0, 
-    registration_status_values/0,
+    status_values/0,
     role_values/0,
     product_values/0,
     create_table/0,
@@ -17,17 +17,15 @@
     count/0,
     password/2,
     email/2,
-    registration_status/2,
+    status/2,
     role/2,
     product/2,
     register/1,
-    new_user/3,
+    new_user/2,
     new_admin/3,
     write/1,
     new/6,
-    new/1,
     update/6,
-    update/1,
     authenticate/2
 ]).
  
@@ -41,8 +39,8 @@ fields() ->
 	record_info(fields, users).
 
 %%--------------------------------------------------------------------------------
-registration_status_values() ->
-    [active, inactive, registered].
+status_values() ->
+    [active, inactive, registered, disabled, deleted].
 
 %%--------------------------------------------------------------------------------
 role_values() ->
@@ -125,12 +123,12 @@ email(Uid, EMail) ->
     end.
 
 %%--------------------------------------------------------------------------------
-registration_status(Uid, RegistrationStatus) ->
+status(Uid, Status) ->
     case find(Uid) of
         notfound ->
             notfound;
         User ->
-            write(User#users{registration_status=RegistrationStatus, updated_at = now()})
+            write(User#users{status=Status, updated_at = now()})
     end.
 
 %%--------------------------------------------------------------------------------
@@ -158,73 +156,50 @@ write(_) ->
     error.
  
 %%--------------------------------------------------------------------------------
-new(EMail, Uid, Password, RegistrationStatus, Role, Product) ->
+new(EMail, Uid, Password, Status, Role, Product) ->
     {S1,S2,S3} = now(),
     random:seed(S1,S2,S3),
-    write(#users{email=EMail,
-		 uid=Uid,		 
-		 password=Password, 
-		 registration_status=RegistrationStatus,
-		 role=Role,
-		 product = Product,
-		 registration_code=random:uniform(100000000),
-		 created_at=now(),
-		 updated_at=now(),
-		 last_login=never,
-		 login_count=0,
-		 failed_login_count=0}).
-
-%%--------------------------------------------------------------------------------
-new(U) when is_record(U, users) ->
-    new(
-      U#users.email,
-      U#users.uid, 
-      U#users.password, 
-      U#users.registration_status, 
-      U#users.role, 
-      U#users.product);
-new(_) ->
-    error.
+    write(#users{
+              email=EMail,
+		      uid=Uid,		 
+		      password=Password, 
+		      status=Status,
+		      role=Role,
+		      product = Product,
+		      registration_code=random:uniform(100000000),
+		      created_at=now(),
+		      updated_at=now(),
+		      last_login=never,
+		      login_count=0,
+		      failed_login_count=0
+		  }).
 
 %%--------------------------------------------------------------------------------
 register(EMail) ->
-   new(EMail, "undefined", "undefined", registered, user, free).
+   new(EMail, undefined, undefined, registered, user, free).
 
 %%--------------------------------------------------------------------------------
-new_user(EMail, Uid, Password) ->
-   new(EMail, Uid, Password, active, user, free).
+new_user(EMail, Uid) ->
+   new(EMail, Uid, undefined, active, user, free).
 
 %%--------------------------------------------------------------------------------
 new_admin(EMail, Uid, Password) ->
    new(EMail, Uid, Password, active, admin, unlimited).
 
 %%--------------------------------------------------------------------------------
-update(EMail, Uid, Password, RegistrationStatus, Role, Product) ->
+update(EMail, Uid, Password, Status, Role, Product) ->
    case find(Uid) of
       notfound ->
-          	new(EMail, Uid, Password, RegistrationStatus, Role, Product);
+          	new(EMail, Uid, Password, Status, Role, Product);
       User ->
 	    	write(User#users{email=EMail,
 				uid=Uid,			     
 			    password=Password,
-			    registration_status=RegistrationStatus, 
+			    status=Status, 
 			    role=Role,
 			    product=Product,
 			    updated_at=now()})
     end.
-
-%%--------------------------------------------------------------------------------
-update(U) when is_record(U, users) ->
-    update(
-      	U#users.email,
-      	U#users.uid, 
-      	U#users.password, 
-      	U#users.registration_status, 
-      	U#users.role, 
-      	U#users.product);
-update(_) ->
-    	error.
-
 
 %%--------------------------------------------------------------------------------
 authenticate(Uid, Password) ->

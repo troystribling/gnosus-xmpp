@@ -6,7 +6,7 @@
 	email,
   	uid,
   	password,
-  	registration_status,
+  	status,
   	registration_code,
   	role,
   	created_at,
@@ -16,6 +16,20 @@
   	failed_login_count,
   	product             = free,
   	services            = []
+}).
+
+%% client_users
+-record(client_users, {
+    jid,
+	email,
+  	password,
+  	status,
+  	registration_code,
+  	created_at,
+  	updated_at,
+  	last_login,
+  	login_count,
+  	failed_login_count
 }).
 
 %% domains

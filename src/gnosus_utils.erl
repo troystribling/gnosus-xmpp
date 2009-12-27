@@ -8,12 +8,14 @@
     host_page_redirect/0,
     start_page_redirect/0,
     add_host/0,
-    remove_host/1
+    remove_host/1,
+    navigation/1
 ]).
  
 %% include
 -include_lib("models.hrl").
 -include_lib("gnosus.hrl").
+-include_lib ("nitrogen/include/wf.inc").
 
 %%================================================================================
 logout() ->
@@ -36,8 +38,8 @@ host_page_redirect() ->
 
 %%--------------------------------------------------------------------------------
 start_page_redirect() ->
-    case length(wf:session(hosts)) of
-        0 ->
+    case wf:session(hosts) of
+        [] ->
             wf:redirect("/web/host/add");
         _ ->
             host_page_redirect()
@@ -74,7 +76,10 @@ remove_host(Host) ->
             case host_model:delete(Host) of
                 ok ->
                     gnosus_logger:message({remove_host_ui_succeeded, [Host, User#users.uid]}),
-                    ok;
+                    case wf:session(hosts) of 
+                        [] -> wf:redirect("/web/host/add");
+                        _ -> ok
+                    end;
                 error ->
                     ejebberd:add_host_and_users(Host, User#users.uid, User#users.password),
                     gnosus_logger:alarm({host_database_update_failed, [Host, User#users.uid]}),
@@ -83,3 +88,29 @@ remove_host(Host) ->
         {error, _} ->
             wf:flash("host delete failed")            
     end.
+
+%%--------------------------------------------------------------------------------
+navigation(Current) ->
+    User = wf:user(),
+	AdminItem = case User#users.role of
+	                admin -> case Current of
+	                             admin -> [#listitem{body="<strong>admin</strong>"}];
+	                             _ -> [#listitem{body=#link{text="admin", url="/web/admin"}}]
+	                         end;
+	                _ -> []
+                end,
+    HostItem =  case User#users.product of 
+                    unlimited -> if
+	                                 (Current =:= hosts) or (Current =:= host) -> #listitem{body="<strong>hosts</strong>"};
+	                                 true -> #listitem{body=#link{text="hosts", url="/web/hosts"}}
+	                             end;
+                    _ -> if
+                             (Current =:= hosts) or (Current =:= host) -> #listitem{body="<strong>host</strong>"};
+                             true -> #listitem{body=#link{text="host", url="/web/host"}}
+                         end
+                end,
+	UserItem = case Current of
+	                profile -> #listitem{body=("<strong>"++User#users.uid++"</strong>")};	                         
+	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile"}}
+                end,
+	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.

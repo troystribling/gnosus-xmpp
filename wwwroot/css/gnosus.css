@@ -32,14 +32,13 @@ img {
     text-align: left;
 }
 #subtitle-wrapper {
-    margin: 0 auto;
-    margin-bottom: 40px;
-    padding-left: 100px;
-    width: 1000px;
+    margin-bottom: 30px;
     text-align: left;
 }
 #subtitle {
-    margin: 0px;
+    margin: 0 auto;
+    width: 1000px;
+    padding-left: 100px;
 }
 #toolbar-wrapper {
     margin: 0 auto;
@@ -75,6 +74,12 @@ img {
     width: 30%;
     float: left;
 }
+/******* page style *******/
+#page h1 {
+    padding: 0px;
+    margin: 0px;
+    font-size: 1.3em;
+}
 /******* navigation style *******/
 #navigation img {
     float: left;
@@ -93,11 +98,11 @@ img {
     text-decoration: none;
 }
 #navigation a:hover {
-    color: #800;
+    color: #00F;
     text-decoration: none;
 }
 #navigation a:visited:hover {
-    color: #800;
+    color: #00F;
     text-decoration: none;
 }
 #navigation ul {
@@ -125,6 +130,9 @@ img {
     padding-right: 10px;
     text-align: right;
     clear: both;
+}
+.up-button:hover {
+    border-color: #555;
 }
 /*******  form style    *******/
 .form label {
@@ -177,52 +185,52 @@ p.form {
 }
 /******* register style *******/
 .register label {
-  width: 2.5em;
+    width: 2.5em;
 }
 .register-button {
-  width: 15.6em;
+    width: 15.6em;
 }
 /******* host user style *******/
 .host-user label {
-  width: 4.85em;
+    width: 4.85em;
 }
 .host-user-button {
-  width: 15em;
+    width: 15em;
 }
 /******* profile style *******/
 .profile label {
-  width: 4.85em;
+    width: 4.85em;
 }
 .profile-button {
-  width: 15em;
+    width: 15em;
 }
 /******* user system style *******/
 .user-system label {
-  width: 8.6em;
+    width: 8.6em;
 }
 .user-system input {
-  font-size: .9em;
-  margin-top:15px;
+    font-size: .9em;
+    margin-top:15px;
 }
 .user-system select {
-  font-size: .9em;
-  margin-top: 15px;
+    font-size: .9em;
+    margin-top: 15px;
 }
 .user-system-button {
-  width: 19em;
+    width: 19em;
 }
 /******* host add style *******/
 .host-add input {
     font-size: .9em;
 }
 .host-add-button {
-  width: 15.0em;
+    width: 15.0em;
 }
 /******* host style *******/
 .host input {
 }
 .host-button {
-  width: 10.5em;
+    width: 10.5em;
 }
 /******* toolbar style *******/
 #toolbar a {
@@ -294,6 +302,26 @@ tr.data-edit-select {
     z-index: 1;
     display: none;
 }
+.data a {
+    color: #00F;
+    outline: none;
+    text-decoration: none;
+}
+.data a:visited {
+    color: #00F;
+    outline: none;
+    text-decoration: none;
+}
+.data a:hover {
+    color: #00F;
+    outline: none;
+    text-decoration: none;
+}
+.data a:visited:hover {
+    color: #00F;
+    outline: none;
+    text-decoration: none;
+}
 /******* validation messages *******/
 .LV_invalid { 
     background-color: #FFF;
@@ -305,4 +333,34 @@ tr.data-edit-select {
 .LV_validation_message { 
     margin-top: 16px;
     margin-left: 5px;
+}
+/******* flash messages *******/
+.flash_container {
+    margin: 0 auto;
+    width: 1000px;
+    text-align: left;
+}
+.flash {
+    background-color: #F09090;
+    border: 2px solid #660000;
+}
+.flash a {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+.flash a:visited {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+.flash a:hover {
+    color: #00F;
+    outline: none;
+    text-decoration: none;
+}
+.flash a:visited:hover {
+    color: #00F;
+    outline: none;
+    text-decoration: none;
 }
