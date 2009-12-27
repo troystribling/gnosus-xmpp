@@ -22,9 +22,8 @@ navigation() ->
 toolbar() ->
     Host = wf:get_path_info(),
 	#list{body=[ 
-        #listitem{body=#link{text="register user", postback=register_user, class="up-button"}},
         #listitem{body=#link{text="add user", postback=add_user, class="up-button"}},
-	    #listitem{body=#link{text=("delete "++Host), postback={remove_host, Host}, class="up-button"}}
+	    #listitem{body=#link{text=("delete host"), postback={remove_host, Host}, class="up-button"}}
 	]}.
 
 %%--------------------------------------------------------------------------------
@@ -48,10 +47,6 @@ event(add_user) ->
     ok;
 
 %%--------------------------------------------------------------------------------
-event(register_user) ->
-    ok;
-
-%%--------------------------------------------------------------------------------
 event({remove_user, _Jid}) ->
     ok;
 
@@ -67,20 +62,17 @@ table_data() ->
                 #tableheader{text="status"},
                 #tableheader{text="last activity"},
                 #tableheader{text="offline messages"}
-               ]}] ++ lists:map(fun(U) ->
-                                     {Uid, _} = U#client_users.jid,
-                                     #tablerow{cells=[
-                                         #tablecell{body=Uid++"@"++Host},
-                                         #tablecell{body=U#client_users.email},
-                                         #tablecell{body=U#client_users.status},
-                                         #tablecell{body="Never"},
-                                         #tablecell{body=
-                                            #p{body=[
-                                                #link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#client_users.jid}, 
-                                                      class="data-edit-controls"},
-                                               "0"
-                                            ], class="data-item"}
-                                         }
-                                     ], class="data-edit"} 
-                                 end, client_user_model:find_all_by_host(Host)),
+               ]}] ++ lists:map(
+                          fun(U) ->
+                              {Uid, _} = U#client_users.jid,
+                              #tablerow{cells=[
+                                  #tablecell{body=Uid++"@"++Host},
+                                  #tablecell{body=U#client_users.email},
+                                  #tablecell{body=U#client_users.status},
+                                  #tablecell{body="Never"},
+                                  #tablecell{body=
+                                      #p{body=[
+                                          #link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#client_users.jid}, class="data-edit-controls"},
+                                          "0"], class="data-item"}}], class="data-edit"} 
+                          end, client_user_model:find_all_by_host(Host)),
     #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.

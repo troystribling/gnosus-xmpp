@@ -20,8 +20,10 @@
     status/3,
     register/3,
     new_user/4,
+    new_client_user_from_user/3,
     write/1,
     new/5,
+    init_record/5,
     update/5
 ]).
  
@@ -36,7 +38,7 @@ fields() ->
 
 %%--------------------------------------------------------------------------------
 status_values() ->
-    [active, inactive, registered, disabled, deleted].
+    [active, inactive, registered].
 
 %%================================================================================
 create_table() ->
@@ -76,16 +78,9 @@ find_by_email(EMail) ->
             hd(Result)
      end.
 
- %%--------------------------------------------------------------------------------
- find_all_by_host(Host) ->
-     case gnosus_dbi:read_row({client_users, Host}) of
-         [] ->
-             notfound;
- 	aborted ->
- 	    error;
-         Result ->
-             hd(Result)
-      end.
+%%--------------------------------------------------------------------------------
+find_all_by_host(Host) ->
+	gnosus_dbi:dirty_select(client_users, [{#client_users{jid = '$1', _ = '_'}, [{'==', {element, 2, '$1'}, Host}], ['$1']}]).
  
 %%--------------------------------------------------------------------------------
 count() ->
@@ -108,6 +103,8 @@ password(Uid, Host, Password) ->
 	case find(Uid, Host) of
     	notfound ->
             notfound;
+		error -> 
+	    	error;
         User ->
             write(User#client_users{password=Password, updated_at = now()})
     end.
@@ -117,6 +114,8 @@ email(Uid, Host, EMail) ->
     case find(Uid, Host) of
         notfound ->
             notfound;
+    	error -> 
+        	error;
         User ->
             write(User#client_users{email=EMail, updated_at = now()})
     end.
@@ -126,6 +125,8 @@ status(Uid, Host, Status) ->
     case find(Uid, Host) of
         notfound ->
             notfound;
+		error -> 
+	    	error;
         User ->
             write(User#client_users{status=Status, updated_at = now()})
     end.
@@ -138,9 +139,13 @@ write(_) ->
  
 %%--------------------------------------------------------------------------------
 new(Uid, Host, EMail, Password, Status) ->
+    write(init_record(Uid, Host, EMail, Password, Status)).
+
+%%--------------------------------------------------------------------------------
+init_record(Uid, Host, EMail, Password, Status) ->
     {S1,S2,S3} = now(),
     random:seed(S1,S2,S3),
-    write(#client_users{
+    #client_users{
 		      jid={Uid, Host},		 
               email=EMail,
 		      password=Password, 
@@ -151,7 +156,7 @@ new(Uid, Host, EMail, Password, Status) ->
 		      last_login=never,
 		      login_count=0,
 		      failed_login_count=0
-		  }).
+		  }.
 
 %%--------------------------------------------------------------------------------
 register(Uid, Host, EMail) ->
@@ -161,6 +166,10 @@ register(Uid, Host, EMail) ->
 new_user(Uid, Host, EMail, Password) ->
    new(Uid, Host, EMail, Password, active).
 
+%%--------------------------------------------------------------------------------
+new_client_user_from_user(Host, User, Status) when is_record(User, users) ->
+    new(User#users.uid, Host, User#users.email, User#users.password, Status).
+    
 %%--------------------------------------------------------------------------------
 update(Uid, Host, EMail, Password, Status) ->
    case find(Uid, Host) of

@@ -73,11 +73,12 @@ remove_user(Uid, Host) ->
 %%--------------------------------------------------------------------------------
 remove_all_users(Args) ->
     Host = host(Args),
-    lists:foldl(fun({Uid, _UserHost}, ok) ->
-                         remove_user(Uid, Host);
-                     (_, error) ->
-                         error
-                  end, ok, passwd_model:find_all_by_host(Host)).        
+    lists:foldl(
+        fun({Uid, _UserHost}, ok) ->
+            remove_user(Uid, Host);
+        (_, error) ->
+            error
+        end, ok, passwd_model:find_all_by_host(Host)).        
 
 %%--------------------------------------------------------------------------------
 add_access_control(Host, Acl, AclSpec) ->
@@ -176,10 +177,11 @@ remove_host_and_users(Host, Uid) ->
 
 %%--------------------------------------------------------------------------------
 remove_hosts_and_users(Hosts, Uid) ->
-    lists:foldl(fun(Host, {ok, _State}) ->
-			            remove_host_and_users(Host, Uid);
-		            (_, {error, State}) ->
-			            {error, State}
+    lists:foldl(
+        fun(Host, {ok, _State}) ->
+		    remove_host_and_users(Host, Uid);
+		(_, {error, State}) ->
+		    {error, State}
 		end, {ok, []}, Hosts).		  
 
 %%================================================================================
@@ -313,11 +315,12 @@ remove_authentication_method(Args) ->
 %%--------------------------------------------------------------------------------
 add_modules(Args) ->
     Host = host(Args),
-    lists:foldl(fun({Module, Opts}, ok) ->
-			           add_module(Host, Module, Opts);
-		           (_, error) ->
-			           error
-		        end, ok, start_modules(Host)).		  
+    lists:foldl(
+        fun({Module, Opts}, ok) ->
+		    add_module(Host, Module, Opts);
+	    (_, error) ->
+			error
+		end, ok, start_modules(Host)).		  
 
 %%--------------------------------------------------------------------------------
 add_module(Host, Module, Opts) ->
@@ -331,11 +334,12 @@ add_module(Host, Module, Opts) ->
 %%--------------------------------------------------------------------------------
 remove_modules(Args) ->
     Host = host(Args),
-    lists:foldl(fun({Module, _Opts}, ok) ->
-			           remove_module(Host, Module);
-		           (_, error) ->
-			           error
-		        end, ok, stop_modules(Host)).		  
+    lists:foldl(
+        fun({Module, _Opts}, ok) ->
+		    remove_module(Host, Module);
+		(_, error) ->
+			error
+		end, ok, stop_modules(Host)).		  
 
 %%--------------------------------------------------------------------------------
 remove_module(Host, Module) ->

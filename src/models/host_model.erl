@@ -69,9 +69,10 @@ delete(Host) ->
 
 %%--------------------------------------------------------------------------------
 delete_by_uid(Uid) ->
-    lists:foldl(fun(Host, ok) ->
+    lists:foldl(
+        fun(Host, ok) ->
 			delete(Host);
-		   (_, error) ->
+		(_, error) ->
 			error
 		end, ok, hosts_list_by_uid(Uid)).		  
 

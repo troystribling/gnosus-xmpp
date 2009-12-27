@@ -126,8 +126,8 @@ alarm({remove_user_failed, M}) ->
 alarm({host_user_deletion_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to delete user~n", M);
 
-alarm({host_database_update_failed, M}) ->
-    error_logger:error_msg("host database update failed for user: ~p, and host~n", M);
+alarm({host_and_client_user_database_update_failed, M}) ->
+    error_logger:error_msg("host and user database update failed for host: ~p, and user~p~n", M);
 
 alarm({host_access_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to modify it: ~p~n", M);

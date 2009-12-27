@@ -40,7 +40,7 @@ fields() ->
 
 %%--------------------------------------------------------------------------------
 status_values() ->
-    [active, inactive, registered, disabled, deleted].
+    [active, inactive, registered].
 
 %%--------------------------------------------------------------------------------
 role_values() ->

@@ -45,7 +45,7 @@ start_page_redirect() ->
             host_page_redirect()
     end.
         
-%%--------------------------------------------------------------------------------
+%%================================================================================
 add_host() ->
     User = wf:user(),
     [Host] = wf:q(hostTextBox),
@@ -53,14 +53,14 @@ add_host() ->
         {ok, _} ->
             Hosts = wf:session(hosts),
             wf:session(hosts, Hosts++[Host]),
-            case host_model:new(Host, User#users.uid) of
+            case new_host_and_client_user(Host, User) of
                 ok ->
                     gnosus_logger:message({add_host_ui_succeeded, [Host, User#users.uid]}),
                     gnosus_utils:host_page_redirect();
                 error ->
                     ejebberd:remove_host_and_users(Host, User#users.uid),
-                    gnosus_logger:alarm({host_database_update_failed, [Host, User#users.uid]}),
-                    wf:flash("host database update failed")            
+                    gnosus_logger:alarm({host_and_client_user_database_update_failed, [Host, User#users.uid]}),
+                    wf:flash("database update failed")            
             end;
         {error, _} ->
             wf:flash("host creation failed")            
@@ -73,7 +73,7 @@ remove_host(Host) ->
         {ok, _} ->
             Hosts = wf:session(hosts),
             wf:session(hosts, Hosts--[Host]),
-            case host_model:delete(Host) of
+            case delete_host_and_client_users(Host) of
                 ok ->
                     gnosus_logger:message({remove_host_ui_succeeded, [Host, User#users.uid]}),
                     case wf:session(hosts) of 
@@ -82,14 +82,14 @@ remove_host(Host) ->
                     end;
                 error ->
                     ejebberd:add_host_and_users(Host, User#users.uid, User#users.password),
-                    gnosus_logger:alarm({host_database_update_failed, [Host, User#users.uid]}),
+                    gnosus_logger:alarm({host_and_client_user_database_update_failed, [Host, User#users.uid]}),
                     wf:flash("host database update failed")            
             end;
         {error, _} ->
             wf:flash("host delete failed")            
     end.
 
-%%--------------------------------------------------------------------------------
+%%================================================================================
 navigation(Current) ->
     User = wf:user(),
 	AdminItem = case User#users.role of
@@ -114,3 +114,33 @@ navigation(Current) ->
 	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile"}}
                 end,
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
+
+%%================================================================================
+new_host_and_client_user(H, U) ->
+    T = gnosus_dbi:transaction(
+	         fun() ->
+                 Host = #hosts{host=H, uid=U#users.uid},
+                 ClientUser = client_user_model:init_record(H, U#users.uid, U#users.email, U#users.password, active),
+			     mnesia:write(Host),
+			     mnesia:write(ClientUser)
+		     end),
+	case T of
+        atomic -> ok;
+        aborted -> error           
+    end.
+
+%%--------------------------------------------------------------------------------
+delete_host_and_client_users(Host) ->
+    ClientUsers = client_user_model:find_all_by_host(Host),
+    T = gnosus_dbi:transaction(
+	         fun() ->
+	             mnesia:delete({hosts, Host}),
+	             lists:foreach(
+	                fun(C) ->
+       	                mnesia:delete({client_users, C})
+	                end, ClientUsers)
+		     end),
+	case T of
+        atomic -> ok;
+        aborted -> error           
+    end.

@@ -99,18 +99,19 @@ write(_) ->
 
 %%--------------------------------------------------------------------------------
 write_config(Config) ->
-    lists:foreach(fun({Key, Value}) ->
-                      case Key of
-                          default_modules ->                              
-                               write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
-                          optional_modules ->                              
-                               write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
-                          special_modules ->                              
-                                write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
-                          _ ->
-                               write(#gnosus{key=Key, value=Value}) 
-                      end
-                  end, Config).
+    lists:foreach(
+        fun({Key, Value}) ->
+              case Key of
+                  default_modules ->                              
+                       write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
+                  optional_modules ->                              
+                       write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
+                  special_modules ->                              
+                        write(#gnosus{key=Key, value=merge_config_list(Key, Value)});
+                  _ ->
+                       write(#gnosus{key=Key, value=Value}) 
+              end
+        end, Config).
 
 %%--------------------------------------------------------------------------------
 merge_config_list(Key, ConfigList) ->
