@@ -85,40 +85,40 @@ img {
 /******* title style *******/
 #title h1 {
     padding: 0px;
-    margin: 0px 0px 5px 0px;
+    margin: 0px 0px 15px 0px;
     font-size: 1.2em;
 }
 /******* toolbar style *******/
 #toolbar a {
-    color: #000;
+    color: #888;
     margin:0px;
     outline: none;
     text-decoration: none;
 }
 #toolbar a:visited {
-    color: #000;
+    color: #888;
     outline: none;
     text-decoration: none;
 }
 #toolbar a:hover {
-    color: #000;
+    color: #00F;
     outline: none;
     text-decoration: none;
 }
 #toolbar a:visited:hover {
-    color: #000;
+    color: #00F;
     outline: none;
     text-decoration: none;
 }
 #toolbar ul {
-    margin: 0px 0px 0px 1px;
+    margin: 0px 0px 0px -5px;
     padding: 0px;
-    list-style-type: none;
+    list-style-type: circle;
 }
 #toolbar li {
     display: inline;
-    font-size: 1.0em;
-    margin: 0px 0px 0px -1px;
+    font-size: 0.85em;
+    margin: 0px 0px 0px 5px;
 } 
 .toolbar-button {
 }
@@ -184,7 +184,7 @@ img {
     font-weight: lighter;
     text-align: right;
     margin-right: 10px;
-    margin-top: 20px
+    margin-top: 15px
 }
 p.form {
     margin: 0px;
@@ -193,7 +193,7 @@ p.form {
     width: 12.5em;
     font-size: inherit;
     font-weight: inherit;
-    margin-top: 15px
+    margin-top: 10px
 }
 .form a {
     color: #000;
@@ -215,35 +215,44 @@ p.form {
     outline: none;
     text-decoration: none;
 }
-.form-button {
+.form-buttons ul {
+    list-style-type: none;
     float: right;
+    margin-top: 15px;
+    margin-bottom: 0px;
 }
+.form-buttons li {
+    display: inline;
+    font-size: 1.0em;
+    margin: 0px;
+    margin-left: 10px;
+} 
 /*******  login style   *******/
 .login label {
     width: 4.5em;
 }
-.login-button {
+.login-buttons {
     width: 17.65em;
 }
 /******* register style *******/
 .register label {
     width: 2.5em;
 }
-.register-button {
+.register-buttons {
     width: 15.6em;
 }
 /******* host user style *******/
 .host-user label {
     width: 4.85em;
 }
-.host-user-button {
+.host-user-buttons {
     width: 15em;
 }
 /******* profile style *******/
 .profile label {
     width: 4.85em;
 }
-.profile-button {
+.profile-buttons {
     width: 15em;
 }
 /******* user system style *******/
@@ -258,29 +267,29 @@ p.form {
     font-size: .9em;
     margin-top: 15px;
 }
-.user-system-button {
+.user-system-buttons {
     width: 19em;
 }
 /******* host add style *******/
 .host-add label {
     width: 1.85em;
 }
-.host-add-button {
+.host-add-buttons {
     width: 15.0em;
 }
 /******* host add user style *******/
 .host-user-add label {
-    width: 8.6em;
+    width: 7.75em;
 }
-.host-user-add-button {
-    width: 15.0em;
+.host-user-add-buttons {
+    width: 20.90em;
 }
 /******* host user register style *******/
 .host-user-register label {
-    width: 2.35em;
+    width: 3.0em;
 }
-.host-user-register-button {
-    width: 1.0em;
+.host-user-register-buttons {
+    width: 16.2em;
 }
 /******* data table style *******/
 .data table {
@@ -290,7 +299,7 @@ p.form {
     border-collapse: collapse;
 }
 .data th {
-    background-color: #DDD;
+    background-color: #EEE;
     padding: 5px 15px;
     text-align: center;
     border: 1px solid #CCC;
@@ -300,23 +309,6 @@ p.form {
     text-align: center;
     font-size: 0.9em;
     border: 1px solid #CCC;
-}
-tr.data-edit {
-}
-tr.data-edit-select {
-    background-color: #DDD;
-}
-.data-item {
-    position: relative;
-    padding: 0px;
-    margin: 0px;
-}
-.data-edit-controls {
-    position: absolute;
-    right: -14px;
-    padding: 0px;
-    z-index: 1;
-    display: none;
 }
 .data a {
     color: #00F;
@@ -337,6 +329,45 @@ tr.data-edit-select {
     color: #00F;
     outline: none;
     text-decoration: none;
+}
+tr.data-edit {
+}
+tr.data-edit-select {
+    background-color: #444;
+    color: #DDD;
+}
+.data-item {
+    position: relative;
+    padding: 0px;
+    margin: 0px;
+}
+.data-edit-controls {
+    position: absolute;
+    right: -5px;
+    top: 2px;
+    padding: 0px;
+    z-index: 1;
+    display: none;
+}
+.data-edit-select a {
+    color: #FFCC33;
+    outline: none;
+    text-decoration: none;
+}
+.data-edit-select a:visited {
+    color: #FFCC33;
+    outline: none;
+    text-decoration: none;
+}
+.data-edit-select a:hover {
+    color: #FFCC33;
+    outline: none;
+    text-decoration: underline;
+}
+.data-edit-select a:visited:hover {
+    color: #FFCC33;
+    outline: none;
+    text-decoration: underline;
 }
 /******* validation messages *******/
 .LV_invalid { 

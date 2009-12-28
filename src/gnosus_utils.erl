@@ -35,7 +35,7 @@ host_page_redirect() ->
             wf:redirect("/web/hosts");
         _ ->
             Host = hd(wf:session(hosts)),
-            wf:redirect("/web/host/"++wf:html_encode(Host, true))
+            wf:redirect("/web/host/"++Host)
     end.
 
 %%--------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ add_host() ->
                 ok ->
                     gnosus_logger:message({add_host_ui_succeeded, [Host, User#users.uid]}),
                     gnosus_utils:host_page_redirect();
-                error ->
+                _ ->
                     ejebberd:remove_host_and_users(Host, User#users.uid),
                     gnosus_logger:alarm({host_and_client_user_database_update_failed, [Host, User#users.uid]}),
                     wf:flash("database update failed")            
@@ -82,13 +82,13 @@ remove_host(Host) ->
                         [] -> wf:redirect("/web/host/add");
                         _ -> ok
                     end;
-                error ->
+                _ ->
                     ejebberd:add_host_and_users(Host, User#users.uid, User#users.password),
                     gnosus_logger:alarm({host_and_client_user_database_update_failed, [Host, User#users.uid]}),
                     wf:flash("host database update failed")            
             end;
         {error, _} ->
-            wf:flash("host delete failed")            
+            wf:flash("failed to provision host on xmpp server")            
     end.
     
 %%================================================================================

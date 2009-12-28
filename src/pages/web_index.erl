@@ -33,8 +33,9 @@ body() ->
             #password{id=passwordTextBox, next=loginButton }
         ], class="form login"},
 
-        #p{body=#link{id=loginButton, text="login", postback=login, class="up-button form-button"}, 
-           class="form login-button"}
+        #panel{body= #list{body=[ 
+            #listitem{body=#link{id=loginButton, text="login", postback=login, class="up-button"}}
+    	]}, class="form form-buttons login-buttons"}
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
@@ -42,7 +43,7 @@ body() ->
     ]}),
 
     wf:wire(loginButton, passwordTextBox, #validate {validators=[
-      #is_required {text="password required"}
+      #is_required{text="password required"}
     ]}),
 
     wf:render(Body).

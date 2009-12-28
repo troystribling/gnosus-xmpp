@@ -20,22 +20,55 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1><em>"++wf:get_path_info()++"</em> add user</h1>", html_encode=false}.
+    #literal{text="<h1>add user: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
     Body = [
         #p{body=[
-            #label{text="host"},
-            #textbox {id=hostTextBox, next=addHostButton}
+            #label{text="email"},
+            #textbox {id=emailTextBox, next=uidTextBox}
         ], class="form host-user-add"},
 
-        #p{body=#link{ id=addHostButton, text="add", postback=add_host, class="up-button form-button"}, class="form host-user-add-button"}
+        #p{body=[
+            #label{text="user id"},
+            #textbox {id=uidTextBox, next=passwordTextBox}
+        ], class="form host-user-add"},
+
+        #p{body=[
+            #label{text="password" },
+            #password{id=passwordTextBox, next=confirmPasswordTextBox }
+        ], class="form host-user-add"},
+
+        #p{body=[
+            #label{text="confirm password" },
+            #password{id=confirmPasswordTextBox, next=addButton }
+        ], class="form host-user-add"},
+
+        #panel{body= #list{body=[ 
+            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}},
+            #listitem{body=#link{id=addButton, text="add", postback=add_user, class="up-button"}}
+    	]}, class="form form-buttons host-user-add-buttons"}
     ],
 
-    wf:wire(addHostButton, hostTextBox, #validate {validators=[
-        #is_required {text="host name required"},
-        #custom {text="host name not available", function=fun host_available/2}
+    wf:wire(addButton, emailTextBox, #validate {validators=[
+        #is_email{text="invalid email address"},
+        #is_required{text="email address required"},
+        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+    ]}),
+
+    wf:wire(addButton, uidTextBox, #validate {validators=[
+        #is_required{text="uid required"},
+        #custom{text="user id is not available", tag=some_tag, function=fun validate_uid/2}        
+    ]}),
+
+    wf:wire(addButton, passwordTextBox, #validate {validators=[
+      #is_required{text="password required"}
+    ]}),
+
+    wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
+      #is_required{text="confirmation password required"},
+      #confirm_password { text="passwords must match.", password=passwordTextBox }
     ]}),
 
     wf:render(Body).
@@ -45,12 +78,40 @@ event(logout) ->
     gnosus_utils:logout();
 
 %%--------------------------------------------------------------------------------
-event(add_host) -> 
-    gnosus_utils:add_host();
+event(add_user) -> 
+    Host = wf:get_path_info(),
+    User = wf:user(),    
+    [EMail] = wf:q(emailTextBox),
+    [Uid] = wf:q(uidTextBox),
+    [Password] = wf:q(passwordTextBox),
+    case ejabberd:add_user(Host, Uid, Password) of
+        ok ->
+            case client_user_model:new_user(Uid, Host, EMail, Password) of
+                ok -> 
+                    gnosus_logger:message({host_user_add_succeeded, [Uid, Host, User#users.uid]}),
+                    wf:redirect("/web/host/"++Host);
+                _ ->
+                    User = wf:user(),
+                    gnosus_logger:alarm({client_user_database_update_failed, [Host, User#users.uid]}),
+                    wf:flash("user database update failed")                        
+            end;
+        error ->
+            wf:flash("failed to provision user on xmpp server") 
+    end;                       
+            
+    
+
+%%--------------------------------------------------------------------------------
+event(cancel) -> 
+    wf:redirect("/web/host/"++wf:get_path_info());
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
 
 %%================================================================================
-host_available(_Tag, _Value) ->
+validate_email(_Tag, _Value) ->
+    true.	
+
+%%--------------------------------------------------------------------------------
+validate_uid(_Tag, _Value) ->
     true.	

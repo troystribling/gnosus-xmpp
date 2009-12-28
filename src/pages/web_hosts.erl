@@ -21,7 +21,7 @@ navigation() ->
 %%--------------------------------------------------------------------------------
 toolbar() ->
 	#list{body=[ 
-	    #listitem{body=#link{text="new host", postback=add_host, class="up-button"}}
+	    #listitem{body=#link{text="new host", postback=add_host}}
 	]}.
 
 %%--------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ table_data() ->
                 ]}] ++ lists:map(
                            fun(H) ->
                                #tablerow{cells=[
-                               #tablecell{body=#link{text=H#hosts.host, url="/web/host/"++wf:html_encode(H#hosts.host, true)}},
+                               #tablecell{body=#link{text=H#hosts.host, url="/web/host/"++H#hosts.host}},
                                #tablecell{text="0"},
                                #tablecell{body=
                                    #panel{body=[

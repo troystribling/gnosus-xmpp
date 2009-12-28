@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1><em>"++wf:get_path_info()++"</em> register user</h1>", html_encode=false}.
+    #literal{text="<h1>register user: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -31,20 +31,30 @@ body() ->
         ], class="form host-user-register"},
 
         #p{body=[
-            #label{text="uid"},
+            #label{text="user id"},
             #textbox {id=uidTextBox, next=cancelButton}
         ], class="form host-user-register"},
 
-        #p{body=[#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"},
-                 #link{id=registerButton, text="send email", postback=register, class="up-button"}], class="form  form-button host-user-register-button"}
+        #p{body=[
+            #label{text="user id"},
+            #textbox {id=uidTextBox, next=registerButton}
+        ], class="form host-user-register"},
+
+        #panel{body= #list{body=[ 
+            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}},
+            #listitem{body=#link{id=registerButton, text="send email", postback=register, class="up-button"}}
+    	]}, class="form form-buttons host-user-register-buttons"}
     ],
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[
-        #is_required {text="email required"}
+        #is_email{text="invalid email address"},
+        #is_required{text="email address required"},
+        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
     ]}),
 
     wf:wire(registerButton, uidTextBox, #validate {validators=[
-        #is_required {text="uid required"}
+        #is_required{text="uid required"},
+        #custom{text="user id is not available", tag=some_tag, function=fun validate_uid/2}
     ]}),
 
     wf:render(Body).
@@ -55,7 +65,19 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(register) -> 
-    ok;
+    User = wf:user(),
+    Host = wf:get_path_info(),
+    [EMail] = wf:q(emailTextBox),
+    [Uid] = wf:q(uidTextBox),
+    case client_user_model:register(Uid, Host, EMail) of
+        ok -> 
+            gnosus_logger:message({host_user_registration_succeeded, [Uid, Host, User#users.uid]}),
+            wf:redirect("/web/host/"++Host);
+        _ ->
+            gnosus_logger:alarm({client_user_database_update_failed, [Host, User#users.uid]}),
+            wf:flash("user database update failed")                        
+    end;
+    
 
 %%--------------------------------------------------------------------------------
 event(cancel) -> 
@@ -65,5 +87,9 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-host_available(_Tag, _Value) ->
+validate_email(_Tag, _Value) ->
+    true.	
+
+%%--------------------------------------------------------------------------------
+validate_uid(_Tag, _Value) ->
     true.	

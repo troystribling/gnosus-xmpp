@@ -28,13 +28,15 @@ body() ->
             #textbox {id=emailTextBox, next=registerButton}
         ], class="form register"},
 
-        #p{body=#link{ id=registerButton, text="register", postback=register, class="up-button form-button"}, class="form register-button"}
+        #panel{body= #list{body=[ 
+            #listitem{body=#link{ id=registerButton, text="register", postback=register, class="up-button"}}
+    	]}, class="form form-buttons register-buttons"}
     ],
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[
-        #is_required { text="email address required" },
-        #is_email { text="invalid email address" },
-        #custom { text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #is_required{text="email address required"},
+        #is_email{text="invalid email address"},
+        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
     ]}),
 
     wf:render(Body).

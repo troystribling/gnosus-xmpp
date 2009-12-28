@@ -67,6 +67,9 @@ message({user_registered, M}) ->
 message({user_registeration_succeeded, M}) ->
     error_logger:info_msg("user registeration succeeded: ~p~n", [M]);
 
+message({host_user_registration_succeeded, M}) ->
+    error_logger:info_msg("user registeration succeeded for user: ~p host: ~p and admin~p~n", [M]);
+
 message({config_loaded, M}) ->
     error_logger:info_msg("configuration loaded: ~p~n", [M]);
 
@@ -127,7 +130,10 @@ alarm({host_user_deletion_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to delete user~n", M);
 
 alarm({host_and_client_user_database_update_failed, M}) ->
-    error_logger:error_msg("host and user database update failed for host: ~p, and user~p~n", M);
+    error_logger:error_msg("host and cleint user database update failed for host: ~p, and user~p~n", M);
+
+alarm({client_user_database_update_failed, M}) ->
+    error_logger:error_msg("client user database update failed for host: ~p, and user~p~n", M);
 
 alarm({host_access_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to modify it: ~p~n", M);

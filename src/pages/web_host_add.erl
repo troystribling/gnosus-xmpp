@@ -31,7 +31,7 @@ body() ->
 
     wf:wire(addHostButton, hostTextBox, #validate {validators=[
         #is_required{text="host name required"},
-        #custom {text="host name not available", function=fun host_available/2}
+        #custom{text="host name not available", function=fun host_available/2}
     ]}),
 
     wf:render(Body).

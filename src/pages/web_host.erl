@@ -22,14 +22,16 @@ navigation() ->
 toolbar() ->
     Host = wf:get_path_info(),
 	#list{body=[ 
-        #listitem{body=#link{text="send user registration email", url="/web/host/user/register/"++wf:html_encode(Host, true), class="up-button"}},
-        #listitem{body=#link{text="add user", url="/web/host/user/add/"++wf:html_encode(Host, true), class="up-button"}},
-	    #listitem{body=#link{text="delete this host", postback={remove_host, Host}, class="up-button"}}
+        #listitem{body=#link{text="send user registration email", url="/web/host/user/register/"++Host}},
+        #listitem{body=#image{image="/images/toolbar-separator.png"}},
+        #listitem{body=#link{text="add user", url="/web/host/user/add/"++Host}},
+        #listitem{body=#image{image="/images/toolbar-separator.png"}},
+	    #listitem{body=#link{text="delete this host", postback={remove_host, Host}}}
 	]}.
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1><em>"++wf:get_path_info()++"</em> users</h1>", html_encode=false}.
+    #literal{text="<h1> users: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() -> 
