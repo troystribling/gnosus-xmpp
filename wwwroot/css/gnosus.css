@@ -40,6 +40,14 @@ img {
     width: 1000px;
     padding-left: 100px;
 }
+#title-wrapper {
+    margin: 0 auto;
+    width: 1000px;
+    text-align: left;
+}
+#title {
+    margin: 0px;
+}
 #toolbar-wrapper {
     margin: 0 auto;
     width: 1000px;
@@ -74,11 +82,45 @@ img {
     width: 30%;
     float: left;
 }
-/******* page style *******/
-#page h1 {
+/******* title style *******/
+#title h1 {
     padding: 0px;
-    margin: 0px;
-    font-size: 1.3em;
+    margin: 0px 0px 5px 0px;
+    font-size: 1.2em;
+}
+/******* toolbar style *******/
+#toolbar a {
+    color: #000;
+    margin:0px;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar a:visited {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar a:hover {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar a:visited:hover {
+    color: #000;
+    outline: none;
+    text-decoration: none;
+}
+#toolbar ul {
+    margin: 0px 0px 0px 1px;
+    padding: 0px;
+    list-style-type: none;
+}
+#toolbar li {
+    display: inline;
+    font-size: 1.0em;
+    margin: 0px 0px 0px -1px;
+} 
+.toolbar-button {
 }
 /******* navigation style *******/
 #navigation img {
@@ -132,7 +174,7 @@ img {
     clear: both;
 }
 .up-button:hover {
-    border-color: #555;
+    background-image:url('/images/button-up-selected-background.png');
 }
 /*******  form style    *******/
 .form label {
@@ -220,51 +262,25 @@ p.form {
     width: 19em;
 }
 /******* host add style *******/
-.host-add input {
-    font-size: .9em;
+.host-add label {
+    width: 1.85em;
 }
 .host-add-button {
     width: 15.0em;
 }
-/******* host style *******/
-.host input {
+/******* host add user style *******/
+.host-user-add label {
+    width: 8.6em;
 }
-.host-button {
-    width: 10.5em;
+.host-user-add-button {
+    width: 15.0em;
 }
-/******* toolbar style *******/
-#toolbar a {
-    color: #000;
-    margin:0px;
-    outline: none;
-    text-decoration: none;
+/******* host user register style *******/
+.host-user-register label {
+    width: 2.35em;
 }
-#toolbar a:visited {
-    color: #000;
-    outline: none;
-    text-decoration: none;
-}
-#toolbar a:hover {
-    color: #000;
-    outline: none;
-    text-decoration: none;
-}
-#toolbar a:visited:hover {
-    color: #000;
-    outline: none;
-    text-decoration: none;
-}
-#toolbar ul {
-    margin: 0px;
-    padding: 0px;
-    list-style-type: none;
-}
-#toolbar li {
-    display: inline;
-    font-size: 1.0em;
-    margin: 0px;
-} 
-.toolbar-button {
+.host-user-register-button {
+    width: 1.0em;
 }
 /******* data table style *******/
 .data table {

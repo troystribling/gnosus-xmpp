@@ -9,7 +9,9 @@
     start_page_redirect/0,
     add_host/0,
     remove_host/1,
-    navigation/1
+    navigation/1,
+    new_host_and_client_user/2,
+    delete_host_and_client_users/1
 ]).
  
 %% include
@@ -33,7 +35,7 @@ host_page_redirect() ->
             wf:redirect("/web/hosts");
         _ ->
             Host = hd(wf:session(hosts)),
-            wf:redirect("/web/host/"++Host)
+            wf:redirect("/web/host/"++wf:html_encode(Host, true))
     end.
 
 %%--------------------------------------------------------------------------------
@@ -88,7 +90,7 @@ remove_host(Host) ->
         {error, _} ->
             wf:flash("host delete failed")            
     end.
-
+    
 %%================================================================================
 navigation(Current) ->
     User = wf:user(),
@@ -101,11 +103,11 @@ navigation(Current) ->
                 end,
     HostItem =  case User#users.product of 
                     unlimited -> if
-	                                 (Current =:= hosts) or (Current =:= host) -> #listitem{body="<strong>hosts</strong>"};
+	                                 Current =:= host -> #listitem{body="<strong>hosts</strong>"};
 	                                 true -> #listitem{body=#link{text="hosts", url="/web/hosts"}}
 	                             end;
                     _ -> if
-                             (Current =:= hosts) or (Current =:= host) -> #listitem{body="<strong>host</strong>"};
+                             Current =:= host -> #listitem{body="<strong>host</strong>"};
                              true -> #listitem{body=#link{text="host", url="/web/host"}}
                          end
                 end,
@@ -117,30 +119,22 @@ navigation(Current) ->
 
 %%================================================================================
 new_host_and_client_user(H, U) ->
-    T = gnosus_dbi:transaction(
-	         fun() ->
-                 Host = #hosts{host=H, uid=U#users.uid},
-                 ClientUser = client_user_model:init_record(H, U#users.uid, U#users.email, U#users.password, active),
-			     mnesia:write(Host),
-			     mnesia:write(ClientUser)
-		     end),
-	case T of
-        atomic -> ok;
-        aborted -> error           
-    end.
+    Host = #hosts{host=H, uid=U#users.uid},
+    ClientUser = client_user_model:init_record(U#users.uid, H, U#users.email, U#users.password, active),
+    gnosus_dbi:transaction(
+         fun() ->
+             mnesia:write(Host),
+			 mnesia:write(ClientUser)
+	     end).
 
 %%--------------------------------------------------------------------------------
 delete_host_and_client_users(Host) ->
     ClientUsers = client_user_model:find_all_by_host(Host),
-    T = gnosus_dbi:transaction(
-	         fun() ->
-	             mnesia:delete({hosts, Host}),
-	             lists:foreach(
-	                fun(C) ->
-       	                mnesia:delete({client_users, C})
-	                end, ClientUsers)
-		     end),
-	case T of
-        atomic -> ok;
-        aborted -> error           
-    end.
+    gnosus_dbi:transaction(
+         fun() ->
+             mnesia:delete({hosts, Host}),
+             lists:foreach(
+                fun(#client_users{jid=C}) ->
+   	                mnesia:delete({client_users, C})
+                end, ClientUsers)
+	     end).

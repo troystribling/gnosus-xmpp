@@ -16,7 +16,7 @@ main() ->
 
 %%--------------------------------------------------------------------------------
 navigation() ->
-    gnosus_utils:navigation(hosts).   
+    gnosus_utils:navigation(host).   
 
 %%--------------------------------------------------------------------------------
 toolbar() ->
@@ -59,8 +59,10 @@ table_data() ->
                                #tablecell{body=#link{text=H#hosts.host, url="/web/host/"++wf:html_encode(H#hosts.host, true)}},
                                #tablecell{text="0"},
                                #tablecell{body=
-                                   #p{body=[
+                                   #panel{body=[
                                         #link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, class="data-edit-controls"},
-                                        "0"], class="data-item"}}], class="data-edit"} 
+                                        "0"
+                                    ], class="data-item"}}
+                               ], class="data-edit"} 
                            end, host_model:find_all_by_uid(User#users.uid)),
     #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.

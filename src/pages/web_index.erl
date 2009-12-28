@@ -17,7 +17,7 @@ main() ->
 %%--------------------------------------------------------------------------------
 navigation() ->
 	#list{body=[ 
-	    #listitem{body=#link{text="register", url="web/register"}}
+	    #listitem{body=#link{text="register", url="/web/register"}}
 	]}.
 
 %%--------------------------------------------------------------------------------

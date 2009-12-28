@@ -42,10 +42,10 @@
 
 %%================================================================================
 add_user(Args) ->
-    add_user(uid(Args), host(Args), password(Args)).
+    add_user(host(Args), uid(Args), password(Args)).
 
 %%--------------------------------------------------------------------------------
-add_user(Uid, Host, Password) ->
+add_user(Host, Uid, Password) ->
     case rpc:call(ejabberd(), ejabberd_admin, register, [Uid, Host, Password]) of
 	    {ok, _} ->
 	        gnosus_logger:message({add_host_user_succeeded, [Uid, Host]}),

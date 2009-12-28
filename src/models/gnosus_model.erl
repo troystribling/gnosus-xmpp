@@ -91,6 +91,11 @@ tld() ->
     Tld = find(tld),
     Tld#gnosus.value.
 
+%%--------------------------------------------------------------------------------
+excluded_hosts() ->   
+    Hosts = find(excluded_hots),
+    Hosts#gnosus.value.
+
 %%================================================================================
 write(D) when is_record(D, gnosus) ->
     gnosus_dbi:write_row(D);

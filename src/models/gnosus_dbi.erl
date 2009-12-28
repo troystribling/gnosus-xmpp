@@ -17,7 +17,8 @@
     foreach/2,
     transaction/1,
     count/1,
-    dirty_select/2
+    dirty_select/2,
+    dirty_match_object/1
 ]).
  
 %% include
@@ -143,4 +144,8 @@ count(Table) ->
 %%--------------------------------------------------------------------
 dirty_select(Table, Select) -> 
     mnesia:dirty_select(Table, Select).
+
+%%--------------------------------------------------------------------
+dirty_match_object(Obj) -> 
+    mnesia:dirty_match_object(Obj).
     

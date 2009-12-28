@@ -80,7 +80,7 @@ find_by_email(EMail) ->
 
 %%--------------------------------------------------------------------------------
 find_all_by_host(Host) ->
-	gnosus_dbi:dirty_select(client_users, [{#client_users{jid = '$1', _ = '_'}, [{'==', {element, 2, '$1'}, Host}], ['$1']}]).
+	gnosus_dbi:dirty_match_object({client_users, {'_',Host}, '_','_','_','_','_','_','_','_','_'}).
  
 %%--------------------------------------------------------------------------------
 count() ->

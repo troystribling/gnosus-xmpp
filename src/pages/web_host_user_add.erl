@@ -1,6 +1,6 @@
 %% host info
 %%--------------------------------------------------------------------------------
--module (web_host_add).
+-module (web_host_user_add).
 
 %% API
 -compile(export_all).
@@ -19,18 +19,22 @@ navigation() ->
     gnosus_utils:navigation(host).   
 
 %%--------------------------------------------------------------------------------
+title() -> 
+    #literal{text="<h1><em>"++wf:get_path_info()++"</em> add user</h1>", html_encode=false}.
+
+%%--------------------------------------------------------------------------------
 body() ->
     Body = [
         #p{body=[
             #label{text="host"},
             #textbox {id=hostTextBox, next=addHostButton}
-        ], class="form host-add"},
+        ], class="form host-user-add"},
 
-        #p{body=#link{id=addHostButton, text="add", postback=add_host, class="up-button form-button"}, class="form host-add-button"}
+        #p{body=#link{ id=addHostButton, text="add", postback=add_host, class="up-button form-button"}, class="form host-user-add-button"}
     ],
 
     wf:wire(addHostButton, hostTextBox, #validate {validators=[
-        #is_required{text="host name required"},
+        #is_required {text="host name required"},
         #custom {text="host name not available", function=fun host_available/2}
     ]}),
 

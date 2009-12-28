@@ -32,6 +32,7 @@ create_tables() ->
 %%================================================================================
 do_create_tables() ->
     user_model:create_table(),
+    client_user_model:create_table(),
     gnosus_model:create_table(),
     host_model:create_table().
     
