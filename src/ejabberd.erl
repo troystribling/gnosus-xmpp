@@ -51,16 +51,16 @@ add_user(Host, Uid, Password) ->
 	        gnosus_logger:message({add_host_user_succeeded, [Uid, Host]}),
 	        ok;
 	    _ ->
-	        gnosus_logger:message({add_host_user_failed, [Uid, Host]}),
+	        gnosus_logger:alarm({add_host_user_failed, [Uid, Host]}),
 	        error
     end.
 
 %%--------------------------------------------------------------------------------
 remove_user(Args) ->
-    remove_user(uid(Args), host(Args)).
+    remove_user(host(Args), uid(Args)).
 
 %%--------------------------------------------------------------------------------
-remove_user(Uid, Host) ->
+remove_user(Host, Uid) ->
     case rpc:call(ejabberd(), ejabberd_admin, unregister, [Uid, Host]) of
 	    {ok, _} ->
 	        gnosus_logger:message({remove_host_user_succeeded, [Uid, Host]}),
@@ -75,7 +75,7 @@ remove_all_users(Args) ->
     Host = host(Args),
     lists:foldl(
         fun({Uid, _UserHost}, ok) ->
-            remove_user(Uid, Host);
+            remove_user(Host, Uid);
         (_, error) ->
             error
         end, ok, passwd_model:find_all_by_host(Host)).        

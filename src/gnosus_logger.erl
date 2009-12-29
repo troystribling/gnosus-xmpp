@@ -68,7 +68,13 @@ message({user_registeration_succeeded, M}) ->
     error_logger:info_msg("user registeration succeeded: ~p~n", [M]);
 
 message({host_user_registration_succeeded, M}) ->
-    error_logger:info_msg("user registeration succeeded for user: ~p host: ~p and admin~p~n", [M]);
+    error_logger:info_msg("host user registration succeeded for user: ~p and host: ~p~n", M);
+
+message({host_user_add_succeeded, M}) ->
+    error_logger:info_msg("host user add succeeded for host: ~p and user: ~p~n", M);
+
+message({host_user_remove_succeeded, M}) ->
+    error_logger:info_msg("host user remove succeeded for host: ~p and user: ~p~n", M);
 
 message({config_loaded, M}) ->
     error_logger:info_msg("configuration loaded: ~p~n", [M]);
@@ -115,13 +121,13 @@ alarm({remove_host_and_users_failed, M}) ->
     error_logger:error_msg("remove host and user transaction failed for host: ~p and user: ~p~n", M);
         
 alarm({add_host_user_failed, M}) ->
-    error_logger:error_msg("add user: ~p, failed for host: ~p~n", M);
+    error_logger:error_msg("add host user failed for user: ~p, failed for host: ~p~n", M);
 
 alarm({remove_host_user_failed, M}) ->
     error_logger:error_msg("remove user: ~p, failed for host: ~p~n", M);
 
 alarm({add_user_failed, M}) ->
-    error_logger:error_msg("user: ~p, creation failed", [M]);
+    error_logger:error_msg("add user failed for user: ~p~n", [M]);
 
 alarm({remove_user_failed, M}) ->
     error_logger:error_msg("user: ~p, deletion failed", [M]);
@@ -130,10 +136,13 @@ alarm({host_user_deletion_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to delete user~n", M);
 
 alarm({host_and_client_user_database_update_failed, M}) ->
-    error_logger:error_msg("host and cleint user database update failed for host: ~p, and user~p~n", M);
+    error_logger:error_msg("host and client user database update failed for host: ~p, and user~p~n", M);
 
 alarm({client_user_database_update_failed, M}) ->
     error_logger:error_msg("client user database update failed for host: ~p, and user~p~n", M);
+
+alarm({client_user_not_found, M}) ->
+    error_logger:error_msg("client user not found for host: ~p, and user: ~p~n", M);
 
 alarm({host_access_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to modify it: ~p~n", M);

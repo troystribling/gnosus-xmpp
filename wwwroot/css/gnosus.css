@@ -241,6 +241,13 @@ p.form {
 .register-buttons {
     width: 15.6em;
 }
+/******* add user style *******/
+.user-add label {
+    width: 7.75em;
+}
+.user-add-buttons {
+    width: 20.90em;
+}
 /******* host user style *******/
 .host-user label {
     width: 4.85em;
@@ -277,7 +284,7 @@ p.form {
 .host-add-buttons {
     width: 15.0em;
 }
-/******* host add user style *******/
+/******* add host user style *******/
 .host-user-add label {
     width: 7.75em;
 }
@@ -299,7 +306,7 @@ p.form {
     border-collapse: collapse;
 }
 .data th {
-    background-color: #EEE;
+    background-color: #DDD;
     padding: 5px 15px;
     text-align: center;
     border: 1px solid #CCC;

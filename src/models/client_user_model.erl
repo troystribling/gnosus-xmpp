@@ -18,7 +18,7 @@
     password/3,
     email/3,
     status/3,
-    register/3,
+    register/2,
     new_user/4,
     new_client_user_from_user/3,
     write/1,
@@ -57,8 +57,8 @@ find(all) ->
     gnosus_dbi:q(qlc:q([X || X <- mnesia:table(client_users)])).
  
 %%--------------------------------------------------------------------------------
-find(Uid, Host) ->
-	case gnosus_dbi:read_row(client_users, {Uid, Host}, #client_users.jid) of
+find(Host, Uid) ->
+	case gnosus_dbi:read_row({client_users, {Host, Uid}}) of
 		[] ->
 			notfound;
 		aborted ->
@@ -69,7 +69,7 @@ find(Uid, Host) ->
 
 %%--------------------------------------------------------------------------------
 find_by_email(EMail) ->
-    case gnosus_dbi:read_row({client_users, EMail}) of
+    case gnosus_dbi:read_row(client_users, EMail, #client_users.email) of
         [] ->
             notfound;
 	aborted ->
@@ -80,27 +80,27 @@ find_by_email(EMail) ->
 
 %%--------------------------------------------------------------------------------
 find_all_by_host(Host) ->
-	gnosus_dbi:dirty_match_object({client_users, {'_',Host}, '_','_','_','_','_','_','_','_','_'}).
+	gnosus_dbi:dirty_match_object({client_users, {Host, '_'}, '_','_','_','_','_','_','_','_','_'}).
  
 %%--------------------------------------------------------------------------------
 count() ->
     gnosus_dbi:count(users).
  
 %%--------------------------------------------------------------------------------
-delete(Uid, Host) ->
-    case find(Uid, Host) of	
+delete(Host, Uid) ->
+    case find(Host, Uid) of	
 		notfound -> 
 	    	notfound;
 		error -> 
 	    	error;
 		_ ->
-	   		gnosus_dbi:delete_row({client_users, {Uid, Host}})
+	   		gnosus_dbi:delete_row({client_users, {Host, Uid}})
     end.
  
 
 %%================================================================================
-password(Uid, Host, Password) ->
-	case find(Uid, Host) of
+password(Host, Uid, Password) ->
+	case find(Host, Uid) of
     	notfound ->
             notfound;
 		error -> 
@@ -110,8 +110,8 @@ password(Uid, Host, Password) ->
     end.
 
 %%================================================================================
-email(Uid, Host, EMail) ->
-    case find(Uid, Host) of
+email(Host, Uid, EMail) ->
+    case find(Host, Uid) of
         notfound ->
             notfound;
     	error -> 
@@ -121,8 +121,8 @@ email(Uid, Host, EMail) ->
     end.
 
 %%--------------------------------------------------------------------------------
-status(Uid, Host, Status) ->
-    case find(Uid, Host) of
+status(Host, Uid,Status) ->
+    case find(Host, Uid) of
         notfound ->
             notfound;
 		error -> 
@@ -138,15 +138,15 @@ write(_) ->
     error.
  
 %%--------------------------------------------------------------------------------
-new(Uid, Host, EMail, Password, Status) ->
-    write(init_record(Uid, Host, EMail, Password, Status)).
+new(Host, Uid, EMail, Password, Status) ->
+    write(init_record(Host, Uid, EMail, Password, Status)).
 
 %%--------------------------------------------------------------------------------
-init_record(Uid, Host, EMail, Password, Status) ->
+init_record(Host, Uid, EMail, Password, Status) ->
     {S1,S2,S3} = now(),
     random:seed(S1,S2,S3),
     #client_users{
-		      jid={Uid, Host},		 
+		      jid={Host, Uid},		 
               email=EMail,
 		      password=Password, 
 		      status=Status,
@@ -159,25 +159,25 @@ init_record(Uid, Host, EMail, Password, Status) ->
 		  }.
 
 %%--------------------------------------------------------------------------------
-register(Uid, Host, EMail) ->
-   new(Uid, Host, EMail, undefined, registered).
+register(Host, EMail) ->
+   new(Host, EMail, EMail, undefined, registered).
 
 %%--------------------------------------------------------------------------------
-new_user(Uid, Host, EMail, Password) ->
-   new(Uid, Host, EMail, Password, active).
+new_user(Host, Uid, EMail, Password) ->
+   new(Host, Uid, EMail, Password, active).
 
 %%--------------------------------------------------------------------------------
 new_client_user_from_user(Host, User, Status) when is_record(User, users) ->
-    new(User#users.uid, Host, User#users.email, User#users.password, Status).
+    new(Host, User#users.uid, User#users.email, User#users.password, Status).
     
 %%--------------------------------------------------------------------------------
-update(Uid, Host, EMail, Password, Status) ->
-   case find(Uid, Host) of
+update(Host, Uid, EMail, Password, Status) ->
+   case find(Host, Uid) of
       notfound ->
-          	new(Uid, Host, EMail, Password, Status);
+          	new(Host, Uid, EMail, Password, Status);
       User ->
 	    	write(User#client_users{
-		              jid={Uid, Host},			     
+		              jid={Host, Uid},			     
 	    	          email=EMail,
 			          password=Password,
 			          status=Status, 

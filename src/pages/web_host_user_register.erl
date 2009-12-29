@@ -27,17 +27,7 @@ body() ->
     Body = [
         #p{body=[
             #label{text="email"},
-            #textbox {id=emailTextBox, next=uidTextBox}
-        ], class="form host-user-register"},
-
-        #p{body=[
-            #label{text="user id"},
-            #textbox {id=uidTextBox, next=cancelButton}
-        ], class="form host-user-register"},
-
-        #p{body=[
-            #label{text="user id"},
-            #textbox {id=uidTextBox, next=registerButton}
+            #textbox {id=emailTextBox, next=cancelButton}
         ], class="form host-user-register"},
 
         #panel{body= #list{body=[ 
@@ -52,11 +42,6 @@ body() ->
         #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
     ]}),
 
-    wf:wire(registerButton, uidTextBox, #validate {validators=[
-        #is_required{text="uid required"},
-        #custom{text="user id is not available", tag=some_tag, function=fun validate_uid/2}
-    ]}),
-
     wf:render(Body).
 	
 %%================================================================================
@@ -65,16 +50,14 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(register) -> 
-    User = wf:user(),
     Host = wf:get_path_info(),
     [EMail] = wf:q(emailTextBox),
-    [Uid] = wf:q(uidTextBox),
-    case client_user_model:register(Uid, Host, EMail) of
+    case client_user_model:register(Host, EMail) of
         ok -> 
-            gnosus_logger:message({host_user_registration_succeeded, [Uid, Host, User#users.uid]}),
+            gnosus_logger:message({host_user_registration_succeeded, [Host, EMail]}),
             wf:redirect("/web/host/"++Host);
         _ ->
-            gnosus_logger:alarm({client_user_database_update_failed, [Host, User#users.uid]}),
+            gnosus_logger:alarm({client_user_database_update_failed, [Host, EMail]}),
             wf:flash("user database update failed")                        
     end;
     
@@ -88,8 +71,4 @@ event(_) -> ok.
 
 %%================================================================================
 validate_email(_Tag, _Value) ->
-    true.	
-
-%%--------------------------------------------------------------------------------
-validate_uid(_Tag, _Value) ->
     true.	

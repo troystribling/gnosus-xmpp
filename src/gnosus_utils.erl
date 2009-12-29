@@ -120,7 +120,7 @@ navigation(Current) ->
 %%================================================================================
 new_host_and_client_user(H, U) ->
     Host = #hosts{host=H, uid=U#users.uid},
-    ClientUser = client_user_model:init_record(U#users.uid, H, U#users.email, U#users.password, active),
+    ClientUser = client_user_model:init_record(H, U#users.uid, U#users.email, U#users.password, active),
     gnosus_dbi:transaction(
          fun() ->
              mnesia:write(Host),

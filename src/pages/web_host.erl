@@ -49,9 +49,21 @@ event({remove_host, Host}) ->
     end;
 
 %%--------------------------------------------------------------------------------
-event({remove_user, _Jid}) ->
-    ok;
-
+event({remove_user, {Host, Uid}}) ->
+    case client_user_model:find(Host, Uid) of
+        error ->             
+            gnosus_logger:alarm({client_user_not_found, [Host, Uid]}),
+             wf:flash("user not found");
+        norfound ->
+            gnosus_logger:alarm({client_user_not_found, [Host, Uid]}),
+            wf:flash("user not found");
+        User ->
+            case User#client_users.status of
+                active -> remove_active_user(Host, Uid);
+                    _ -> remove_client_user(Host, Uid)
+            end
+        end;
+    
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
 
@@ -59,16 +71,16 @@ event(_) -> ok.
 table_data() ->
     Host = wf:get_path_info(),
     Rows = [#tablerow{cells=[
-                #tableheader{text="jid"},
+                #tableheader{text="uid"},
                 #tableheader{text="email"},
                 #tableheader{text="status"},
                 #tableheader{text="last activity"},
                 #tableheader{text="offline messages"}
                ]}] ++  lists:map(
                               fun(U) ->
-                                  {Uid, _} = U#client_users.jid,
+                                  {_, Uid} = U#client_users.jid,
                                   #tablerow{cells=[
-                                      #tablecell{body=Uid++"@"++Host},
+                                      #tablecell{body=Uid},
                                       #tablecell{body=U#client_users.email},
                                       #tablecell{body=atom_to_list(U#client_users.status)},
                                       #tablecell{body="never"},
@@ -80,3 +92,21 @@ table_data() ->
                                   ], class="data-edit"} 
                               end, client_user_model:find_all_by_host(Host)),
     #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.
+
+%%--------------------------------------------------------------------------------
+remove_active_user(Host, Uid) ->
+    case ejabberd:remove_user(Host, Uid) of
+        ok -> remove_client_user(Host, Uid);         
+        error -> wf:flash("failed to deprovision user on xmpp server") 
+    end.                       
+
+%%--------------------------------------------------------------------------------
+remove_client_user(Host, Uid) ->
+    case client_user_model:delete(Host, Uid) of
+        ok -> 
+            gnosus_logger:message({host_user_remove_succeeded, [Host, Uid]}),
+             wf:update(tableData, table_data());
+        _ ->
+            gnosus_logger:alarm({client_user_database_update_failed, [Host, Uid]}),
+            wf:flash("user database update failed")                        
+    end.
