@@ -43,27 +43,20 @@ event(_) -> ok.
 
 %%================================================================================
 user_table_data() ->
-    Rows = [#tablerow{cells=[
-                #tableheader{text="uid"},
-                #tableheader{text="email"},
-                #tableheader{text="status"},
-                #tableheader{text="last login"},
-                #tableheader{text="login count"}
-               ]}] ++  lists:map(
-                              fun(U) ->
-                                  #tablerow{cells=[
-                                      #tablecell{body=#link{text=U#users.uid, url="/web/user/"++U#users.uid}},
-                                      #tablecell{body=U#users.email},
-                                      #tablecell{body=atom_to_list(U#users.status)},
-                                      #tablecell{body="never"},
-                                      #tablecell{body=
-                                          #panel{body=[
-                                              #link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#users.uid}, class="data-edit-controls"},
-                                              "0"
-                                           ], class="data-item"}}
-                                  ], class="data-edit"} 
-                              end, user_model:find(all)),
-    #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.
+    Header = ["uid", "email", "status", "role", "last login", "login count"],
+    Data = lists:map(
+                      fun(U) ->  
+                          [
+                              #link{text=U#users.uid, url="/web/user/"++U#users.uid}, 
+                              U#users.email, 
+                              atom_to_list(U#users.status),
+                              atom_to_list(U#users.role),
+                              "never", 
+                              [#link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#users.uid}, class="data-edit-controls"}, 
+                               integer_to_list(U#users.login_count)]
+                          ]
+                      end, user_model:find(all)),
+    gnosus_utils:table_data(Header, Data).
 
 %%--------------------------------------------------------------------------------
 users_toolbar() ->

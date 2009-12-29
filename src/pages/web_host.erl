@@ -70,28 +70,20 @@ event(_) -> ok.
 %%================================================================================
 table_data() ->
     Host = wf:get_path_info(),
-    Rows = [#tablerow{cells=[
-                #tableheader{text="uid"},
-                #tableheader{text="email"},
-                #tableheader{text="status"},
-                #tableheader{text="last activity"},
-                #tableheader{text="offline messages"}
-               ]}] ++  lists:map(
-                              fun(U) ->
-                                  {_, Uid} = U#client_users.jid,
-                                  #tablerow{cells=[
-                                      #tablecell{body=Uid},
-                                      #tablecell{body=U#client_users.email},
-                                      #tablecell{body=atom_to_list(U#client_users.status)},
-                                      #tablecell{body="never"},
-                                      #tablecell{body=
-                                          #panel{body=[
-                                              #link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#client_users.jid}, class="data-edit-controls"},
-                                              "0"
-                                           ], class="data-item"}}
-                                  ], class="data-edit"} 
-                              end, client_user_model:find_all_by_host(Host)),
-    #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.
+    Header = ["uid", "email", "status", "last activity", "offline messages"],
+    Data = lists:map(
+                      fun(U) ->  
+                          {_, Uid} = U#client_users.jid,
+                          [
+                              Uid, 
+                              U#client_users.email, 
+                              atom_to_list(U#client_users.status),
+                              "never", 
+                              [#link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#client_users.jid}, class="data-edit-controls"}, "0"]
+                          ]
+                      end, client_user_model:find_all_by_host(Host)),
+    gnosus_utils:table_data(Header, Data).
+    
 
 %%--------------------------------------------------------------------------------
 remove_active_user(Host, Uid) ->

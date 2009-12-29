@@ -49,20 +49,13 @@ event(_) -> ok.
 %%================================================================================
 table_data() ->
     User = wf:user(),
-    Rows = [#tablerow{cells=[
-                #tableheader{text="host"},
-                #tableheader{text="users"},
-                #tableheader{text="online users"}
-                ]}] ++ lists:map(
-                           fun(H) ->
-                               #tablerow{cells=[
-                               #tablecell{body=#link{text=H#hosts.host, url="/web/host/"++H#hosts.host}},
-                               #tablecell{text="0"},
-                               #tablecell{body=
-                                   #panel{body=[
-                                        #link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, class="data-edit-controls"},
-                                        "0"
-                                    ], class="data-item"}}
-                               ], class="data-edit"} 
-                           end, host_model:find_all_by_uid(User#users.uid)),
-    #table{rows=Rows, actions=#script{script="init_data_edit_row();"}}.
+    Header = ["host", "users", "online users"],
+    Data = lists:map(
+                      fun(H) ->  
+                          [
+                              #link{text=H#hosts.host, url="/web/host/"++H#hosts.host}, 
+                              "0", 
+                              [#link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, class="data-edit-controls"}, "0"]
+                          ]
+                      end, host_model:find_all_by_uid(User#users.uid)),
+    gnosus_utils:table_data(Header, Data).

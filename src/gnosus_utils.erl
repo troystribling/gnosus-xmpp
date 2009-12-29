@@ -10,6 +10,7 @@
     add_host/0,
     remove_host/1,
     navigation/1,
+    table_data/2,
     new_host_and_client_user/2,
     delete_host_and_client_users/1
 ]).
@@ -116,6 +117,22 @@ navigation(Current) ->
 	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile"}}
                 end,
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
+
+%%--------------------------------------------------------------------------------
+table_data(H, D) ->
+    Header = [#tablerow{cells=lists:map(
+                 fun(C) ->
+                     #tableheader{text=C}
+                 end, H)}],
+    Data = lists:map(             
+               fun(R) ->
+                   #tablerow{cells=[
+                       lists:map(
+                           fun(C) ->
+                               #tablecell{body=#panel{body=C, class="data-item"}}
+                           end, R)], class="data-edit"}                           
+               end, D),
+    #table{rows=Header++Data, actions=#script{script="init_data_edit_row();"}}.
 
 %%================================================================================
 new_host_and_client_user(H, U) ->
