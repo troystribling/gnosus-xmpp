@@ -23,22 +23,37 @@ body() ->
     Body = [
         #p{body=[
             #label{text="user id"},
-            #textbox {id=uidTextBox, next=passwordTextBox}
-        ], class="form user-add"},
-
-        #p{body=[
-            #label{text="password" },
-            #password{id=passwordTextBox, next=confirmPasswordTextBox }
-        ], class="form user-add"},
-
-        #p{body=[
-            #label{text="confirm password" },
-            #password{id=confirmPasswordTextBox, next=emailTextBox }
+            #textbox {id=uidTextBox, next=emailTextBox}
         ], class="form user-add"},
 
         #p{body=[
             #label{text="email"},
-            #textbox {id=emailTextBox, next=cancelButton}
+            #textbox {id=emailTextBox, next=passwordTextBox}
+        ], class="form user-add"},
+
+        #p{body=[
+            #label{text="password" },
+            #password{id=passwordTextBox, next=confirmPasswordTextBox}
+        ], class="form user-add"},
+
+        #p{body=[
+            #label{text="confirm password" },
+            #password{id=confirmPasswordTextBox, next=roleDropdown}
+        ], class="form user-add"},
+
+        #p{body=[
+            #label{text="role"},
+            #dropdown{id=roleDropdown, value=user_model:role_default(), options=gnosus_utils:to_options_list(user_model:role_values())}
+        ], class="form user-add"},
+
+        #p{body=[
+            #label{text="status"},
+            #dropdown{id=statusDropdown, value=user_model:status_default(), options=gnosus_utils:to_options_list(user_model:status_values())}
+        ], class="form user-add"},
+
+        #p{body=[
+            #label{text="product"},
+            #dropdown{id=productDropdown, value=user_model:product_default(), options=gnosus_utils:to_options_list(user_model:product_values())}
         ], class="form user-add"},
 
         #panel{body= #list{body=[ 
@@ -48,6 +63,7 @@ body() ->
     ],
 
     wf:wire(addButton, emailTextBox, #validate {validators=[
+        #is_required{text="email address required"},
         #is_email{text="invalid email address"},
         #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
     ]}),
@@ -77,7 +93,10 @@ event(add_user) ->
     [EMail] = wf:q(emailTextBox),
     [Uid] = wf:q(uidTextBox),
     [Password] = wf:q(passwordTextBox),
-    case user_model:new(EMail, Uid, Password, active, user, free) of
+    [Status] = wf:q(statusDropdown),
+    [Role] = wf:q(roleDropdown),
+    [Product] = wf:q(productDropdown),
+    case user_model:new(EMail, Uid, Password, list_to_atom(Status), list_to_atom(Role), list_to_atom(Product)) of
         ok -> 
             gnosus_logger:message({add_user_succeeded, Uid}),
             wf:redirect("/web/admin");

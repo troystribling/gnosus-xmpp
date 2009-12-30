@@ -20,29 +20,50 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 toolbar() ->
-    users_toolbar().
+    #panel{body=users_toolbar(), id=toolBar}.
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    users_title().
+    #panel{body=users_title(), id=title}.
 
 %%--------------------------------------------------------------------------------
 body() -> 
-    #panel{body=user_table_data(), id=tableData, class="data"}.
+    #panel{body=users_table_data(), id=tableData, class="data"}.
 	
 %%================================================================================
 event(logout) ->
     gnosus_utils:logout();
 
 %%--------------------------------------------------------------------------------
-event({remove_user, _Uid}) ->
-    ok;
+event(show_hosts) ->
+    [wf:update(title, hosts_title()), wf:update(toolBar, hosts_toolbar()), wf:update(tableData, hosts_table_data())];  
+ 
+%%--------------------------------------------------------------------------------
+event(show_users) ->
+    [wf:update(title, users_title()), wf:update(toolBar, users_toolbar()), wf:update(tableData, users_table_data())];  
+
+%%--------------------------------------------------------------------------------
+event({remove_user, Uid}) ->
+    case user_model:delete(Uid) of
+        ok -> 
+            wf:update(tableData, users_table_data());
+        _ -> 
+            gnosus_logger:alarm({remove_user_failed, Uid}),
+            wf:flash("user database update failed")
+    end;
+    
+%%--------------------------------------------------------------------------------
+event({remove_host, Host}) ->
+    case gnosus_utils:remove_host(Host) of
+        ok -> wf:update(tableData, hosts_table_data());            
+        Result -> Result
+    end;
     
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
 
 %%================================================================================
-user_table_data() ->
+users_table_data() ->
     Header = ["uid", "email", "status", "role", "last login", "login count"],
     Data = lists:map(
                       fun(U) ->  
@@ -67,5 +88,29 @@ users_toolbar() ->
     ]}.
 
 %%--------------------------------------------------------------------------------
+hosts_table_data() ->
+    Header = ["host", "uid", "users", "online users"],
+    Data = lists:map(
+                      fun(#hosts{host=H, uid=U}) ->  
+                          [
+                              #link{text=H, url="/web/host/"++H}, 
+                              #link{text=U, url="/web/user/"++U}, 
+                              "0", 
+                              [#link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H}, class="data-edit-controls"}, "0"]
+                          ]
+                      end, host_model:find(all)),
+    gnosus_utils:table_data(Header, Data).
+
+%%--------------------------------------------------------------------------------
+hosts_toolbar() ->
+    #list{body=[ 
+        #listitem{body=#link{text="show users", postback=show_users}}
+    ]}.
+
+%%--------------------------------------------------------------------------------
 users_title() ->
     #h1{text="users"}.
+
+%%--------------------------------------------------------------------------------
+hosts_title() ->
+    #h1{text="hosts"}.

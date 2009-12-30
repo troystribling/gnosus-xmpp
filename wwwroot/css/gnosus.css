@@ -180,7 +180,7 @@ img {
 .form label {
     float: left;
     clear: left;
-    font-size: 1.0em;
+    font-size: inherit;
     font-weight: lighter;
     text-align: right;
     margin-right: 10px;
@@ -195,6 +195,23 @@ p.form {
     font-weight: inherit;
     margin-top: 10px
 }
+.form select {
+    font-size: 16px;
+    font-weight: normal;
+    margin-top: 20px
+}
+.form-buttons ul {
+    list-style-type: none;
+    float: right;
+    margin-top: 15px;
+    margin-bottom: 0px;
+}
+.form-buttons li {
+    display: inline;
+    font-size: 1.0em;
+    margin: 0px;
+    margin-left: 10px;
+} 
 .form a {
     color: #000;
     outline: none;
@@ -215,18 +232,6 @@ p.form {
     outline: none;
     text-decoration: none;
 }
-.form-buttons ul {
-    list-style-type: none;
-    float: right;
-    margin-top: 15px;
-    margin-bottom: 0px;
-}
-.form-buttons li {
-    display: inline;
-    font-size: 1.0em;
-    margin: 0px;
-    margin-left: 10px;
-} 
 /*******  login style   *******/
 .login label {
     width: 4.5em;
@@ -246,8 +251,8 @@ p.form {
     width: 7.75em;
 }
 .user-add-buttons {
-    width: 20.90em;
-}
+    width: 20.9em;
+} 
 /******* host user style *******/
 .host-user label {
     width: 4.85em;
@@ -261,21 +266,6 @@ p.form {
 }
 .profile-buttons {
     width: 15em;
-}
-/******* user system style *******/
-.user-system label {
-    width: 8.6em;
-}
-.user-system input {
-    font-size: .9em;
-    margin-top:15px;
-}
-.user-system select {
-    font-size: .9em;
-    margin-top: 15px;
-}
-.user-system-buttons {
-    width: 19em;
 }
 /******* host add style *******/
 .host-add label {

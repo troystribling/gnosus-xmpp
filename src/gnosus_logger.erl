@@ -56,10 +56,13 @@ message({remove_host_user_succeeded, M}) ->
     error_logger:info_msg("remove user: ~p, succeeded for host: ~p~n", M);
 
 message({add_user_succeeded, M}) ->
-    error_logger:info_msg("add user: ~p, succeeded", [M]);
+    error_logger:info_msg("add user: ~p, succeeded~n", [M]);
+
+message({update_user_succeeded, M}) ->
+    error_logger:info_msg("update user: ~p, succeeded~n", [M]);
 
 message({remove_user_succeeded, M}) ->
-    error_logger:info_msg("remove user: ~p, succeeded", [M]);
+    error_logger:info_msg("remove user: ~p, succeeded~n", [M]);
 
 message({user_registered, M}) ->
     error_logger:info_msg("user registered: ~p~n", [M]);
@@ -129,8 +132,11 @@ alarm({remove_host_user_failed, M}) ->
 alarm({add_user_failed, M}) ->
     error_logger:error_msg("add user failed for user: ~p~n", [M]);
 
+alarm({update_user_failed, M}) ->
+    error_logger:error_msg("update user failed for user: ~p~n", [M]);
+
 alarm({remove_user_failed, M}) ->
-    error_logger:error_msg("user: ~p, deletion failed", [M]);
+    error_logger:error_msg("remove user: ~p, failed~n", [M]);
 
 alarm({host_user_deletion_invalid, M}) ->
     error_logger:error_msg("user: ~p, does not own host: ~p and tried to delete user~n", M);

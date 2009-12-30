@@ -12,7 +12,8 @@
     navigation/1,
     table_data/2,
     new_host_and_client_user/2,
-    delete_host_and_client_users/1
+    delete_host_and_client_users/1,
+    to_options_list/1
 ]).
  
 %% include
@@ -114,7 +115,7 @@ navigation(Current) ->
                 end,
 	UserItem = case Current of
 	                profile -> #listitem{body=("<strong>"++User#users.uid++"</strong>")};	                         
-	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile"}}
+	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile/"++User#users.uid}}
                 end,
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
 
@@ -155,3 +156,7 @@ delete_host_and_client_users(Host) ->
    	                mnesia:delete({client_users, C})
                 end, ClientUsers)
 	     end).
+
+ %%================================================================================
+to_options_list(AtomList) ->
+    lists:map(fun(V) -> #option{text=atom_to_list(V), value=atom_to_list(V)} end, AtomList).

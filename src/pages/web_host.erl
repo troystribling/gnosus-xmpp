@@ -53,7 +53,7 @@ event({remove_user, {Host, Uid}}) ->
     case client_user_model:find(Host, Uid) of
         error ->             
             gnosus_logger:alarm({client_user_not_found, [Host, Uid]}),
-             wf:flash("user not found");
+             wf:flash("database error");
         norfound ->
             gnosus_logger:alarm({client_user_not_found, [Host, Uid]}),
             wf:flash("user not found");

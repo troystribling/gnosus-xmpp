@@ -6,8 +6,11 @@
 -export([
     fields/0, 
     status_values/0,
+    status_default/0,
     role_values/0,
+    role_default/0,
     product_values/0,
+    product_default/0,
     create_table/0,
     delete_table/0,
     clear_table/0,
@@ -39,16 +42,16 @@ fields() ->
 	record_info(fields, users).
 
 %%--------------------------------------------------------------------------------
-status_values() ->
-    [active, inactive, registered].
+status_values() -> [active, inactive, registered].
+status_default() -> "registered".
 
 %%--------------------------------------------------------------------------------
-role_values() ->
-    [admin, user].
+role_values() -> [admin, user].
+role_default() -> "user".
 
 %%--------------------------------------------------------------------------------
-product_values() ->
-    [free, unlimited].
+product_values() -> [free, unlimited].
+product_default() -> "free".
 
 %%================================================================================
 create_table() ->
@@ -211,12 +214,17 @@ authenticate(Uid, Password) ->
             gnosus_logger:warning({authentication_failed, Uid}),                     
             false;
         User ->
-	    	[Count, Failed, Auth] = case User#users.password =:= Password of
-										true ->
-											[User#users.login_count+1, User#users.failed_login_count, true];
-										false ->
-											[User#users.login_count, User#users.failed_login_count+1, false]
-									end,
+	    	[Count, Failed, Auth] = case User#users.status of
+	    	                            active ->
+        	    	                        case User#users.password =:= Password of
+        										true ->
+        											[User#users.login_count+1, User#users.failed_login_count, true];
+        										false ->
+        											[User#users.login_count, User#users.failed_login_count+1, false]
+        									end;
+        								_ ->
+        								    [User#users.login_count, User#users.failed_login_count+1, false]
+        							end,
 	    	write(User#users{login_count=Count, failed_login_count=Failed, last_login=now(), updated_at = now()}),   
             gnosus_logger:message({authenticated, Uid}),                     
 	    	Auth

@@ -13,7 +13,7 @@
 
 %%================================================================================
 -define(NOAUTHENTICATE_ROUTES, [web_index, web_register]).
--define(ADMIN_ROUTES, []).
+-define(ADMIN_ROUTES, [web_admin, web_user_add, web_user]).
 
 %%================================================================================
 authorize(Module) ->

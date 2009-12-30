@@ -52,6 +52,7 @@ body() ->
     ],
 
     wf:wire(addButton, emailTextBox, #validate {validators=[
+        #is_required{text="email address required"},
         #is_email{text="invalid email address"},
         #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
     ]}),
