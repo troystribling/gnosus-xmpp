@@ -14,7 +14,7 @@
 %%================================================================================
 -define(NOAUTHENTICATE_ROUTES, [web_index, web_register]).
 -define(ADMIN_ROUTES, [web_admin, web_user_add, web_user]).
--define(HOST_ROUTES, [web_host]).
+-define(HOST_ROUTES, [web_host, web_host_user_register, web_host_user_add]).
 
 %%================================================================================
 authorize(Module) ->
