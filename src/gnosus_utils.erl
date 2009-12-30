@@ -115,7 +115,7 @@ navigation(Current) ->
                 end,
 	UserItem = case Current of
 	                profile -> #listitem{body=("<strong>"++User#users.uid++"</strong>")};	                         
-	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile/"++User#users.uid}}
+	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile"}}
                 end,
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
 

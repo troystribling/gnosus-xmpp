@@ -14,6 +14,7 @@
   	last_login,
   	login_count,
   	failed_login_count,
+  	demerits,
   	product             = free,
   	services            = []
 }).

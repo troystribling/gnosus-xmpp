@@ -42,7 +42,7 @@ fields() ->
 	record_info(fields, users).
 
 %%--------------------------------------------------------------------------------
-status_values() -> [active, inactive, registered].
+status_values() -> [active, inactive, registered, locked].
 status_default() -> "registered".
 
 %%--------------------------------------------------------------------------------
@@ -173,6 +173,7 @@ new(EMail, Uid, Password, Status, Role, Product) ->
 		      created_at=now(),
 		      updated_at=now(),
 		      last_login=never,
+		      demerits=0,
 		      login_count=0,
 		      failed_login_count=0
 		  }).

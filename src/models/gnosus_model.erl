@@ -13,6 +13,7 @@
     stop_modules/1,
     ejabberd/0,
     tld/0,
+    excluded_hosts/0,
     load_config_file/0
 ]).
  

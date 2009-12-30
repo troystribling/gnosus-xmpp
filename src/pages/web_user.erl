@@ -24,8 +24,8 @@ title() ->
 
 %%--------------------------------------------------------------------------------
 body() ->
-    Uid = wf:get_path_info(),
-    case user_model:find(Uid) of
+    EMail = wf:get_path_info(),
+    case user_model:find_by_email(EMail) of
         notfound ->
             wf:flash("user not found");                      
         error ->
@@ -40,14 +40,15 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(update_user) -> 
-    Uid = wf:get_path_info(),
-    User = user_model:find(Uid),
-    [EMail] = wf:q(emailTextBox),
+    EMail = wf:get_path_info(),
+    User = user_model:find_by_email(EMail),
+    Uid = User#users.uid,
+    [FormEMail] = wf:q(emailTextBox),
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),
     [Product] = wf:q(productDropdown),
     if 
-        EMail =:= User#users.email -> ok;
+        FormEMail =:= EMail -> ok;
         true -> user_model:delete(Uid)
     end,
     Password = case wf:q(passwordTextBox) of
@@ -78,6 +79,10 @@ validate_email(_Tag, _Value) ->
 
 %%--------------------------------------------------------------------------------
 validate_uid(_Tag, _Value) ->
+    true.	
+
+%%--------------------------------------------------------------------------------
+validate_confirmation_password(_Tag, _Value) ->
     true.	
 
 %%--------------------------------------------------------------------------------
@@ -129,7 +134,8 @@ user_form(User) ->
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-      #confirm_password {text="passwords must match.", password=passwordTextBox}
+        #custom{text="confirmation password is required", tag=some_tag, function=fun validate_confirmation_password/2},           
+        #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 
     wf:render(Body).

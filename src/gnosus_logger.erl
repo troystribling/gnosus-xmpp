@@ -156,6 +156,9 @@ alarm({host_access_invalid, M}) ->
 alarm({admin_authorization_failed, M}) ->
     error_logger:error_msg("admin authorization failed for request: ~p from: ~p~n", M);
 
+alarm({host_authorization_failed, M}) ->
+    error_logger:error_msg("host authorization failed for request: ~p from: ~p~n", M);
+
 alarm({config_load_failed, M}) ->
     error_logger:error_msg("config load failed: ~p~n", [M]);
 

@@ -64,12 +64,12 @@ event(_) -> ok.
 
 %%================================================================================
 users_table_data() ->
-    Header = ["uid", "email", "status", "role", "last login", "login count"],
+    Header = ["email", "uid", "status", "role", "last login", "login count"],
     Data = lists:map(
                       fun(U) ->  
                           [
-                              #link{text=U#users.uid, url="/web/user/"++U#users.uid}, 
-                              U#users.email, 
+                              #link{text=U#users.email, url="/web/user/"++U#users.email}, 
+                              U#users.uid, 
                               atom_to_list(U#users.status),
                               atom_to_list(U#users.role),
                               "never", 

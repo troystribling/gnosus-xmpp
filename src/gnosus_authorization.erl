@@ -14,12 +14,22 @@
 %%================================================================================
 -define(NOAUTHENTICATE_ROUTES, [web_index, web_register]).
 -define(ADMIN_ROUTES, [web_admin, web_user_add, web_user]).
+-define(HOST_ROUTES, [web_host]).
 
 %%================================================================================
 authorize(Module) ->
     case lists:member(Module, ?NOAUTHENTICATE_ROUTES) of
-        false -> is_authenticated(Module);
-        true -> is_admin(Module)
+        false -> case is_authenticated(Module) of 
+                     ok -> case is_admin(Module) of
+                               ok -> case has_host(Module) of
+                                         ok -> ok;
+                                         Result -> Result
+                                     end;
+                                Result -> Result
+                           end;
+                     Result -> Result
+                end;  
+        true -> ok
     end.
                         
 %%================================================================================
@@ -30,13 +40,12 @@ is_admin(Module) ->
             #users{uid=Uid, role=Role} = wf:user(),
             case Role of
                 admin ->
-                    gnosus_logger:message({admin_authorized, Uid}),                     
+                    gnosus_logger:message({admin_authorized, [Module, Uid]}),                     
                     ok;
                 _ -> 
-                    wf:flash("access denied"),
-                    gnosus_logger:alarm({admin_authorization_failed, Uid}),                     
-                    wf:clear_user(),
-                    wf:redirect("/")
+                    gnosus_logger:alarm({admin_authorization_failed, [Module, Uid]}),                     
+                    wf:logout(),
+                    [wf:redirect("/"), wf:flash("access denied")]
             end
             
     end.
@@ -49,4 +58,22 @@ is_authenticated(Module) ->
             wf:redirect("/");
         _User -> ok
     end.   
+
+%%--------------------------------------------------------------------------------
+has_host(Module) ->
+    case lists:member(Module, ?HOST_ROUTES) of
+        false -> ok;
+        true ->
+            #users{uid=Uid} = wf:user(),
+            Hosts = wf:session(hosts),            
+            ReqHost = wf:get_path_info(),
+            case lists:member(ReqHost, Hosts) of
+                true -> ok;
+                _ -> 
+                    gnosus_logger:alarm({host_authorization_failed, [Module, Uid]}),                     
+                    wf:logout(),
+                    [wf:redirect("/"), wf:flash("access to requested host denied")]
+            end
+            
+    end.
     

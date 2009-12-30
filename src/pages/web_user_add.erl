@@ -22,13 +22,13 @@ navigation() ->
 body() ->
     Body = [
         #p{body=[
-            #label{text="user id"},
-            #textbox {id=uidTextBox, next=emailTextBox}
+            #label{text="email"},
+            #textbox {id=emailTextBox, next=passwordTextBox}
         ], class="form user-add"},
 
         #p{body=[
-            #label{text="email"},
-            #textbox {id=emailTextBox, next=passwordTextBox}
+            #label{text="user id"},
+            #textbox {id=uidTextBox, next=emailTextBox}
         ], class="form user-add"},
 
         #p{body=[
@@ -69,17 +69,17 @@ body() ->
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
-        #is_required{text="uid required"},
+        #custom{text="user id is required", tag=some_tag, function=fun validate_uid_present/2},       
         #custom{text="user id is not available", tag=some_tag, function=fun validate_uid/2}        
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
-      #is_required{text="password required"}
+        #custom{text="password is required", tag=some_tag, function=fun validate_password/2}        
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-      #is_required{text="confirmation password required"},
-      #confirm_password { text="passwords must match.", password=passwordTextBox }
+        #custom{text="confirmation password is required", tag=some_tag, function=fun validate_confirmation_password/2},       
+        #confirm_password { text="passwords must match.", password=passwordTextBox }
     ]}),
 
     wf:render(Body).
@@ -96,13 +96,9 @@ event(add_user) ->
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),
     [Product] = wf:q(productDropdown),
-    case user_model:new(EMail, Uid, Password, list_to_atom(Status), list_to_atom(Role), list_to_atom(Product)) of
-        ok -> 
-            gnosus_logger:message({add_user_succeeded, Uid}),
-            wf:redirect("/web/admin");
-        _ ->
-            gnosus_logger:alarm({add_user_failed, Uid}),
-            wf:flash("user database update failed")                        
+    case Status of
+        registered -> update_user_database(user_model:register(EMail), EMail);
+        _ -> update_user_database(user_model:new(EMail, Uid, Password, list_to_atom(Status), list_to_atom(Role), list_to_atom(Product)), EMail)
     end;
             
 %%--------------------------------------------------------------------------------
@@ -117,5 +113,28 @@ validate_email(_Tag, _Value) ->
     true.	
 
 %%--------------------------------------------------------------------------------
+validate_uid_present(_Tag, _Value) ->
+    true.	
+
+%%--------------------------------------------------------------------------------
 validate_uid(_Tag, _Value) ->
     true.	
+
+%%--------------------------------------------------------------------------------
+validate_password(_Tag, _Value) ->
+    true.	
+
+%%--------------------------------------------------------------------------------
+validate_confirmation_password(_Tag, _Value) ->
+    true.	
+
+%%--------------------------------------------------------------------------------
+update_user_database(Update, EMail) ->
+    case Update of
+        ok -> 
+            gnosus_logger:message({add_user_succeeded, EMail}),
+            wf:redirect("/web/admin");
+        _ ->
+            gnosus_logger:alarm({add_user_failed, EMail}),
+            wf:flash("user database update failed")                        
+    end.

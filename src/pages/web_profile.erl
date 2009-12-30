@@ -24,15 +24,7 @@ title() ->
 
 %%--------------------------------------------------------------------------------
 body() ->
-    Uid = wf:get_path_info(),
-    case user_model:find(Uid) of
-        notfound ->
-            wf:flash("user not found");                      
-        error ->
-            wf:flash("database error");                        
-        User -> 
-            user_form(User)
-    end.     
+    user_form().
 	
 %%================================================================================
 event(logout) ->
@@ -40,8 +32,8 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(update_user) -> 
-    Uid = wf:get_path_info(),
-    User = user_model:find(Uid),
+    User = wf:user(),
+    Uid = User#users.uid,
     [EMail] = wf:q(emailTextBox),
     if 
         EMail =:= User#users.email -> ok;
@@ -53,7 +45,8 @@ event(update_user) ->
                    [P] -> P
                end,
     case user_model:update(EMail, Uid, Password, User#users.status, User#users.role, User#users.product) of
-        ok -> 
+        ok ->
+            wf:user(user_model:find(Uid)), 
             gnosus_logger:message({update_user_succeeded, Uid}),
             wf:flash("profile updated"); 
         _ ->
@@ -69,11 +62,12 @@ validate_email(_Tag, _Value) ->
     true.	
 
 %%--------------------------------------------------------------------------------
-validate_uid(_Tag, _Value) ->
+validate_confirmation_password(_Tag, _Value) ->
     true.	
 
 %%--------------------------------------------------------------------------------
-user_form(User) ->
+user_form() ->
+    User = wf:user(),
     Body = [
         #p{body=[
             #label{text="email"},
@@ -105,7 +99,8 @@ user_form(User) ->
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-      #confirm_password {text="passwords must match.", password=passwordTextBox}
+        #custom{text="confirmation password is required", tag=some_tag, function=fun validate_confirmation_password/2},       
+        #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 
     wf:render(Body).
