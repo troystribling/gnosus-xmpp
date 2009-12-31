@@ -65,21 +65,21 @@ body() ->
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
-        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #custom{text="email address registered", function=fun email_available/2}
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
-        #custom{text="user id is required", tag=some_tag, function=fun validate_uid_present/2},       
-        #custom{text="user id is not available", tag=some_tag, function=fun validate_uid/2}        
+        #custom{text="user id is required", function=fun uid_present/2},      
+        #custom{text="user id is not available", function=fun uid_available/2}        
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
-        #custom{text="password is required", tag=some_tag, function=fun validate_password/2}        
+        #custom{text="password is required", function=fun password_present/2}        
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-        #custom{text="confirmation password is required", tag=some_tag, function=fun validate_confirmation_password/2},       
-        #confirm_password { text="passwords must match.", password=passwordTextBox }
+        #custom{text="confirmation password is required", function=fun confirmation_password_present/2},       
+        #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 
     wf:render(Body).
@@ -109,24 +109,28 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-validate_email(_Tag, _Value) ->
-    true.	
+email_available(_Tag, _Value) ->
+    [EMail] = wf:q(emailTextBox),
+    case user_model:find_by_email(EMail) of
+        notfound -> true;
+        _ -> false
+    end.
 
 %%--------------------------------------------------------------------------------
-validate_uid_present(_Tag, _Value) ->
-    true.	
+uid_present(_Tag, _Value) ->
+    true.
+    
+%%--------------------------------------------------------------------------------
+uid_available(_Tag, _Value) ->
+    true.
 
 %%--------------------------------------------------------------------------------
-validate_uid(_Tag, _Value) ->
-    true.	
+password_present(_Tag, _Value) ->
+    true.
 
 %%--------------------------------------------------------------------------------
-validate_password(_Tag, _Value) ->
-    true.	
-
-%%--------------------------------------------------------------------------------
-validate_confirmation_password(_Tag, _Value) ->
-    true.	
+confirmation_password_present(_Tag, _Value) ->
+    true.
 
 %%--------------------------------------------------------------------------------
 update_user_database(Update, EMail) ->

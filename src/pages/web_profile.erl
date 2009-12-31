@@ -58,11 +58,11 @@ event(update_user) ->
 event(_) -> ok.
 
 %%================================================================================
-validate_email(_Tag, _Value) ->
+email_available(_Tag, _Value) ->
     true.	
 
 %%--------------------------------------------------------------------------------
-validate_confirmation_password(_Tag, _Value) ->
+confirmation_password(_Tag, _Value) ->
     true.	
 
 %%--------------------------------------------------------------------------------
@@ -92,14 +92,14 @@ user_form() ->
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
-        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #custom{text="email address registered", tag=some_tag, function=fun email_available/2}
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-        #custom{text="confirmation password is required", tag=some_tag, function=fun validate_confirmation_password/2},       
+        #custom{text="confirmation password is required", tag=some_tag, function=fun confirmation_password/2},       
         #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 

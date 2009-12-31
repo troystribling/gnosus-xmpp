@@ -42,18 +42,18 @@ event(logout) ->
 event(update_user) -> 
     EMail = wf:get_path_info(),
     User = user_model:find_by_email(EMail),
-    Uid = User#users.uid,
     [FormEMail] = wf:q(emailTextBox),
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),
     [Product] = wf:q(productDropdown),
+    Uid = User#users.uid,
     if 
         FormEMail =:= EMail -> ok;
-        true -> user_model:delete(Uid)
+        true -> user_model:delete_by_email(EMail)
     end,
     Password = case wf:q(passwordTextBox) of
                    [[]] -> 
-                       User = user_model:find(Uid),
+                       User = user_model:find_by_email(EMail),
                        User#users.password;
                    [P] -> P
                end,
@@ -74,23 +74,32 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-validate_email(_Tag, _Value) ->
-    true.	
+email_available(_Tag, _Value) ->
+    true.
 
 %%--------------------------------------------------------------------------------
-validate_uid(_Tag, _Value) ->
-    true.	
+uid_available(_Tag, _Value) ->
+    true.
 
 %%--------------------------------------------------------------------------------
-validate_confirmation_password(_Tag, _Value) ->
-    true.	
-
+uid_present(_Tag, _Value) ->
+    true.
+    
+%%--------------------------------------------------------------------------------
+confirmation_password(_Tag, _Value) ->
+    true.
+    
 %%--------------------------------------------------------------------------------
 user_form(User) ->
     Body = [
         #p{body=[
             #label{text="email"},
             #textbox {id=emailTextBox, text=User#users.email, next=passwordTextBox}
+        ], class="form user-add"},
+
+        #p{body=[
+            #label{text="user id"},
+            #textbox {id=uidTextBox, next=emailTextBox}
         ], class="form user-add"},
 
         #p{body=[
@@ -127,14 +136,19 @@ user_form(User) ->
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
-        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #custom{text="email address registered", function=fun email_available/2}
+    ]}),
+
+    wf:wire(addButton, uidTextBox, #validate {validators=[
+        #custom{text="user id is required", function=fun uid_present/2},       
+        #custom{text="user id is not available", function=fun uid_available/2}        
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-        #custom{text="confirmation password is required", tag=some_tag, function=fun validate_confirmation_password/2},           
+        #custom{text="confirmation password is required", function=fun confirmation_password/2},           
         #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 

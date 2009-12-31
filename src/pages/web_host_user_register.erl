@@ -39,7 +39,7 @@ body() ->
     wf:wire(registerButton, emailTextBox, #validate {validators=[
         #is_email{text="invalid email address"},
         #is_required{text="email address required"},
-        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #custom{text="email address registered", tag=some_tag, function=fun email_available/2}
     ]}),
 
     wf:render(Body).
@@ -70,5 +70,9 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-validate_email(_Tag, _Value) ->
-    true.	
+email_available(_Tag, _Value) ->
+    [EMail] = wf:q(emailTextBox),
+    case client_user_model:find_by_email(EMail) of
+        notfound -> true;
+        _ -> false
+    end.

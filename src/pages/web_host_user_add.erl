@@ -27,7 +27,12 @@ body() ->
     Body = [
         #p{body=[
             #label{text="user id"},
-            #textbox {id=uidTextBox, next=passwordTextBox}
+            #textbox {id=uidTextBox, next=emailTextBox}
+        ], class="form host-user-add"},
+
+        #p{body=[
+            #label{text="email"},
+            #textbox {id=emailTextBox, next=passwordTextBox}
         ], class="form host-user-add"},
 
         #p{body=[
@@ -37,12 +42,7 @@ body() ->
 
         #p{body=[
             #label{text="confirm password" },
-            #password{id=confirmPasswordTextBox, next=emailTextBox }
-        ], class="form host-user-add"},
-
-        #p{body=[
-            #label{text="email"},
-            #textbox {id=emailTextBox, next=cancelButton}
+            #password{id=confirmPasswordTextBox, next=cancelButton }
         ], class="form host-user-add"},
 
         #panel{body= #list{body=[ 
@@ -54,12 +54,12 @@ body() ->
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
-        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #custom{text="email address registered", function=fun email_available/2}
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
         #is_required{text="uid required"},
-        #custom{text="user id is not available", tag=some_tag, function=fun validate_uid/2}        
+        #custom{text="user id is not available", function=fun uid_available/2}        
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
@@ -68,7 +68,7 @@ body() ->
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
       #is_required{text="confirmation password required"},
-      #confirm_password { text="passwords must match.", password=passwordTextBox }
+      #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 
     wf:render(Body).
@@ -107,9 +107,18 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-validate_email(_Tag, _Value) ->
-    true.	
+email_available(_Tag, _Value) ->
+    [EMail] = wf:q(emailTextBox),
+    case client_user_model:find_by_email(EMail) of
+        notfound -> true;
+        _ -> false
+    end.
 
 %%--------------------------------------------------------------------------------
-validate_uid(_Tag, _Value) ->
-    true.	
+uid_available(_Tag, _Value) ->
+    [Uid] = wf:q(uidTextBox),
+    Host = wf:get_path_info(),
+    case client_user_model:find(Host, Uid) of
+        notfound -> true;
+        _ -> false
+    end.

@@ -7,7 +7,7 @@
     logout/0,
     host_page_redirect/0,
     start_page_redirect/0,
-    add_host/0,
+    add_host/1,
     remove_host/1,
     navigation/1,
     table_data/2,
@@ -50,16 +50,15 @@ start_page_redirect() ->
     end.
         
 %%================================================================================
-add_host() ->
+add_host(Host) ->
     User = wf:user(),
-    [Host] = wf:q(hostTextBox),
     case ejabberd:add_host_and_user(Host, User#users.uid, User#users.password) of
         {ok, _} ->
-            Hosts = wf:session(hosts),
-            wf:session(hosts, Hosts++[Host]),
             case new_host_and_client_user(Host, User) of
                 ok ->
                     gnosus_logger:message({add_host_ui_succeeded, [Host, User#users.uid]}),
+                    Hosts = wf:session(hosts),
+                    wf:session(hosts, Hosts++[Host]),
                     gnosus_utils:host_page_redirect();
                 _ ->
                     ejebberd:remove_host_and_users(Host, User#users.uid),

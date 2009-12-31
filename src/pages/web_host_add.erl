@@ -27,8 +27,9 @@ body() ->
     Body = [
         #p{body=[
             #label{text="host"},
-            #textbox {id=hostTextBox, next=addHostButton}
-        ], class="form host-add"},
+            #textbox {id=hostTextBox, next=addHostButton},
+            #span{text="."++gnosus_model:tld()}
+        ], class="form host-add host-add-text"},
 
         #panel{body= #list{body=
             CancelButton++[#listitem{body=#link{id=addHostButton, text="add", postback=add_host, class="up-button"}}]}, 
@@ -37,7 +38,7 @@ body() ->
 
     wf:wire(addHostButton, hostTextBox, #validate {validators=[
         #is_required{text="host name required"},
-        #custom{text="host name not available", function=fun host_available/2}
+        #custom{text="host not available", function=fun host_available/2}
     ]}),
 
     wf:render(Body).
@@ -47,8 +48,9 @@ event(logout) ->
     gnosus_utils:logout();
 
 %%--------------------------------------------------------------------------------
-event(add_host) -> 
-    gnosus_utils:add_host();
+event(add_host) ->
+    [Host] = wf:q(hostTextBox), 
+    gnosus_utils:add_host(Host++"."++gnosus_model:tld());
 
 %%--------------------------------------------------------------------------------
 event(cancel) -> 
@@ -59,4 +61,8 @@ event(_) -> ok.
 
 %%================================================================================
 host_available(_Tag, _Value) ->
-    true.	
+    [Host] = wf:q(hostTextBox), 
+    case host_model:find(Host++"."++gnosus_model:tld()) of
+        notfound -> true;
+        _ -> false
+    end.

@@ -15,6 +15,7 @@
     delete_table/0,
     clear_table/0,
     delete/1,
+    delete_by_email/1,
     find/1,
     find_by_email/1,
     count/0,
@@ -105,6 +106,10 @@ delete(Uid) ->
 		User ->
 	   		gnosus_dbi:delete_row({users, User#users.email})
     end.
+
+%%--------------------------------------------------------------------------------
+delete_by_email(EMail) ->
+    gnosus_dbi:delete_row({users, EMail}).
  
 
 %%================================================================================

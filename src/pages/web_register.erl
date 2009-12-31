@@ -51,4 +51,8 @@ event(_) -> ok.
 
 %%================================================================================
 validate_email(_Tag, _Value) ->
-    true.	
+    [EMail] = wf:q(emailTextBox),
+    case user_model:find_by_email(EMail) of
+        notfound -> true;
+        _ -> false
+    end.

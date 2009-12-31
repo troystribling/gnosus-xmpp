@@ -232,6 +232,9 @@ p.form {
     outline: none;
     text-decoration: none;
 }
+.form-text span {
+    padding-left: 2px;
+}
 /*******  login style   *******/
 .login label {
     width: 4.5em;
@@ -273,6 +276,9 @@ p.form {
 }
 .host-add-buttons {
     width: 15.0em;
+}
+.host-add-text .LV_validation_message {
+    margin-left: 3.0em;
 }
 /******* add host user style *******/
 .host-user-add label {
@@ -375,8 +381,8 @@ tr.data-edit-select {
     font-weight: lighter;
 }
 .LV_validation_message { 
-    margin-top: 16px;
-    margin-left: 5px;
+    margin-top: 13px;
+    margin-left: 2px;
 }
 /******* flash messages *******/
 .flash_container {
