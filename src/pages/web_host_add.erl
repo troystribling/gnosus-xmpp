@@ -31,8 +31,8 @@ body() ->
             #span{text="."++gnosus_model:tld()}
         ], class="form host-add host-add-text"},
 
-        #panel{body= #list{body=
-            CancelButton++[#listitem{body=#link{id=addHostButton, text="add", postback=add_host, class="up-button"}}]}, 
+        #panel{body= #list{body=CancelButton++[
+            #listitem{body=#link{id=addHostButton, text="add", postback=add_host, class="up-button"}}]}, 
             class="form form-buttons host-add-buttons"}
     ],
 
@@ -45,7 +45,7 @@ body() ->
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event(add_host) ->

@@ -20,7 +20,7 @@ message({stoping, M}) ->
     error_logger:info_msg("stopping: ~p~n", [M]);
  
 message({authenticated, M}) ->
-    error_logger:info_msg("starting new authenticated session: ~p~n", [M]);
+    error_logger:info_msg("starting new authenticated session for: ~p~n", [M]);
 
 message({terminate_session, M}) ->
     error_logger:info_msg("terminated session: ~p~n", [M]);
@@ -60,6 +60,9 @@ message({add_user_succeeded, M}) ->
 
 message({update_user_succeeded, M}) ->
     error_logger:info_msg("update user: ~p, succeeded~n", [M]);
+
+message({update_client_user_succeeded, M}) ->
+    error_logger:info_msg("update client user: ~p, succeeded~n", [M]);
 
 message({remove_user_succeeded, M}) ->
     error_logger:info_msg("remove user: ~p, succeeded~n", [M]);
@@ -132,8 +135,14 @@ alarm({remove_host_user_failed, M}) ->
 alarm({add_user_failed, M}) ->
     error_logger:error_msg("add user failed for user: ~p~n", [M]);
 
+alarm({user_registeration_failed, M}) ->
+    error_logger:error_msg("user registration failed for user: ~p~n", [M]);
+
 alarm({update_user_failed, M}) ->
     error_logger:error_msg("update user failed for user: ~p~n", [M]);
+
+alarm({update_client_user_failed, M}) ->
+    error_logger:error_msg("update client user failed for user: ~p~n", [M]);
 
 alarm({remove_user_failed, M}) ->
     error_logger:error_msg("remove user: ~p, failed~n", [M]);

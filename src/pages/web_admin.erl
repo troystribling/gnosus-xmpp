@@ -32,7 +32,7 @@ body() ->
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event(show_hosts) ->
@@ -43,12 +43,13 @@ event(show_users) ->
     [wf:update(title, users_title()), wf:update(toolBar, users_toolbar()), wf:update(tableData, users_table_data())];  
 
 %%--------------------------------------------------------------------------------
-event({remove_user, Uid}) ->
-    case user_model:delete(Uid) of
+event({remove_user, EMail}) ->
+    case user_model:delete_by_email(EMail) of
         ok -> 
+            gnosus_logger:alarm({remove_user_succeeded, EMail}),
             wf:update(tableData, users_table_data());
         _ -> 
-            gnosus_logger:alarm({remove_user_failed, Uid}),
+            gnosus_logger:alarm({remove_user_failed, EMail}),
             wf:flash("user database update failed")
     end;
     
@@ -73,7 +74,7 @@ users_table_data() ->
                               atom_to_list(U#users.status),
                               atom_to_list(U#users.role),
                               "never", 
-                              [#link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#users.uid}, class="data-edit-controls"}, 
+                              [#link{body=#image{image="/images/data-delete.png"}, postback={remove_user, U#users.email}, class="data-edit-controls"}, 
                                integer_to_list(U#users.login_count)]
                           ]
                       end, user_model:find(all)),
@@ -83,6 +84,8 @@ users_table_data() ->
 users_toolbar() ->
     #list{body=[ 
         #listitem{body=#link{text="show hosts", postback=show_hosts}},
+        #listitem{body=#image{image="/images/toolbar-separator.png"}},
+        #listitem{body=#link{text="send user registration email", url="/web/register"}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},
         #listitem{body=#link{text="add user", url="/web/user/add"}}
     ]}.

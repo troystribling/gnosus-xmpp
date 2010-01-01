@@ -12,19 +12,18 @@
     delete/2,
     find/1,
     find/2,
-    find_by_email/1,
+    find_by_jid/1,
     find_all_by_host/1,
     count/0,
-    password/3,
-    email/3,
     status/3,
     register/2,
-    new_user/4,
+    new_user/3,
     new_client_user_from_user/3,
     write/1,
-    new/5,
-    init_record/5,
-    update/5
+    new/4,
+    init_record/4,
+    update/4,
+    authenticate/2
 ]).
  
 %% include
@@ -68,19 +67,15 @@ find(Host, Uid) ->
      end.
 
 %%--------------------------------------------------------------------------------
-find_by_email(EMail) ->
-    case gnosus_dbi:read_row(client_users, EMail, #client_users.email) of
-        [] ->
-            notfound;
-	aborted ->
-	    error;
-        Result ->
-            hd(Result)
-     end.
+find_by_jid(Jid) ->
+    case gnosus_utils:jid_to_tuple(Jid) of
+        {Host, Uid} -> find(Host, Uid);
+        _ -> error
+    end.
 
 %%--------------------------------------------------------------------------------
 find_all_by_host(Host) ->
-	gnosus_dbi:dirty_match_object({client_users, {Host, '_'}, '_','_','_','_','_','_','_','_','_'}).
+	gnosus_dbi:dirty_match_object({client_users, {Host, '_'}, '_','_','_','_','_','_','_','_'}).
  
 %%--------------------------------------------------------------------------------
 count() ->
@@ -98,30 +93,8 @@ delete(Host, Uid) ->
     end.
  
 
-%%================================================================================
-password(Host, Uid, Password) ->
-	case find(Host, Uid) of
-    	notfound ->
-            notfound;
-		error -> 
-	    	error;
-        User ->
-            write(User#client_users{password=Password, updated_at = now()})
-    end.
-
-%%================================================================================
-email(Host, Uid, EMail) ->
-    case find(Host, Uid) of
-        notfound ->
-            notfound;
-    	error -> 
-        	error;
-        User ->
-            write(User#client_users{email=EMail, updated_at = now()})
-    end.
-
 %%--------------------------------------------------------------------------------
-status(Host, Uid,Status) ->
+status(Host, Uid, Status) ->
     case find(Host, Uid) of
         notfound ->
             notfound;
@@ -138,17 +111,16 @@ write(_) ->
     error.
  
 %%--------------------------------------------------------------------------------
-new(Host, Uid, EMail, Password, Status) ->
-    write(init_record(Host, Uid, EMail, Password, Status)).
+new(Host, Uid, EMail, Status) ->
+    write(init_record(Host, Uid, EMail, Status)).
 
 %%--------------------------------------------------------------------------------
-init_record(Host, Uid, EMail, Password, Status) ->
+init_record(Host, Uid, EMail, Status) ->
     {S1,S2,S3} = now(),
     random:seed(S1,S2,S3),
     #client_users{
 		      jid={Host, Uid},		 
               email=EMail,
-		      password=Password, 
 		      status=Status,
 		      registration_code=random:uniform(100000000),
 		      created_at=now(),
@@ -160,27 +132,62 @@ init_record(Host, Uid, EMail, Password, Status) ->
 
 %%--------------------------------------------------------------------------------
 register(Host, EMail) ->
-   new(Host, EMail, EMail, undefined, registered).
+   new(Host, EMail, EMail, registered).
 
 %%--------------------------------------------------------------------------------
-new_user(Host, Uid, EMail, Password) ->
-   new(Host, Uid, EMail, Password, active).
+new_user(Host, Uid, EMail) ->
+   new(Host, Uid, EMail, active).
 
 %%--------------------------------------------------------------------------------
 new_client_user_from_user(Host, User, Status) when is_record(User, users) ->
-    new(Host, User#users.uid, User#users.email, User#users.password, Status).
+    new(Host, User#users.uid, User#users.email, Status).
     
 %%--------------------------------------------------------------------------------
-update(Host, Uid, EMail, Password, Status) ->
+update(Host, Uid, EMail, Status) ->
    case find(Host, Uid) of
       notfound ->
-          	new(Host, Uid, EMail, Password, Status);
+          	new(Host, Uid, EMail, Status);
       User ->
 	    	write(User#client_users{
 		              jid={Host, Uid},			     
 	    	          email=EMail,
-			          password=Password,
 			          status=Status, 
 			          updated_at=now()
 			      })
+    end.
+
+%%--------------------------------------------------------------------------------
+authenticate(Jid, EnteredPassword) ->
+    case find_by_jid(Jid) of
+        notfound -> 
+            gnosus_logger:warning({authentication_failed, Jid}),                     
+            false;
+        error -> 
+            gnosus_logger:warning({authentication_failed, Jid}),                     
+            false;
+        User -> case passwd_model:find(Jid) of
+                    notfound -> 
+                        gnosus_logger:warning({authentication_failed, Jid}),                     
+                        false;
+                    error -> 
+                        gnosus_logger:warning({authentication_failed, Jid}),                     
+                        false;
+                    #passwd{password=Password} ->
+            	    	[Count, Failed, Auth] = case User#client_users.status of
+            	    	                            active ->
+                    	    	                        case EnteredPassword =:= Password of
+                    										true ->
+                                                                gnosus_logger:message({authenticated, Jid}),                     
+                    											[User#client_users.login_count+1, User#client_users.failed_login_count, true];
+                    										false ->
+                                                                gnosus_logger:warning({authentication_failed, Jid}),                     
+                    											[User#client_users.login_count, User#client_users.failed_login_count+1, false]
+                    									end;
+                    								_ ->
+                                                        gnosus_logger:warning({authentication_failed, Jid}),                     
+                    								    [User#client_users.login_count, User#client_users.failed_login_count+1, false]
+                    							end,
+                        write(User#client_users{login_count=Count, failed_login_count=Failed, last_login=now(), updated_at = now()}),
+                        Auth            	    	
+                end
     end.

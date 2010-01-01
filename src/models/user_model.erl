@@ -19,10 +19,7 @@
     find/1,
     find_by_email/1,
     count/0,
-    password/2,
-    email/2,
     status/2,
-    role/2,
     product/2,
     register/1,
     new_user/2,
@@ -44,7 +41,7 @@ fields() ->
 
 %%--------------------------------------------------------------------------------
 status_values() -> [active, inactive, registered, locked].
-status_default() -> "registered".
+status_default() -> "active".
 
 %%--------------------------------------------------------------------------------
 role_values() -> [admin, user].
@@ -113,39 +110,12 @@ delete_by_email(EMail) ->
  
 
 %%================================================================================
-password(Uid, Password) ->
-	case find(Uid) of
-    	notfound ->
-            notfound;
-        User ->
-            write(User#users{password=Password, updated_at = now()})
-    end.
-
-%%================================================================================
-email(Uid, EMail) ->
-    case find(Uid) of
-        notfound ->
-            notfound;
-        User ->
-            write(User#users{email=EMail, updated_at = now()})
-    end.
-
-%%--------------------------------------------------------------------------------
 status(Uid, Status) ->
     case find(Uid) of
         notfound ->
             notfound;
         User ->
             write(User#users{status=Status, updated_at = now()})
-    end.
-
-%%--------------------------------------------------------------------------------
-role(Uid, Role) ->
-    case find(Uid) of
-        notfound ->
-            notfound;
-        User ->
-            write(User#users{role=Role, updated_at = now()})
     end.
 
 %%--------------------------------------------------------------------------------
@@ -224,15 +194,17 @@ authenticate(Uid, Password) ->
 	    	                            active ->
         	    	                        case User#users.password =:= Password of
         										true ->
+                                                    gnosus_logger:message({authenticated, Uid}),                     
         											[User#users.login_count+1, User#users.failed_login_count, true];
         										false ->
+                                                    gnosus_logger:warning({authentication_failed, Uid}),                     
         											[User#users.login_count, User#users.failed_login_count+1, false]
         									end;
         								_ ->
+                                            gnosus_logger:warning({authentication_failed, Uid}),                     
         								    [User#users.login_count, User#users.failed_login_count+1, false]
         							end,
 	    	write(User#users{login_count=Count, failed_login_count=Failed, last_login=now(), updated_at = now()}),   
-            gnosus_logger:message({authenticated, Uid}),                     
 	    	Auth
     end.
 

@@ -38,15 +38,14 @@ body() ->
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[
         #is_email{text="invalid email address"},
-        #is_required{text="email address required"},
-        #custom{text="email address registered", tag=some_tag, function=fun email_available/2}
+        #is_required{text="email address required"}
     ]}),
 
     wf:render(Body).
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event(register) -> 
@@ -68,11 +67,3 @@ event(cancel) ->
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
-
-%%================================================================================
-email_available(_Tag, _Value) ->
-    [EMail] = wf:q(emailTextBox),
-    case client_user_model:find_by_email(EMail) of
-        notfound -> true;
-        _ -> false
-    end.

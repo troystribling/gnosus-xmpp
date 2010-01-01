@@ -36,7 +36,7 @@ body() ->
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event(update_user) -> 
@@ -86,7 +86,7 @@ uid_present(_Tag, _Value) ->
     true.
     
 %%--------------------------------------------------------------------------------
-confirmation_password(_Tag, _Value) ->
+confirmation_password_present(_Tag, _Value) ->
     true.
     
 %%--------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ user_form(User) ->
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
-        #custom{text="user id is required", function=fun uid_present/2},       
+        #custom{text="user id required", function=fun uid_present/2},       
         #custom{text="user id is not available", function=fun uid_available/2}        
     ]}),
 
@@ -148,7 +148,7 @@ user_form(User) ->
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-        #custom{text="confirmation password is required", function=fun confirmation_password/2},           
+        #custom{text="confirmation password required", function=fun confirmation_password_present/2},           
         #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 

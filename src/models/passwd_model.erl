@@ -5,6 +5,7 @@
 %% API
 -export([
     find/1,
+    find/2,
     find_all_by_host/1,
     authenticate/2
 ]).
@@ -24,20 +25,17 @@ find(all) ->
 
 %%--------------------------------------------------------------------------------
 find(Jid) ->
-	JidTokens = string:tokens(Jid,"@"),
-    case length(JidTokens) of
-	2 ->	    
-	    [Uid, Host] = JidTokens,
-	     case gnosus_dbi:read_row({passwd, {Uid, Host}}) of
-		 [] ->
-		     notfound;
-		 aborted ->
-		     error;
-		 Result ->
-		     hd(Result)
-	     end;
-	_ ->
-	    notfound
+    case gnosus_utils:jid_to_tuple(Jid) of
+        {Host, Uid} -> find(Host, Uid);
+        _ -> error
+    end.
+
+%%--------------------------------------------------------------------------------
+find(Host, Uid) ->
+    case gnosus_dbi:read_row({passwd, {Uid, Host}}) of
+        [] -> notfound;
+        aborted -> error;
+        Result -> hd(Result)
     end.
 
  

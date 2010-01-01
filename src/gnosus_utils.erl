@@ -4,16 +4,21 @@
 
 %% API
 -export([
-    logout/0,
+    user_logout/0,
+    client_user_logout/0,
+    logout/1,
     host_page_redirect/0,
     start_page_redirect/0,
     add_host/1,
     remove_host/1,
     navigation/1,
+    client_navigation/1,
     table_data/2,
     new_host_and_client_user/2,
     delete_host_and_client_users/1,
-    to_options_list/1
+    to_options_list/1,
+    jid_to_tuple/1,
+    tuple_to_jid/1
 ]).
  
 %% include
@@ -22,8 +27,17 @@
 -include_lib ("nitrogen/include/wf.inc").
 
 %%================================================================================
-logout() ->
+user_logout() ->
     #users{uid=Uid} = wf:user(),
+    logout(Uid).
+
+%%--------------------------------------------------------------------------------
+client_user_logout() ->
+    #client_users{jid=Jid} = wf:user(),
+    logout(tuple_to_jid(Jid)).
+
+%%--------------------------------------------------------------------------------
+logout(Uid) ->
     gnosus_logger:message({terminate_session, Uid}),
     wf:logout(),
     wf:flash("logged out"),
@@ -119,6 +133,20 @@ navigation(Current) ->
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
 
 %%--------------------------------------------------------------------------------
+client_navigation(Current) ->
+    User = wf:user(),
+    Jid = gnosus_utils:tuple_to_jid(User#client_users.jid),
+	ClientItem = case Current of
+	                 client -> #listitem{body=("<strong>client</strong>")};	                         
+	                 _ -> #listitem{body=#link{text="client", url="/web/client"}}
+                 end,
+	UserItem = case Current of
+	               profile -> #listitem{body=("<strong>"++Jid++"</strong>")};	                         
+	               _ -> #listitem{body=#link{text=Jid, url="/web/client_profile"}}
+               end,
+	#list{body=([ClientItem, UserItem, #listitem{body=#link{text="logout", postback=logout}}])}.
+
+%%--------------------------------------------------------------------------------
 table_data(H, D) ->
     Header = [#tablerow{cells=lists:map(
                  fun(C) ->
@@ -137,7 +165,7 @@ table_data(H, D) ->
 %%================================================================================
 new_host_and_client_user(H, U) ->
     Host = #hosts{host=H, uid=U#users.uid},
-    ClientUser = client_user_model:init_record(H, U#users.uid, U#users.email, U#users.password, active),
+    ClientUser = client_user_model:init_record(H, U#users.uid, U#users.email, active),
     gnosus_dbi:transaction(
          fun() ->
              mnesia:write(Host),
@@ -156,6 +184,19 @@ delete_host_and_client_users(Host) ->
                 end, ClientUsers)
 	     end).
 
- %%================================================================================
+%%================================================================================
 to_options_list(AtomList) ->
     lists:map(fun(V) -> #option{text=atom_to_list(V), value=atom_to_list(V)} end, AtomList).
+    
+%%--------------------------------------------------------------------------------
+jid_to_tuple(Jid) ->
+    JidTokens = string:tokens(Jid, "@"),
+    case length(JidTokens) of
+         2 -> {lists:nth(2,JidTokens), lists:nth(1,JidTokens)};
+         _ -> error
+    end.
+
+%%--------------------------------------------------------------------------------
+tuple_to_jid({Host, Uid}) ->
+    Uid++"@"++Host.
+    

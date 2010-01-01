@@ -53,8 +53,7 @@ body() ->
 
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
-        #is_email{text="invalid email address"},
-        #custom{text="email address registered", function=fun email_available/2}
+        #is_email{text="invalid email address"}
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
@@ -75,7 +74,7 @@ body() ->
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event(add_user) -> 
@@ -86,7 +85,7 @@ event(add_user) ->
     [Password] = wf:q(passwordTextBox),
     case ejabberd:add_user(Host, Uid, Password) of
         ok ->
-            case client_user_model:new_user(Host, Uid, EMail, Password) of
+            case client_user_model:new_user(Host, Uid, EMail) of
                 ok -> 
                     gnosus_logger:message({host_user_add_succeeded, [Host, Uid]}),
                     wf:redirect("/web/host/"++Host);
@@ -107,14 +106,6 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-email_available(_Tag, _Value) ->
-    [EMail] = wf:q(emailTextBox),
-    case client_user_model:find_by_email(EMail) of
-        notfound -> true;
-        _ -> false
-    end.
-
-%%--------------------------------------------------------------------------------
 uid_available(_Tag, _Value) ->
     [Uid] = wf:q(uidTextBox),
     Host = wf:get_path_info(),

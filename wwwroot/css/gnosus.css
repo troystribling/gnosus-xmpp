@@ -270,6 +270,13 @@ p.form {
 .profile-buttons {
     width: 15em;
 }
+/******* client profile style *******/
+.client-profile label {
+    width: 2.45em;
+}
+.client-profile-buttons {
+    width: 15.6em;
+}
 /******* host add style *******/
 .host-add label {
     width: 1.85em;

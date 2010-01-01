@@ -39,7 +39,7 @@ body() ->
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event({remove_host, Host}) ->
@@ -60,7 +60,7 @@ event({remove_user, {Host, Uid}}) ->
         User ->
             case User#client_users.status of
                 active -> remove_active_user(Host, Uid);
-                    _ -> remove_client_user(Host, Uid)
+                _ -> remove_client_user(Host, Uid)
             end
         end;
     

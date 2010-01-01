@@ -16,19 +16,27 @@ main() ->
 
 %%--------------------------------------------------------------------------------
 navigation() ->
-	#list{body=[ 
-	    #listitem{body=#link{text="login", url="/"}}
-	]}.
+    case wf:user() of
+        undefined -> login_navigation();
+        #users{role=admin} -> gnosus_utils:navigation(admin);
+        _ -> login_navigation()
+    end.
 
 %%--------------------------------------------------------------------------------
 body() ->
+    CancelButton = case wf:user() of
+                       undefined -> [];
+                       #users{role=admin} -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}}];
+                       _ -> []
+                   end,
+    
     Body = [
         #p{body=[
             #label{text="email"},
             #textbox {id=emailTextBox, next=registerButton}
         ], class="form register"},
 
-        #panel{body= #list{body=[ 
+        #panel{body= #list{body=CancelButton++[ 
             #listitem{body=#link{ id=registerButton, text="register", postback=register, class="up-button"}}
     	]}, class="form form-buttons register-buttons"}
     ],
@@ -36,23 +44,53 @@ body() ->
     wf:wire(registerButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
-        #custom{text="email address registered", tag=some_tag, function=fun validate_email/2}
+        #custom{text="email address registered", tag=some_tag, function=fun email_available/2}
     ]}),
 
     wf:render(Body).
 	
 %%================================================================================
 event(register) ->
-    [Name] = wf:q(emailTextBox),
-    wf:flash(wf:f("an email will be sent to: ~s", [Name])),
-    ok;
+    [EMail] = wf:q(emailTextBox),
+    case user_model:register(EMail) of
+        ok -> 
+            gnosus_logger:message({user_registeration_succeeded, EMail}),
+             case wf:user() of 
+                undefined -> 
+                    wf:flash(wf:f("an email has been be sent to: ~s", [EMail])),
+                    wf:redirect("/");
+                #users{role=admin} -> 
+                    wf:redirect("/web/admin");
+                _ -> 
+                    wf:logout(),
+                    wf:flash(wf:f("an email has been be sent to: ~s", [EMail])),
+                    wf:redirect("/")
+            end;           
+        _ ->
+            gnosus_logger:alarm({user_registeration_failed, EMail}),
+            wf:flash("user database update failed")                        
+    end;
+
+%%--------------------------------------------------------------------------------
+event(logout) ->
+    gnosus_utils:user_logout();
+
+%%--------------------------------------------------------------------------------
+event(cancel) -> 
+    wf:redirect("/web/admin");
 
 event(_) -> ok.
 
 %%================================================================================
-validate_email(_Tag, _Value) ->
+email_available(_Tag, _Value) ->
     [EMail] = wf:q(emailTextBox),
     case user_model:find_by_email(EMail) of
         notfound -> true;
         _ -> false
     end.
+
+%%--------------------------------------------------------------------------------
+login_navigation() ->
+    #list{body=[ 
+        #listitem{body=#link{text="login", url="/"}}
+    ]}.

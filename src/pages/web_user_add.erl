@@ -23,12 +23,12 @@ body() ->
     Body = [
         #p{body=[
             #label{text="email"},
-            #textbox {id=emailTextBox, next=passwordTextBox}
+            #textbox {id=emailTextBox, next=uidTextBox}
         ], class="form user-add"},
 
         #p{body=[
             #label{text="user id"},
-            #textbox {id=uidTextBox, next=emailTextBox}
+            #textbox {id=uidTextBox, next=passwordTextBox}
         ], class="form user-add"},
 
         #p{body=[
@@ -69,16 +69,16 @@ body() ->
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
-        #custom{text="user id is required", function=fun uid_present/2},      
+        #is_required{text="uid required"},
         #custom{text="user id is not available", function=fun uid_available/2}        
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
-        #custom{text="password is required", function=fun password_present/2}        
+        #is_required{text="password required"}
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
-        #custom{text="confirmation password is required", function=fun confirmation_password_present/2},       
+        #is_required{text="confirmation password required"},
         #confirm_password {text="passwords must match.", password=passwordTextBox}
     ]}),
 
@@ -86,7 +86,7 @@ body() ->
 	
 %%================================================================================
 event(logout) ->
-    gnosus_utils:logout();
+    gnosus_utils:user_logout();
 
 %%--------------------------------------------------------------------------------
 event(add_user) -> 
@@ -96,9 +96,13 @@ event(add_user) ->
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),
     [Product] = wf:q(productDropdown),
-    case Status of
-        registered -> update_user_database(user_model:register(EMail), EMail);
-        _ -> update_user_database(user_model:new(EMail, Uid, Password, list_to_atom(Status), list_to_atom(Role), list_to_atom(Product)), EMail)
+    case user_model:new(EMail, Uid, Password, list_to_atom(Status), list_to_atom(Role), list_to_atom(Product)) of
+        ok -> 
+            gnosus_logger:message({add_user_succeeded, EMail}),
+            wf:redirect("/web/admin");
+        _ ->
+            gnosus_logger:alarm({add_user_failed, EMail}),
+            wf:flash("user database update failed")                        
     end;
             
 %%--------------------------------------------------------------------------------
@@ -117,28 +121,9 @@ email_available(_Tag, _Value) ->
     end.
 
 %%--------------------------------------------------------------------------------
-uid_present(_Tag, _Value) ->
-    true.
-    
-%%--------------------------------------------------------------------------------
 uid_available(_Tag, _Value) ->
-    true.
-
-%%--------------------------------------------------------------------------------
-password_present(_Tag, _Value) ->
-    true.
-
-%%--------------------------------------------------------------------------------
-confirmation_password_present(_Tag, _Value) ->
-    true.
-
-%%--------------------------------------------------------------------------------
-update_user_database(Update, EMail) ->
-    case Update of
-        ok -> 
-            gnosus_logger:message({add_user_succeeded, EMail}),
-            wf:redirect("/web/admin");
-        _ ->
-            gnosus_logger:alarm({add_user_failed, EMail}),
-            wf:flash("user database update failed")                        
+    [Uid] = wf:q(uidTextBox),
+    case user_model:find(Uid) of
+        notfound -> true;
+        _ -> false
     end.

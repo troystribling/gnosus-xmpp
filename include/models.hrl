@@ -23,7 +23,6 @@
 -record(client_users, {
     jid,
 	email,
-  	password,
   	status,
   	registration_code,
   	created_at,
