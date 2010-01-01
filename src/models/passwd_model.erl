@@ -25,7 +25,7 @@ find(all) ->
 
 %%--------------------------------------------------------------------------------
 find(Jid) ->
-    case gnosus_utils:jid_to_tuple(Jid) of
+    case client_user_model:bare_jid_tuple(Jid) of
         {Host, Uid} -> find(Host, Uid);
         _ -> error
     end.

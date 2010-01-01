@@ -23,7 +23,9 @@
     new/4,
     init_record/4,
     update/4,
-    authenticate/2
+    authenticate/2,
+    bare_jid_tuple/1,
+    bare_jid/1    
 ]).
  
 %% include
@@ -68,7 +70,7 @@ find(Host, Uid) ->
 
 %%--------------------------------------------------------------------------------
 find_by_jid(Jid) ->
-    case gnosus_utils:jid_to_tuple(Jid) of
+    case bare_jid_tuple(Jid) of
         {Host, Uid} -> find(Host, Uid);
         _ -> error
     end.
@@ -155,6 +157,19 @@ update(Host, Uid, EMail, Status) ->
 			          updated_at=now()
 			      })
     end.
+
+%%================================================================================
+bare_jid_tuple(Jid) ->
+    JidTokens = string:tokens(Jid, "@"),
+    case length(JidTokens) of
+         2 -> {lists:nth(2,JidTokens), lists:nth(1,JidTokens)};
+         _ -> error
+    end.
+
+%%--------------------------------------------------------------------------------
+bare_jid(User) ->
+    {Uid, Host} = User#client_users.jid,
+    Uid++"@"++Host.
 
 %%--------------------------------------------------------------------------------
 authenticate(Jid, EnteredPassword) ->

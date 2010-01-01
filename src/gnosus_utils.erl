@@ -16,9 +16,7 @@
     table_data/2,
     new_host_and_client_user/2,
     delete_host_and_client_users/1,
-    to_options_list/1,
-    jid_to_tuple/1,
-    tuple_to_jid/1
+    to_options_list/1
 ]).
  
 %% include
@@ -33,8 +31,7 @@ user_logout() ->
 
 %%--------------------------------------------------------------------------------
 client_user_logout() ->
-    #client_users{jid=Jid} = wf:user(),
-    logout(tuple_to_jid(Jid)).
+    logout(client_user_model:bare_jid(wf:user())).
 
 %%--------------------------------------------------------------------------------
 logout(Uid) ->
@@ -134,8 +131,7 @@ navigation(Current) ->
 
 %%--------------------------------------------------------------------------------
 client_navigation(Current) ->
-    User = wf:user(),
-    Jid = gnosus_utils:tuple_to_jid(User#client_users.jid),
+    Jid = client_user_model:bare_jid(wf:user()),
 	ClientItem = case Current of
 	                 client -> #listitem{body=("<strong>client</strong>")};	                         
 	                 _ -> #listitem{body=#link{text="client", url="/web/client"}}
@@ -187,16 +183,3 @@ delete_host_and_client_users(Host) ->
 %%================================================================================
 to_options_list(AtomList) ->
     lists:map(fun(V) -> #option{text=atom_to_list(V), value=atom_to_list(V)} end, AtomList).
-    
-%%--------------------------------------------------------------------------------
-jid_to_tuple(Jid) ->
-    JidTokens = string:tokens(Jid, "@"),
-    case length(JidTokens) of
-         2 -> {lists:nth(2,JidTokens), lists:nth(1,JidTokens)};
-         _ -> error
-    end.
-
-%%--------------------------------------------------------------------------------
-tuple_to_jid({Host, Uid}) ->
-    Uid++"@"++Host.
-    
