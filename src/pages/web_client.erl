@@ -22,11 +22,9 @@ navigation() ->
 body() ->
     User = wf:user(),
     Jid = client_user_model:bare_jid(User),
-    {Host, _} = User#client_users.jid,
     #passwd{password=Password} = passwd_model:find(Jid),
-    Args = string:join([Host++"/http-bind", Jid, Password], ","),
-?DUMP(Args),    
-    #panel{body="", id=client, actions=#script{script="connect("++Args++");"}}.
+    Args = string:join(["/http-bind", Jid, Password], "','"),
+    #panel{body="", id=client, actions=#script{script="connect('"++Args++"');"}}.
 	
 %%================================================================================
 event(logout) ->

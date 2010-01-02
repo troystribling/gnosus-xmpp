@@ -17,7 +17,7 @@ main() ->
 %%--------------------------------------------------------------------------------
 navigation() ->
 	#list{body=[ 
-	    #listitem{body=#link{text="register", url="/web/register"}}
+	    #listitem{body=#link{text="register", url=?REGISTER}}
 	]}.
 
 %%--------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ event(login) ->
         false -> case client_user_model:authenticate(Uid, Password) of
                      true ->
                          wf:user(client_user_model:find_by_jid(Uid)),
-                         wf:redirect("/web/client");
+                         wf:redirect(?CLIENT);
                      false ->             
                         wf:flash("authentication failed")
                  end

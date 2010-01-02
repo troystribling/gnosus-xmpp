@@ -69,7 +69,7 @@ users_table_data() ->
     Data = lists:map(
                       fun(U) ->  
                           [
-                              #link{text=U#users.email, url="/web/user/"++U#users.email}, 
+                              #link{text=U#users.email, url=?USER(U#users.email)}, 
                               U#users.uid, 
                               atom_to_list(U#users.status),
                               atom_to_list(U#users.role),
@@ -85,9 +85,9 @@ users_toolbar() ->
     #list{body=[ 
         #listitem{body=#link{text="show hosts", postback=show_hosts}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},
-        #listitem{body=#link{text="send user registration email", url="/web/register"}},
+        #listitem{body=#link{text="send user registration email", url=?REGISTER}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},
-        #listitem{body=#link{text="add user", url="/web/user/add"}}
+        #listitem{body=#link{text="add user", url=?USER_ADD}}
     ]}.
 
 %%--------------------------------------------------------------------------------
@@ -96,8 +96,8 @@ hosts_table_data() ->
     Data = lists:map(
                       fun(#hosts{host=H, uid=U}) ->  
                           [
-                              #link{text=H, url="/web/host/"++H}, 
-                              #link{text=U, url="/web/user/"++U}, 
+                              #link{text=H, url=?HOST(H)}, 
+                              #link{text=U, url=?USER(U)}, 
                               "0", 
                               [#link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H}, class="data-edit-controls"}, "0"]
                           ]

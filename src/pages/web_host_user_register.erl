@@ -54,7 +54,7 @@ event(register) ->
     case client_user_model:register(Host, EMail) of
         ok -> 
             gnosus_logger:message({host_user_registration_succeeded, [Host, EMail]}),
-            wf:redirect("/web/host/"++Host);
+            wf:redirect(?HOST(Host));
         _ ->
             gnosus_logger:alarm({client_user_database_update_failed, [Host, EMail]}),
             wf:flash("user database update failed")                        
@@ -63,7 +63,7 @@ event(register) ->
 
 %%--------------------------------------------------------------------------------
 event(cancel) -> 
-    wf:redirect("/web/host/"++wf:get_path_info());
+    wf:redirect(?HOST(wf:get_path_info()));
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.

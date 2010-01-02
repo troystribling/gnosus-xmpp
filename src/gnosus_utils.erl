@@ -38,24 +38,24 @@ logout(Uid) ->
     gnosus_logger:message({terminate_session, Uid}),
     wf:logout(),
     wf:flash("logged out"),
-    wf:redirect("/").
+    wf:redirect(?LOGIN).
 
 %%--------------------------------------------------------------------------------
 host_page_redirect() ->
     User = wf:user(),
     case User#users.product of
         unlimited ->
-            wf:redirect("/web/hosts");
+            wf:redirect(?HOSTS);
         _ ->
             Host = hd(wf:session(hosts)),
-            wf:redirect("/web/host/"++Host)
+            wf:redirect(?HOST(Host))
     end.
 
 %%--------------------------------------------------------------------------------
 start_page_redirect() ->
     case wf:session(hosts) of
         [] ->
-            wf:redirect("/web/host/add");
+            wf:redirect(?HOST_ADD);
         _ ->
             host_page_redirect()
     end.
@@ -91,7 +91,7 @@ remove_host(Host) ->
                 ok ->
                     gnosus_logger:message({remove_host_ui_succeeded, [Host, User#users.uid]}),
                     case wf:session(hosts) of 
-                        [] -> wf:redirect("/web/host/add");
+                        [] -> wf:redirect(?HOST_ADD);
                         _ -> ok
                     end;
                 _ ->
@@ -109,23 +109,31 @@ navigation(Current) ->
 	AdminItem = case User#users.role of
 	                admin -> case Current of
 	                             admin -> [#listitem{body="<strong>admin</strong>"}];
-	                             _ -> [#listitem{body=#link{text="admin", url="/web/admin"}}]
+	                             _ -> [#listitem{body=#link{text="admin", url=?ADMIN}}]
 	                         end;
 	                _ -> []
                 end,
     HostItem =  case User#users.product of 
                     unlimited -> if
 	                                 Current =:= host -> #listitem{body="<strong>hosts</strong>"};
-	                                 true -> #listitem{body=#link{text="hosts", url="/web/hosts"}}
+	                                 true -> 
+                                         case wf:session(hosts) of
+                                             [] -> #listitem{body=#link{text="host", url=?HOST_ADD}};
+                                             _ -> #listitem{body=#link{text="hosts", url=?HOSTS}}
+                                         end
 	                             end;
                     _ -> if
                              Current =:= host -> #listitem{body="<strong>host</strong>"};
-                             true -> #listitem{body=#link{text="host", url="/web/host"}}
+                             true ->
+                                 case wf:session(hosts) of
+                                     [] -> #listitem{body=#link{text="host", url=?HOST_ADD}};
+                                     Hosts ->  #listitem{body=#link{text="host", url=?HOST(hd(Hosts))}}
+                                 end
                          end
                 end,
 	UserItem = case Current of
 	                profile -> #listitem{body=("<strong>"++User#users.uid++"</strong>")};	                         
-	                _ -> #listitem{body=#link{text=User#users.uid, url="/web/profile"}}
+	                _ -> #listitem{body=#link{text=User#users.uid, url=?PROFILE}}
                 end,
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
 
@@ -134,11 +142,11 @@ client_navigation(Current) ->
     Jid = client_user_model:bare_jid(wf:user()),
 	ClientItem = case Current of
 	                 client -> #listitem{body=("<strong>client</strong>")};	                         
-	                 _ -> #listitem{body=#link{text="client", url="/web/client"}}
+	                 _ -> #listitem{body=#link{text="client", url=?CLIENT}}
                  end,
 	UserItem = case Current of
 	               profile -> #listitem{body=("<strong>"++Jid++"</strong>")};	                         
-	               _ -> #listitem{body=#link{text=Jid, url="/web/client_profile"}}
+	               _ -> #listitem{body=#link{text=Jid, url=?CLIENT_PROFILE}}
                end,
 	#list{body=([ClientItem, UserItem, #listitem{body=#link{text="logout", postback=logout}}])}.
 

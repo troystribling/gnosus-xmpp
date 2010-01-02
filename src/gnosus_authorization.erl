@@ -45,7 +45,7 @@ is_admin(Module) ->
                 _ -> 
                     gnosus_logger:alarm({admin_authorization_failed, [Module, Uid]}),                     
                     wf:logout(),
-                    [wf:redirect("/"), wf:flash("access denied")]
+                    [wf:redirect(?LOGIN), wf:flash("access denied")]
             end
             
     end.
@@ -55,7 +55,7 @@ is_authenticated(Module) ->
     case wf:user() of
         undefined -> 
             gnosus_logger:warning({authentication_authorization_failed, Module}),                     
-            wf:redirect("/");
+            wf:redirect(?LOGIN);
         _User -> ok
     end.   
 
@@ -72,7 +72,7 @@ has_host(Module) ->
                 _ -> 
                     gnosus_logger:alarm({host_authorization_failed, [Module, Uid]}),                     
                     wf:logout(),
-                    [wf:redirect("/"), wf:flash("access to requested host denied")]
+                    [wf:redirect(?LOGIN), wf:flash("access to requested host denied")]
             end
             
     end.

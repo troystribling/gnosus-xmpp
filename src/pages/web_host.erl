@@ -22,9 +22,9 @@ navigation() ->
 toolbar() ->
     Host = wf:get_path_info(),
 	#list{body=[ 
-        #listitem{body=#link{text="send user registration email", url="/web/host/user/register/"++Host}},
+        #listitem{body=#link{text="send user registration email", url=?HOST_USER_REGISTER(Host)}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},
-        #listitem{body=#link{text="add user", url="/web/host/user/add/"++Host}},
+        #listitem{body=#link{text="add user", url=?HOST_USER_ADD(Host)}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},
 	    #listitem{body=#link{text="delete this host", postback={remove_host, Host}}}
 	]}.

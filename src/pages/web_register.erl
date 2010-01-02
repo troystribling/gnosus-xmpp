@@ -58,13 +58,13 @@ event(register) ->
              case wf:user() of 
                 undefined -> 
                     wf:flash(wf:f("an email has been be sent to: ~s", [EMail])),
-                    wf:redirect("/");
+                    wf:redirect(?LOGIN);
                 #users{role=admin} -> 
-                    wf:redirect("/web/admin");
+                    wf:redirect(?ADMIN);
                 _ -> 
                     wf:logout(),
                     wf:flash(wf:f("an email has been be sent to: ~s", [EMail])),
-                    wf:redirect("/")
+                    wf:redirect(?LOGIN)
             end;           
         _ ->
             gnosus_logger:alarm({user_registeration_failed, EMail}),
@@ -77,7 +77,7 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(cancel) -> 
-    wf:redirect("/web/admin");
+    wf:redirect(?ADMIN);
 
 event(_) -> ok.
 
@@ -92,5 +92,5 @@ email_available(_Tag, _Value) ->
 %%--------------------------------------------------------------------------------
 login_navigation() ->
     #list{body=[ 
-        #listitem{body=#link{text="login", url="/"}}
+        #listitem{body=#link{text="login", url=?LOGIN}}
     ]}.

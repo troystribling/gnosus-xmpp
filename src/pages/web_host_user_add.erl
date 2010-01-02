@@ -88,7 +88,7 @@ event(add_user) ->
             case client_user_model:new_user(Host, Uid, EMail) of
                 ok -> 
                     gnosus_logger:message({host_user_add_succeeded, [Host, Uid]}),
-                    wf:redirect("/web/host/"++Host);
+                    wf:redirect(?HOST(Host));
                 _ ->
                     User = wf:user(),
                     gnosus_logger:alarm({client_user_database_update_failed, [Host, Uid]}),
@@ -100,7 +100,7 @@ event(add_user) ->
             
 %%--------------------------------------------------------------------------------
 event(cancel) -> 
-    wf:redirect("/web/host/"++wf:get_path_info());
+    wf:redirect(?HOST(wf:get_path_info()));
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.

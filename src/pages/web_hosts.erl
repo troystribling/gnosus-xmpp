@@ -34,7 +34,7 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(add_host) ->
-    wf:redirect("/web/host/add");
+    wf:redirect(?HOST_ADD);
 
 %%--------------------------------------------------------------------------------
 event({remove_host, Host}) ->
@@ -53,7 +53,7 @@ table_data() ->
     Data = lists:map(
                       fun(H) ->  
                           [
-                              #link{text=H#hosts.host, url="/web/host/"++H#hosts.host}, 
+                              #link{text=H#hosts.host, url=?HOST(H#hosts.host)}, 
                               "0", 
                               [#link{body=#image{image="/images/data-delete.png"}, postback={remove_host, H#hosts.host}, class="data-edit-controls"}, "0"]
                           ]

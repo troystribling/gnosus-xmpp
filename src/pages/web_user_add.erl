@@ -99,7 +99,7 @@ event(add_user) ->
     case user_model:new(EMail, Uid, Password, list_to_atom(Status), list_to_atom(Role), list_to_atom(Product)) of
         ok -> 
             gnosus_logger:message({add_user_succeeded, EMail}),
-            wf:redirect("/web/admin");
+            wf:redirect(?ADMIN);
         _ ->
             gnosus_logger:alarm({add_user_failed, EMail}),
             wf:flash("user database update failed")                        
@@ -107,7 +107,7 @@ event(add_user) ->
             
 %%--------------------------------------------------------------------------------
 event(cancel) -> 
-    wf:redirect("/web/admin");
+    wf:redirect(?ADMIN);
 
 %%--------------------------------------------------------------------------------
 event(_) -> ok.
