@@ -61,7 +61,8 @@ event(login) ->
                      true ->
                          wf:user(client_user_model:find_by_jid(Uid)),
                          wf:redirect(?CLIENT);
-                     false ->             
+                     false ->   
+                        gnosus_logger:warning({authentication_failed, Uid}),          
                         wf:flash("authentication failed")
                  end
     end;

@@ -174,7 +174,7 @@ img {
     clear: both;
 }
 .up-button:hover {
-    background-image:url('/images/button-up-selected-background.png');
+    border-color: #00F;
 }
 /*******  form style    *******/
 .form label {

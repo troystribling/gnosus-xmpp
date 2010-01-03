@@ -175,10 +175,10 @@ bare_jid(User) ->
 authenticate(Jid, EnteredPassword) ->
     case find_by_jid(Jid) of
         notfound -> 
-            gnosus_logger:warning({authentication_failed, Jid}),                     
+            gnosus_logger:message({authentication_client_user_not_found, Jid}),                     
             false;
         error -> 
-            gnosus_logger:warning({authentication_failed, Jid}),                     
+            gnosus_logger:alarm({authentication_error, Jid}),                     
             false;
         User -> case passwd_model:find(Jid) of
                     notfound -> 

@@ -183,11 +183,11 @@ update(EMail, Uid, Password, Status, Role, Product) ->
 %%--------------------------------------------------------------------------------
 authenticate(Uid, Password) ->
     case find(Uid) of
-        notfound -> 
-            gnosus_logger:warning({authentication_failed, Uid}),                     
+        notfound ->  
+            gnosus_logger:message({authentication_user_not_found, Uid}), 
             false;
         error -> 
-            gnosus_logger:warning({authentication_failed, Uid}),                     
+            gnosus_logger:alarm({authentication_error, Uid}),                     
             false;
         User ->
 	    	[Count, Failed, Auth] = case User#users.status of
