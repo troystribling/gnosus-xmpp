@@ -174,7 +174,7 @@ img {
     clear: both;
 }
 .up-button:hover {
-    border-color: #00F;
+    border-color: #39F;
 }
 /*******  form style    *******/
 .form label {
@@ -419,4 +419,13 @@ tr.data-edit-select {
     color: #00F;
     outline: none;
     text-decoration: none;
+}
+/*******  client *******/
+.client-wrapper {
+    margin: 0px 0px 0px 0px;
+    width: 1000;
+}
+.client {
+    border: 2px solid #888;
+    height: 100px;
 }

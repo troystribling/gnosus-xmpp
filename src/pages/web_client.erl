@@ -19,12 +19,12 @@ navigation() ->
     gnosus_utils:client_navigation(client).
     
 %%--------------------------------------------------------------------------------
-body() ->
+client() ->
     User = wf:user(),
     Jid = client_user_model:bare_jid(User),
     #passwd{password=Password} = passwd_model:find(Jid),
-    Args = string:join(["/http-bind/", Jid, Password], "','"),
-    #panel{body="", id=client, actions=#script{script="connect('"++Args++"');"}}.
+    Args = string:join(["/http-bind/", Jid++"/gnos.us", Password], "','"),
+    #panel{body="", actions=#script{script="connect('"++Args++"');"}}.
 	
 %%================================================================================
 event(logout) ->
