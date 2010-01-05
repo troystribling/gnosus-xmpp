@@ -421,11 +421,22 @@ tr.data-edit-select {
     text-decoration: none;
 }
 /*******  client *******/
-.client-wrapper {
-    margin: 0px 0px 0px 0px;
-    width: 1000;
-}
 .client {
-    border: 2px solid #888;
-    height: 100px;
+    height: 400px;
+    -moz-box-shadow: 0px 0px 25px #aaa;
+    -webkit-box-shadow: 0px 0px 25px #aaa;
+}
+.client .contacts {
+	overflow: auto;
+}
+.client .display {
+	overflow: auto;
+}
+.client .vsplitbar {
+	width: 5px;
+	background: #BBB url('/images/vgrabber.gif') no-repeat center;
+}
+.client .vsplitbar.active {
+	background: #BBB url('/images/vgrabber.gif') no-repeat center;
+	opacity: 0.7;
 }

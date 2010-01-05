@@ -8,7 +8,9 @@
         <script src='/nitrogen/nitrogen.js' type='text/javascript' charset='utf-8'></script>
         <script src='/javascript/strophe.js' type='text/javascript' charset='utf-8'></script>
         <script src='/javascript/gnosus.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/javascript/splitter.js' type='text/javascript' charset='utf-8'></script>
         <script src='/javascript/gnosus_client.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/javascript/jquery.cookie.js' type='text/javascript' charset='utf-8'></script>
         <link rel="stylesheet" href="/nitrogen/jquery-ui/jquery-ui.css" type="text/css" media="screen" charset="utf-8">
         <link rel="stylesheet" href="/nitrogen/elements.css" type="text/css" media="screen" charset="utf-8">
         <link rel="stylesheet" href="/css/gnosus.css" type="text/css" media="screen" charset="utf-8">
@@ -27,11 +29,14 @@
         </div>
         <div id="page-wrapper">
           <div id="page">
-              <div class="client-wrapper">
-                  <div id="client-1" class="client">
-                    [[[page:client()]]]
-                  </div> 
-              </div>
+              <div id="client-1" class="client">
+                  <div class="contacts">
+                      [[[page:contacts()]]]
+                  </div>
+                  <div class="display">
+                      [[[page:display()]]]
+                  </div>
+              </div> 
           </div>
         </div>
         <div id="footer-wrapper">

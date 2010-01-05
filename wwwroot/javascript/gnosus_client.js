@@ -29,10 +29,18 @@ function onConnect(status) {
 }
 
 /*-------------------------------------------------------------------------------*/
-function connect(service, jid, pass) {
+function new_client(client_id) {
+    var client = $(client_id);
     $(function() {
-        $("#client-1").resizable({maxWidth: 1000, minWidth: 750, autoHide: true});
+        client.resizable({handles:'s', minHeight: 250, autoHide: true});
     });
+	client.splitter({type: "v", outline: true, minLeft: 200, sizeLeft: 200, minRight: 500,
+		             cookie: "vsplitter"});
+}
+
+/*-------------------------------------------------------------------------------*/
+function connect(service, jid, pass) {
+    new_client("#client-1")
     var connection = new Strophe.Connection(service);
     connection.rawInput = rawInput;
     connection.rawOutput = rawOutput;
