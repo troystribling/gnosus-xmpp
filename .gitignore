@@ -14,4 +14,4 @@ Makefile
 *.status
 *.so
 yaws.conf
-
+.DS_Store
