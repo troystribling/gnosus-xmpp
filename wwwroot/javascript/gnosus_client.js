@@ -130,7 +130,7 @@ Strophe.addConnectionPlugin('roster', {
             this.connection.addHandler(this.presenceChanged.bind(this), null, "presence");
             var roster_iq = $iq({type: "get"}).c('query', {xmlns: Strophe.NS.ROSTER}); 
             var that = this;
-            this.connection.sendIQ(roster_iq, function (iq) {
+            this.connection.sendIQ(roster_iq, function(iq) {
                 $(iq).find("item").each(function () {
                     var contact = new Contact();
                     contact.name = $(this).attr('name') || "";
