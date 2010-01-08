@@ -16,64 +16,6 @@ Strophe.log = function (level, msg) {
 /**********************************************************************************
 client
 **********************************************************************************/
-Gnosus = {
-    connection: null,
-    account: null,
-    contacts: {},
-    add_contact: function(item) {
-        var contact = new Contact(item.attr('jid'));
-        contact.set_attributes(item);
-        Gnosus.contacts[contact.jid] = contact;
-    },
-    find_contact: function(jid) {
-        return Gnosus.contacts[contact.jid];
-    },
-    update_contact: function(item) {
-        var contact = Gnosus.contacts[item.attr('jid')];
-        if (contact) {
-            contact.groups = [];
-            contact.set_attributes(item);
-        }
-    },
-    remove_contact: function(jid) {
-        if (Gnosus.contacts[jid]) {
-            delete(Gnosus.contacts[jid]);
-        }
-    },
-    add_roster_item: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].add_roster_item(jid);
-        }
-    },
-    remove_roster_item: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].remove_roster_item(jid);
-        }
-    },
-    remove_roster_items: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].remove_roster_items();
-        }
-    },
-    find_all_roster_items: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources : null;
-    },
-    find_roster_item: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources[jid] : null;
-    },
-    go_off_line: function() {
-        for (var contact in Gnosus.contacts) {
-            Gnosus.contacts[contact].resources = {};
-        }            
-    }
-}
-
-/*-------------------------------------------------------------------------------*/
 function new_client(client_id) {
     var client = $(client_id);
     $(function() {
@@ -111,6 +53,77 @@ function onConnect(status) {
 }
 
 /**********************************************************************************
+client interface
+**********************************************************************************/
+Gnosus = {
+
+    /*-------------------------------------------------------------------------------*/
+    connection: null,
+    account: null,
+    contacts: {},
+
+    /*-------------------------------------------------------------------------------*/
+    add_contact: function(item) {
+        var contact = new Contact(item.attr('jid'));
+        contact.set_attributes(item);
+        Gnosus.contacts[contact.jid] = contact;
+    },
+    find_contact: function(jid) {
+        return Gnosus.contacts[contact.jid];
+    },
+    update_contact: function(item) {
+        var contact = Gnosus.contacts[item.attr('jid')];
+        if (contact) {
+            contact.groups = [];
+            contact.set_attributes(item);
+        }
+    },
+    remove_contact: function(item) {
+        jid = item.attr('jid');
+        if (Gnosus.contacts[jid]) {
+            delete(Gnosus.contacts[jid]);
+        }
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    add_roster_item: function(presence) {
+        var from = $(presence).attr('from');
+        var bare_jid = Strophe.getBareJidFromJid(from);
+        if (Gnosus.contacts[bare_jid]) {
+            roster_item = new RosterItem(from);
+            roster_item.set_presence_attributes(presence);
+            Gnosus.contacts[bare_jid].add_roster_item(roster_item);
+        }
+    },
+    remove_roster_item: function(presence) {
+        var from = $(presence).attr('from');
+        var bare_jid = Strophe.getBareJidFromJid(from);
+        if (Gnosus.contacts[bare_jid]) {
+            Gnosus.contacts[bare_jid].remove_roster_item(jid);
+        }
+    },
+    remove_roster_items: function(jid) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        if (Gnosus.contacts[bare_jid]) {
+            Gnosus.contacts[bare_jid].remove_roster_items();
+        }
+    },
+    find_all_roster_items: function(jid) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources : null;
+    },
+    find_roster_item: function(jid) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources[jid] : null;
+    },
+    go_off_line: function() {
+        for (var contact in Gnosus.contacts) {
+            Gnosus.contacts[contact].resources = {};
+        }            
+    }
+}
+
+/**********************************************************************************
 models
 **********************************************************************************/
 function Account(service, jid, password) {
@@ -139,13 +152,13 @@ Contact.prototype = {
     },
     set_attributes: function(item) {
         this.subscription = item.attr('subscription') || 'none';
-        this.ask = item.attr('ask') || "";
+        this.ask = item.attr('ask') || '';
         item.find('group').each(function () {
             this.groups.push($(this).text());
         });
     },
-    add_roster_item: function(jid) {
-        this.resources[jid] = new RosterItem(jid));
+    add_roster_item: function(roster_item) {
+        this.resources[jid] = roster_item;
     },
     remove_roster_item: function(jid) {
         delete(this.resources[jid]);
@@ -167,8 +180,13 @@ function RosterItem(jid) {
 
 RosterItem.prototype = {
     set_presence_attributes: function(presence) {
-        this.show = $(presence).find('show').text() || 'online';
+        this.client_name = $(presence).find('show').text() || 'online';
         this.status =  $(presence).find('status').text();
+    },
+    set_version_attributes: function(version) {
+        this.client_name = $(version).find('name').text() || 'none';
+        this.client_version =  $(version).find('version').text() || 'none';
+        this.client_os =  $(version).find('os').text() || 'none';
     }
 }
 /**********************************************************************************
@@ -207,7 +225,7 @@ Strophe.addConnectionPlugin('roster', {
         var jid = item.attr('jid');
         var subscription = item.attr('subscription') || '';        
         if (subscription === 'remove') {
-            Gnosus.remove_contact(jid);
+            Gnosus.remove_contact(item);
         } else if (subscription === 'none') {
             Gnosus.add_contact(item);
         } else {
@@ -225,10 +243,9 @@ Strophe.addConnectionPlugin('roster', {
         var ptype = $(presence).attr('type') || 'available'; 
         if (Gnosus.find_contact(jid) && ptype != 'error') {
             if (ptype === 'unavailable') {
-                Gnosus.remove_roster_item(from);
+                Gnosus.remove_roster_item(presence);
             } else {
-                this.contacts[jid].resources[resource] = {
-                };
+                Gnosus.add_roster_item(presence);
             }        
             // $(document).trigger("roster_changed", this);
         }
