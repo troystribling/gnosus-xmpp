@@ -21,7 +21,7 @@ img {
 #navigation-wrapper {
     color: #000;
     background-color: #FFF;
-    height: 50px;
+    height: 52px;
     font-weight: lighter;
     letter-spacing: -1px;
     border-bottom: 2px solid #BBB;
@@ -113,7 +113,6 @@ img {
 #toolbar ul {
     margin: 0px 0px 0px -5px;
     padding: 0px;
-    list-style-type: circle;
 }
 #toolbar li {
     display: inline;
@@ -150,7 +149,7 @@ img {
 #navigation ul {
     list-style-type: none;
     float: right;
-    margin-top: 10px;
+    margin-top: 12px;
     margin-bottom: 0px;
 }
 #navigation li {
@@ -421,22 +420,31 @@ tr.data-edit-select {
     text-decoration: none;
 }
 /*******  client *******/
-.client {
-    height: 400px;
+#client {
+    height: 475px;
     -moz-box-shadow: 0px 0px 25px #aaa;
     -webkit-box-shadow: 0px 0px 25px #aaa;
 }
-.client .contacts {
+#roster {
 	overflow: auto;
 }
-.client .display {
+#roster-display ul {
+    margin: 0px 0px 0px -5px;
+    padding: 0px;
+}
+#roster-display li {
+    display: inline;
+    font-size: 0.85em;
+    margin: 0px 0px 0px 5px;
+} 
+#roster-display {
 	overflow: auto;
 }
-.client .vsplitbar {
+#client .vsplitbar {
 	width: 5px;
 	background: #BBB url('/images/vgrabber.gif') no-repeat center;
 }
-.client .vsplitbar.active {
+#client .vsplitbar.active {
 	background: #BBB url('/images/vgrabber.gif') no-repeat center;
 	opacity: 0.7;
 }

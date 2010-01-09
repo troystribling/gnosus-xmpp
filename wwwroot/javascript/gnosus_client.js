@@ -9,26 +9,38 @@ function rawOutput(data) {
     console.log('SENT: ' + data);
 }
 
-Strophe.log = function (level, msg) {
-    console.log('LOG: ' + msg);
-}
+// Strophe.log = function (level, msg) {
+//     console.log('LOG: ' + msg);
+// }
 
 /**********************************************************************************
 client
 **********************************************************************************/
 function new_client(client_id) {
     var client = $(client_id);
-    $(function() {
-        client.resizable({handles:'s', minHeight: 250, autoHide: true});
-    });
 	client.splitter({type: "v", outline: true, minLeft: 200, sizeLeft: 200, minRight: 500, cookie: "vsplitter"});
 }
+
+/**********************************************************************************
+client roster display
+**********************************************************************************/
+$(document).bind('roster_changed', function (ev, roster) {
+    $('#roster-display').empty();
+    var html = ["<ul>"];
+    $.each(Gnosus.find_all_contacts(), function (jid) {
+        html.push("<li class='contact " + this.show() + "'>");
+        html.push(this.name || jid);
+        html.push("</li>");
+    });
+    html.push("</ul>");
+    $('#roster-display').append(html.join(''));
+});
 
 /**********************************************************************************
 connection
 **********************************************************************************/
 function connect(service, jid, password) {
-    new_client('#client-1')
+    new_client('#client')
     var conn = new Strophe.Connection(service);
     conn.rawInput = rawInput;
     conn.rawOutput = rawOutput;
@@ -70,6 +82,9 @@ Gnosus = {
     },
     find_contact: function(jid) {
         return Gnosus.contacts[contact.jid];
+    },
+    find_all_contacts: function() {
+        return Gnosus.contacts;
     },
     update_contact: function(item) {
         var contact = Gnosus.contacts[item.attr('jid')];
@@ -136,21 +151,25 @@ function Account(service, jid, password) {
 function Contact(jid) {
     this.jid = jid;
     this.ask = '';
+    this.name = '';
     this.subscription = '';
     this.groups = [];
     this.resources = {}
 }
 
 Contact.prototype = {
-    online: function() {
-        var result = false;
+    show: function() {
+        var show = "offline";
         for (var k in this.resources) {
-            result = true;
-            break;
+            show = this.resources[k];
+            if (show == 'online') {
+                break;
+            }
         }
-        return result;
+        return show;
     },
     set_attributes: function(item) {
+        this.name = item.attr('name') || this.name;
         this.subscription = item.attr('subscription') || 'none';
         this.ask = item.attr('ask') || '';
         item.find('group').each(function () {
@@ -162,7 +181,7 @@ Contact.prototype = {
     },
     remove_roster_item: function(jid) {
         delete(this.resources[jid]);
-    }
+    },
     remove_roster_items: function() {
         this.resources = {};
     }
@@ -180,7 +199,7 @@ function RosterItem(jid) {
 
 RosterItem.prototype = {
     set_presence_attributes: function(presence) {
-        this.client_name = $(presence).find('show').text() || 'online';
+        this.show = $(presence).find('show').text() || 'online';
         this.status =  $(presence).find('status').text();
     },
     set_version_attributes: function(version) {
@@ -211,11 +230,11 @@ Strophe.addConnectionPlugin('roster', {
                 $(iq).find('item').each(function () {
                     Gnosus.add_contact($(this));
                 });
-                // $(document).trigger('roster_changed', that);
+                $(document).trigger('roster_changed', that);
             });
         } else if (status === Strophe.Status.DISCONNECTED) {
             Gnosus.go_off_line();
-            // $(document).trigger('roster_changed', this);
+            $(document).trigger('roster_changed', this);
         }
     },
  
