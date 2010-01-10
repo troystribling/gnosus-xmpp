@@ -421,73 +421,58 @@ tr.data-edit-select {
 }
 /*******  client *******/
 #client {
-    height: 475px;
     -moz-box-shadow: 0px 0px 25px #aaa;
     -webkit-box-shadow: 0px 0px 25px #aaa;
+    height: 300px;
 }
 #client .vsplitbar {
 	width: 5px;
-	background: #BBB url('/images/vgrabber.gif') no-repeat center;
+	background: #DDD url('/images/vgrabber.gif') no-repeat center;
 }
 #client .vsplitbar.active {
-	background: #BBB url('/images/vgrabber.gif') no-repeat center;
+	background: #DDD url('/images/vgrabber.gif') no-repeat center;
 	opacity: 0.7;
 }
-/*******  client *******/
-.client-display {
+#client-items {
+}
+#client-items-display {
 	overflow: auto;
 }
-.client-display ul {
+#client-items-toolbar  {
+    color: #FFF;
+    background-color: #DDD;
+    height: 35px;
+    margin: 0px;
+    padding: 0px;
+}
+#client-items-display ul {
     list-style-type: none;
     margin: 0px;
     padding: 0px;
 }
-.client-display li {
+#client-items-display li {
     font-size: 0.85em;
     margin: 0;
 } 
-.client-display .item {
+#client-items-display .contact {
     padding: 5px 10px 5px 10px;
 }
-.client-display .online {
+#client-items-display .online {
 }
-.client-display .offline {
+#client-items-display .offline {
 }
-.client-display .selected {
+#client-items-display .selected {
 }
-.client-display-toolbar  {
-    color: #FFF;
-    background-color: #CCC;
-    height: 35px;
-    margin: 0px;
-    padding: 0px;
-    border-bottom: 5px solid #BBB;
+#client-messages {
 }
-.client-toolbar  {
-    color: #FFF;
-    background-color: #CCC;
-    height: 35px;
-    margin: 0px;
-    padding: 0px;
-    border-bottom: 5px solid #BBB;
-}
-/*******  messages *******/
-#messages-display ul {
-    margin: 0px 10px 0px 10px;
-    padding: 0px;
-}
-#messages-display li {
-    font-size: 0.85em;
-    margin: 0;
-} 
-#messages-display {
+#client-messages-display {
 	overflow: auto;
+    border-left: 1px solid #BBB;
 }
-#messages-toolbar  {
+#client-messages-toolbar  {
     color: #FFF;
-    background-color: #CCC;
+    background-color: #DDD;
     height: 35px;
     margin: 0px;
-    padding: 0px 0px 0px 0px;
-    border-bottom: 5px solid #BBB;
+    padding: 0px;
 }
