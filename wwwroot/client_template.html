@@ -9,7 +9,8 @@
         <script src='/javascript/strophe.js' type='text/javascript' charset='utf-8'></script>
         <script src='/javascript/gnosus.js' type='text/javascript' charset='utf-8'></script>
         <script src='/javascript/splitter.js' type='text/javascript' charset='utf-8'></script>
-        <script src='/javascript/gnosus_client.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/javascript/gnosus_ui.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/javascript/gnosus_xmpp.js' type='text/javascript' charset='utf-8'></script>
         <script src='/javascript/jquery.cookie.js' type='text/javascript' charset='utf-8'></script>
         <link rel="stylesheet" href="/nitrogen/jquery-ui/jquery-ui.css" type="text/css" media="screen" charset="utf-8">
         <link rel="stylesheet" href="/nitrogen/elements.css" type="text/css" media="screen" charset="utf-8">
@@ -29,20 +30,9 @@
         </div>
         <div id="page-wrapper">
           <div id="page">
-              [[[page:start_client()]]]
-              <div id="client">
-                  <div id="roster">
-                      <div id="roster-toolbar">
-                      </div>
-                      <div id="roster-display">
-                      </div>
-                  </div>
-                  <div id="messages">
-                      <div id="messages-toolbar">
-                      </div>
-                      <div id="messages-display">
-                      </div>
-                  </div>
+              [[[page:connect()]]]
+              <div id="client-grid">
+                  [[[page:client()]]]
               </div> 
           </div>
         </div>

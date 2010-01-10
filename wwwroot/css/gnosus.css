@@ -425,21 +425,6 @@ tr.data-edit-select {
     -moz-box-shadow: 0px 0px 25px #aaa;
     -webkit-box-shadow: 0px 0px 25px #aaa;
 }
-#roster {
-	overflow: auto;
-}
-#roster-display ul {
-    margin: 0px 0px 0px -5px;
-    padding: 0px;
-}
-#roster-display li {
-    display: inline;
-    font-size: 0.85em;
-    margin: 0px 0px 0px 5px;
-} 
-#roster-display {
-	overflow: auto;
-}
 #client .vsplitbar {
 	width: 5px;
 	background: #BBB url('/images/vgrabber.gif') no-repeat center;
@@ -447,4 +432,62 @@ tr.data-edit-select {
 #client .vsplitbar.active {
 	background: #BBB url('/images/vgrabber.gif') no-repeat center;
 	opacity: 0.7;
+}
+/*******  client *******/
+.client-display {
+	overflow: auto;
+}
+.client-display ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+.client-display li {
+    font-size: 0.85em;
+    margin: 0;
+} 
+.client-display .item {
+    padding: 5px 10px 5px 10px;
+}
+.client-display .online {
+}
+.client-display .offline {
+}
+.client-display .selected {
+}
+.client-display-toolbar  {
+    color: #FFF;
+    background-color: #CCC;
+    height: 35px;
+    margin: 0px;
+    padding: 0px;
+    border-bottom: 5px solid #BBB;
+}
+.client-toolbar  {
+    color: #FFF;
+    background-color: #CCC;
+    height: 35px;
+    margin: 0px;
+    padding: 0px;
+    border-bottom: 5px solid #BBB;
+}
+/*******  messages *******/
+#messages-display ul {
+    margin: 0px 10px 0px 10px;
+    padding: 0px;
+}
+#messages-display li {
+    font-size: 0.85em;
+    margin: 0;
+} 
+#messages-display {
+	overflow: auto;
+}
+#messages-toolbar  {
+    color: #FFF;
+    background-color: #CCC;
+    height: 35px;
+    margin: 0px;
+    padding: 0px 0px 0px 0px;
+    border-bottom: 5px solid #BBB;
 }

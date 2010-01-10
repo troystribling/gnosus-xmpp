@@ -14,33 +14,9 @@ function rawOutput(data) {
 // }
 
 /**********************************************************************************
-client
-**********************************************************************************/
-function new_client(client_id) {
-    var client = $(client_id);
-	client.splitter({type: "v", outline: true, minLeft: 200, sizeLeft: 200, minRight: 500, cookie: "vsplitter"});
-}
-
-/**********************************************************************************
-client roster display
-**********************************************************************************/
-$(document).bind('roster_changed', function (ev, roster) {
-    $('#roster-display').empty();
-    var html = ["<ul>"];
-    $.each(Gnosus.find_all_contacts(), function (jid) {
-        html.push("<li class='contact " + this.show() + "'>");
-        html.push(this.name || jid);
-        html.push("</li>");
-    });
-    html.push("</ul>");
-    $('#roster-display').append(html.join(''));
-});
-
-/**********************************************************************************
 connection
 **********************************************************************************/
 function connect(service, jid, password) {
-    new_client('#client')
     var conn = new Strophe.Connection(service);
     conn.rawInput = rawInput;
     conn.rawOutput = rawOutput;
@@ -154,7 +130,7 @@ function Contact(jid) {
     this.name = '';
     this.subscription = '';
     this.groups = [];
-    this.resources = {}
+    this.resources = {};
 }
 
 Contact.prototype = {
