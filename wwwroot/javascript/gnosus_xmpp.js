@@ -57,7 +57,7 @@ Gnosus = {
         Gnosus.contacts[contact.jid] = contact;
     },
     find_contact: function(jid) {
-        return Gnosus.contacts[contact.jid];
+        return Gnosus.contacts[jid];
     },
     find_all_contacts: function() {
         return Gnosus.contacts;
@@ -77,40 +77,60 @@ Gnosus = {
     },
 
     /*-------------------------------------------------------------------------------*/
-    add_roster_item: function(presence) {
+    add_contact_resource: function(presence) {
         var from = $(presence).attr('from');
         var bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.contacts[bare_jid]) {
-            roster_item = new RosterItem(from);
-            roster_item.set_presence_attributes(presence);
-            Gnosus.contacts[bare_jid].add_roster_item(roster_item);
+            resource = new Resource(from);
+            resource.set_presence_attributes(presence);
+            Gnosus.contacts[bare_jid].add_resource(resource);
         }
     },
-    remove_roster_item: function(presence) {
+    remove_contact_resource: function(presence) {
         var from = $(presence).attr('from');
         var bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].remove_roster_item(jid);
+            Gnosus.contacts[bare_jid].remove_resource(from);
         }
     },
-    remove_roster_items: function(jid) {
+    remove_contact_resources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].remove_roster_items();
+            Gnosus.contacts[bare_jid].remove_resources();
         }
     },
-    find_all_roster_items: function(jid) {
+    find_all_contact_resources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources : null;
     },
-    find_roster_item: function(jid) {
+    find_contact_resource: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources[jid] : null;
     },
-    go_off_line: function() {
+    contact_offline: function() {
         for (var contact in Gnosus.contacts) {
             Gnosus.contacts[contact].resources = {};
         }            
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    add_account_resource: function(presence) {
+        var from = $(presence).attr('from');
+        resource = new Resource(from);
+        Gnosus.account.add_resource(resource);
+    },
+    remove_account_resource: function(presence) {
+        var from = $(presence).attr('from');
+        Gnosus.account.remove_resource(from);
+    },
+    remove_account_resources: function() {
+        Gnosus.account.remove_resources();
+    },
+    find_all_account_resources: function() {
+        return Gnosus.account.resources;
+    },
+    find_account_resource: function(jid) {
+        return Gnosus.account.resources[jid];
     }
 }
 
@@ -119,8 +139,15 @@ models
 **********************************************************************************/
 function Account(service, jid, password) {
     this.service = service;
-    this.jid = jid;
+    this.jid = Strophe.getBareJidFromJid(jid);
     this.password = password;
+    this.resources = {};
+}
+
+Account.prototype = {
+    add_resource: function(resource) {
+        this.resources[resource.jid] = resource;
+    }
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -152,19 +179,19 @@ Contact.prototype = {
             this.groups.push($(this).text());
         });
     },
-    add_roster_item: function(roster_item) {
-        this.resources[jid] = roster_item;
+    add_resource: function(resource) {
+        this.resources[resource.jid] = resource;
     },
-    remove_roster_item: function(jid) {
+    remove_resource: function(jid) {
         delete(this.resources[jid]);
     },
-    remove_roster_items: function() {
+    remove_resources: function() {
         this.resources = {};
     }
 }
 
 /*-------------------------------------------------------------------------------*/
-function RosterItem(jid) {
+function Resource(jid) {
     this.jid = jid;
     this.show = '';
     this.status = '';
@@ -173,10 +200,10 @@ function RosterItem(jid) {
     this.client_os = '';
 }
 
-RosterItem.prototype = {
+Resource.prototype = {
     set_presence_attributes: function(presence) {
         this.show = $(presence).find('show').text() || 'online';
-        this.status =  $(presence).find('status').text();
+        this.status =  $(presence).find('status').text() || 'unknown';
     },
     set_version_attributes: function(version) {
         this.client_name = $(version).find('name').text() || 'none';
@@ -208,8 +235,9 @@ Strophe.addConnectionPlugin('roster', {
                 });
                 $(document).trigger('roster_changed', that);
             });
+            this.initial_presence();
         } else if (status === Strophe.Status.DISCONNECTED) {
-            Gnosus.go_off_line();
+            Gnosus.contact_offline();
             $(document).trigger('roster_changed', this);
         }
     },
@@ -227,7 +255,7 @@ Strophe.addConnectionPlugin('roster', {
             Gnosus.update_contact(item);
         }
         this.connection.send($iq({type: 'result', id: $(iq).attr('id')}));
-        // $(document).trigger("roster_changed", this);
+        $(document).trigger("roster_changed", this);
         return true;
     },
  
@@ -238,17 +266,20 @@ Strophe.addConnectionPlugin('roster', {
         var ptype = $(presence).attr('type') || 'available'; 
         if (Gnosus.find_contact(jid) && ptype != 'error') {
             if (ptype === 'unavailable') {
-                Gnosus.remove_roster_item(presence);
+                Gnosus.remove_contact_resource(presence);
             } else {
-                Gnosus.add_roster_item(presence);
+                Gnosus.add_contact_resource(presence);
             }        
-            // $(document).trigger("roster_changed", this);
+            $(document).trigger("roster_changed", this);
+        } else if (jid == Gnosus.account.jid) {
+            Gnosus.add_account_resource(presence);
         }
+        return true;
     },
  
     /*-------------------------------------------------------------------------------*/
     addContact: function (jid, name, groups) {
-        var iq = $iq({type: "set"}).c("query", {xmlns: Strophe.NS.ROSTER}).c("item", {name: name || "", jid: jid});
+        var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {name: name || "", jid: jid});
         if (groups && groups.length > 0) {
             $.each(groups, function () {
                 iq.c("group").t(this).up();
@@ -259,7 +290,7 @@ Strophe.addConnectionPlugin('roster', {
     
     /*-------------------------------------------------------------------------------*/
     deleteContact: function (jid) {
-        var iq = $iq({type: "set"}).c("query", {xmlns: Strophe.NS.ROSTER}).c("item", {jid: jid, subscription: "remove"});
+        var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {jid: jid, subscription: 'remove'});
         Gnosus.connection.sendIQ(iq);
     },
   
@@ -269,15 +300,21 @@ Strophe.addConnectionPlugin('roster', {
     },
  
     /*-------------------------------------------------------------------------------*/
+    initial_presence: function () {
+        var presence = $pres({priority: 1});
+        Gnosus.connection.send(presence);
+    },
+    
+    /*-------------------------------------------------------------------------------*/
     subscribe: function (jid, name, groups) {
         this.addContact(jid, name, groups);
-        var presence = $pres({to: jid, "type": "subscribe"});
+        var presence = $pres({to: jid, type: 'subscribe'});
         Gnosus.connection.send(presence);
     },
     
     /*-------------------------------------------------------------------------------*/
     unsubscribe: function (jid) {
-        var presence = $pres({to: jid, "type": "unsubscribe"});
+        var presence = $pres({to: jid, type: "unsubscribe"});
         Gnosus.connection.send(presence);
         this.deleteContact(jid);
     }
