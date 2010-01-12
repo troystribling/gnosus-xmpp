@@ -1,5 +1,5 @@
 /**********************************************************************************
-ui
+ui displays
 **********************************************************************************/
 function GnosusUi() {
     this.handlers = {},
@@ -36,6 +36,39 @@ GnosusUi.prototype = {
             html.push("</ul>");
             $(this.client_items_display).append(html.join(''));
         }
+        this.show_items_toolbar('roster', false);
         $(document).bind('roster_changed', this.handlers['roster_changed'].bind(this));
+    },
+    
+    /*-------------------------------------------------------------------------------*/    
+    show_items_toolbar: function(selected, add_item) {
+        $(this.client_items_toolbar).empty();
+        var item_select = '<div id="client-item-selector">'+ 
+                              '<div id="client-item-selected"><a>' + selected + '</div>' +
+                              '<ul id="client-item-choices" style="display: none">' +
+                                  '<li>roster</li>' +
+                                  '<li>resources</li>' +
+                                  '<li>subscriptions</li>' +
+                                  '<li>publication</li>' +
+                              '</ul>' +
+                          '</div>';  
+        $(this.client_items_toolbar).append(item_select);
+        $('div#client-item-selected').click(function() {
+            $('ul#client-item-choices').toggle();
+        });
     }        
+}
+
+/**********************************************************************************
+item choice selector
+**********************************************************************************/
+function choose_item() {
+    $('#client-item-choices li').hover(
+        function() { 
+            $(this).addClass('choice'); 
+        }, 
+        function() { 
+            $(this).removeClass('choice'); 
+        }
+    ); 
 }
