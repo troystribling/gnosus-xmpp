@@ -18,7 +18,7 @@ img {
 #navigation-wrapper {
     color: #000;
     background-color: #FFF;
-    height: 52px;
+    height: 55px;
     font-weight: lighter;
     letter-spacing: -1px;
     border-bottom: 2px solid #BBB;
@@ -146,7 +146,7 @@ img {
 #navigation ul {
     list-style-type: none;
     float: right;
-    margin-top: 12px;
+    margin-top: 15px;
     margin-bottom: 0px;
 }
 #navigation li {
@@ -338,8 +338,8 @@ p.form {
 tr.data-edit {
 }
 tr.data-edit-select {
-    background-color: #444;
-    color: #DDD;
+    background-color: #000;
+    color: #999;
 }
 .data-item {
     position: relative;
@@ -355,22 +355,22 @@ tr.data-edit-select {
     display: none;
 }
 .data-edit-select a {
-    color: #FFCC33;
+    color: #FFF;
     outline: none;
     text-decoration: none;
 }
 .data-edit-select a:visited {
-    color: #FFCC33;
+    color: #FFF;
     outline: none;
     text-decoration: none;
 }
 .data-edit-select a:hover {
-    color: #FFCC33;
+    color: #FFF;
     outline: none;
     text-decoration: underline;
 }
 .data-edit-select a:visited:hover {
-    color: #FFCC33;
+    color: #FFF;
     outline: none;
     text-decoration: underline;
 }
@@ -441,7 +441,7 @@ tr.data-edit-select {
     background-color: #DDD;
     height: 35px;
     margin: 0px;
-    padding: 0px;
+    padding: 5px 0px 0px 0px;
 }
 #client-items-display ul {
     list-style-type: none;
@@ -475,20 +475,31 @@ tr.data-edit-select {
     background-color: #DDD;
     height: 35px;
     margin: 0px;
-    padding: 0px;
+    padding: 5px 0px 0px 0px;
 }
 /*******  client-item-selector *******/
 #client-item-selector {
     text-align: center;
 }
 #client-item-selected {
+    font-size: 0.9em;
     color: #000;
     cursor: pointer;
+    margin: 0px 45px 0px 45px;
+    border: 1px solid #CCC;
+}
+#client-item-selected.open {
+    color: #DDD;
+    background-color: #000;
 }
 ul#client-item-choices {
     list-style-type: none;
     color: #000;
     background-color: #DDD;
+    border: 1px solid #CCC;
+    position: absolute;
+    top: 33px;
+    left: 45px;
     margin: 0px;
     padding: 0px;
 }
@@ -497,9 +508,10 @@ ul#client-item-choices {
     background-color: #DDD;
     text-align: left;
     display: block;
-    margin: 0;
+    cursor: pointer;
+    padding: 3px 10px 3px 10px;
 } 
 #client-item-choices .choice {
-    background-color: #444;
+    background-color: #000;
     color: #DDD;
 }
