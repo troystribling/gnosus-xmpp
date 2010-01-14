@@ -439,6 +439,7 @@ tr.data-edit-select {
 #client-items-toolbar  {
     color: #FFF;
     background-color: #DDD;
+    text-align: center;
     height: 35px;
     margin: 0px;
     padding: 5px 0px 0px 0px;
@@ -463,30 +464,47 @@ tr.data-edit-select {
 }
 #client-items-display .selected {
 }
-/*******  client-messages *******/
-#client-messages {
+/*******  client-item-buttons *******/
+#client-item-add {
+    background-image:url('/images/item-add.png');
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
 }
-#client-messages-display {
-	overflow: auto;
-    border-left: 1px solid #BBB;
+#client-item-add:hover {
+    background-image:url('/images/item-add-hover.png');
+    background-color: #000;
 }
-#client-messages-toolbar  {
-    color: #FFF;
-    background-color: #DDD;
-    height: 35px;
-    margin: 0px;
-    padding: 5px 0px 0px 0px;
+#client-item-home {
+    background-image:url('/images/item-home.png');
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+#client-item-home:hover {
+    background-image:url('/images/item-home-hover.png');
+    background-color: #000;
 }
 /*******  client-item-selector *******/
 #client-item-selector {
-    text-align: center;
+    margin: 0 auto;
+    width: 6em;
 }
 #client-item-selected {
     font-size: 0.9em;
     color: #000;
+    padding: 0px 0px 3px 0px;
     cursor: pointer;
-    margin: 0px 45px 0px 45px;
-    border: 1px solid #CCC;
+}
+#client-item-selected:hover {
+    color: #DDD;
+    background-color: #000;
 }
 #client-item-selected.open {
     color: #DDD;
@@ -497,9 +515,9 @@ ul#client-item-choices {
     color: #000;
     background-color: #DDD;
     border: 1px solid #CCC;
-    position: absolute;
-    top: 33px;
-    left: 45px;
+    position: relative;
+    top: 0px;
+    left: 0px;
     margin: 0px;
     padding: 0px;
 }
@@ -514,4 +532,18 @@ ul#client-item-choices {
 #client-item-choices .choice {
     background-color: #000;
     color: #DDD;
+}
+/*******  client-messages *******/
+#client-messages {
+}
+#client-messages-display {
+	overflow: auto;
+    border-left: 1px solid #BBB;
+}
+#client-messages-toolbar  {
+    color: #FFF;
+    background-color: #DDD;
+    height: 35px;
+    margin: 0px;
+    padding: 5px 0px 0px 0px;
 }

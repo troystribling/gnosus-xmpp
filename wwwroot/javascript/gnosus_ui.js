@@ -8,6 +8,7 @@ function GnosusUi() {
     this.client_items_toolbar = '#client-items-toolbar';
     this.client_item_selected = '#client-item-selected';
     this.client_item_choices = '#client-item-choices';
+    this.client_item_add = '#client-item-add';
     this.client_messages_display = '#client-messages-display';
     this.client_messages_toolbar = '#client-messages-toolbar';
     $('#client').splitter({type: "v", outline: true, minLeft: 250, sizeLeft: 250, minRight: 500, cookie: "vsplitter"});
@@ -45,16 +46,20 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     show_items_toolbar: function(selected, add_item) {
         $(this.client_items_toolbar).empty();
-        var item_select = '<div id="client-item-selector">'+ 
-                              '<div id="client-item-selected">' + selected + '</div>' +
-                              '<ul id="client-item-choices" style="display: none">' +
-                                  '<li>roster</li>' +
-                                  '<li>resources</li>' +
-                                  '<li>subscriptions</li>' +
-                                  '<li>publications</li>' +
-                              '</ul>' +
-                          '</div>';  
-        $(this.client_items_toolbar).append(item_select);
+        var toolbar = '<div id="client-item-home"/>' +        
+                      '<div id="client-item-selector">'+ 
+                          '<div id="client-item-selected">' + selected + '</div>' +
+                          '<ul id="client-item-choices" style="display: none">' +
+                               '<li>roster</li>' +
+                               '<li>resources</li>' +
+                               '<li>subscriptions</li>' +
+                               '<li>publications</li>' +
+                          '</ul>' +
+                      '</div>' +
+                      '<div id="client-item-add"/>';  
+        $(this.client_items_toolbar).append(toolbar);
+        $(this.client_item_add).click(function() {            
+        });
         var item_choices = this.client_item_choices;
         $(this.client_item_selected).click(function() {
             $(this).toggleClass('open')
@@ -76,5 +81,32 @@ GnosusUi.prototype = {
             $(item_selected).text($(this).text());
             $(item_choices).toggle();
         }); 
-    }           
+    }, 
+    
+    /*-------------------------------------------------------------------------------*/    
+    show_contact_messages_toolbar: function() {
+        $(this.client_messages_toolbar).empty();
+        var toolbar = '<ul id="client-messages-tools">' +
+                          '<li>chat</li>' +
+                          '<li>resources</li>' +
+                          '<li>publications</li>' +
+                          '<li>commands</li>' +
+                      '</ul>';
+        $(this.client_items_toolbar).append(toolbar);
+    }, 
+
+    /*-------------------------------------------------------------------------------*/    
+    show_command_menu: function() {
+        $(this.client_messages_toolbar).empty();
+    }, 
+
+    /*-------------------------------------------------------------------------------*/    
+    show_resource_messages_toolbar: function() {
+        $(this.client_messages_toolbar).empty();
+    }, 
+
+    /*-------------------------------------------------------------------------------*/    
+    show_all_messages_toolbar: function() {
+        $(this.client_messages_toolbar).empty();
+    },               
 }
