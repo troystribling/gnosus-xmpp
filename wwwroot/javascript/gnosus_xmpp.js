@@ -49,7 +49,7 @@ Gnosus = {
     connection: null,
     account: null,
     contacts: {},
-    messages: {},
+    messages: [],
 
     /*-------------------------------------------------------------------------------*/
     add_contact: function(item) {
@@ -135,18 +135,10 @@ Gnosus = {
     
     /*-------------------------------------------------------------------------------*/
     add_chat_message: function(msg) {
-        var to = $(msg).attr('to');
-        if (!Gnosus.message[to]) {
-            Gnosus.message[to] = [];
-        }
-        Gnosus.messages[to].push(new Message(to, $(msg).attr('from'), 'chat', $(msg).find('body').text(), 'text'));        
+        Gnosus.messages.push(new Message($(msg).attr('to'), $(msg).attr('from'), 'chat', $(msg).find('body').text(), 'text'));        
     },
     find_all_messages: function() {
-        var all_message = [];
-        for (var j in  Gnosus.messages) {
-            all_messages.push(Gnosus.messages[j])
-        }
-        return all_messages;
+        return Gnosus.messages;
     }    
 }
 

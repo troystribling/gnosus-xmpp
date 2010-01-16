@@ -417,26 +417,26 @@ tr.data-edit-select {
     text-decoration: none;
 }
 /*******  client *******/
-#client {
+.client {
     -moz-box-shadow: 0px 0px 25px #aaa;
     -webkit-box-shadow: 0px 0px 25px #aaa;
     height: 300px;
 }
-#client .vsplitbar {
+.client .vsplitbar {
 	width: 5px;
 	background: #DDD url('/images/vgrabber.gif') no-repeat center;
 }
-#client .vsplitbar.active {
+.client .vsplitbar.active {
 	background: #DDD url('/images/vgrabber.gif') no-repeat center;
 	opacity: 0.7;
 }
 /*******  client-items *******/
-#client-items {
+.client-items {
 }
-#client-items-display {
+.client-items-display {
 	overflow: auto;
 }
-#client-items-toolbar  {
+.client-items-toolbar  {
     color: #FFF;
     background-color: #DDD;
     text-align: center;
@@ -444,28 +444,28 @@ tr.data-edit-select {
     margin: 0px;
     padding: 5px 0px 0px 0px;
 }
-#client-items-display ul {
+.client-items-display ul {
     list-style-type: none;
     margin: 0px;
     padding: 0px;
 }
-#client-items-display li {
+.client-items-display li {
     font-size: 0.85em;
     margin: 0;
 } 
-#client-items-display .contact {
+.client-items-display .contact {
     padding: 10px 20px 10px 20px;
 }
-#client-items-display .online {
+.client-items-display .online {
     color: #000;
 }
-#client-items-display .offline {
+.client-items-display .offline {
     color: #CCC;
 }
-#client-items-display .selected {
+.client-items-display .selected {
 }
 /*******  client-item-buttons *******/
-#client-item-add {
+.client-items-add {
     background-image:url('/images/item-add.png');
     position: absolute;
     top: 8px;
@@ -474,11 +474,11 @@ tr.data-edit-select {
     height: 25px;
     cursor: pointer;
 }
-#client-item-add:hover {
+.client-items-add:hover {
     background-image:url('/images/item-add-hover.png');
     background-color: #000;
 }
-#client-item-home {
+.client-items-home {
     background-image:url('/images/item-home.png');
     position: absolute;
     top: 8px;
@@ -487,30 +487,30 @@ tr.data-edit-select {
     height: 25px;
     cursor: pointer;
 }
-#client-item-home:hover {
+.client-items-home:hover {
     background-image:url('/images/item-home-hover.png');
     background-color: #000;
 }
 /*******  client-item-type-selector *******/
-#client-item-type-selector {
+.client-item-type-selector {
     margin: 0 auto;
     width: 6em;
 }
-#client-item-type-selected {
+.client-item-type-selected {
     font-size: 0.9em;
     color: #000;
     padding: 0px 0px 3px 0px;
     cursor: pointer;
 }
-#client-item-selected:hover {
+.client-item-type-selected:hover {
     color: #DDD;
     background-color: #000;
 }
-#client-item-type-selected.open {
+.client-item-type-selector .open {
     color: #DDD;
     background-color: #000;
 }
-ul#client-item-type-choices {
+ul.client-item-type-choices {
     list-style-type: none;
     color: #000;
     background-color: #DDD;
@@ -521,7 +521,7 @@ ul#client-item-type-choices {
     margin: 0px;
     padding: 0px;
 }
-#client-item-type-choices li {
+.client-item-type-choices li {
     font-size: 0.85em;
     background-color: #DDD;
     text-align: left;
@@ -529,21 +529,22 @@ ul#client-item-type-choices {
     cursor: pointer;
     padding: 3px 10px 3px 10px;
 } 
-#client-item-type-choices .choice {
+.client-item-type-choices .choice {
     background-color: #000;
     color: #DDD;
 }
 /*******  client-messages *******/
-#client-messages {
+.client-messages {
 }
-#client-messages-display {
+.client-messages-display {
 	overflow: auto;
-    border-left: 1px solid #BBB;
 }
-#client-messages-toolbar  {
+.client-messages-toolbar  {
     color: #FFF;
     background-color: #DDD;
     height: 35px;
     margin: 0px;
     padding: 5px 0px 0px 0px;
+}
+.client-messages-list {
 }

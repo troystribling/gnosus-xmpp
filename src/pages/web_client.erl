@@ -27,7 +27,7 @@ connect() ->
     Jid = client_user_model:bare_jid(User),
     #passwd{password=Password} = passwd_model:find(Jid),
     Args = string:join(["/http-bind/", Jid++"/gnos.us", Password], "','"),
-    #panel{body="", actions=#script{script="connect('"++Args++"');new GnosusUi();"}}.
+    #panel{body="", actions=#script{script="connect('"++Args++"');new GnosusUi(1);"}}.
 
 %%================================================================================
 event(logout) ->
