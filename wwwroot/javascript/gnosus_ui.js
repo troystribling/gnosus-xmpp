@@ -83,13 +83,11 @@ GnosusUi.prototype = {
             ); 
             $(this.client_items_display+' ul li').find('.item').click(function() {
                 var item_type = $(this).attr('class').split(' ')[0];
-                var item = $(this).text();
-                client_ui['display_'+item_type+'s'](item);
+                client_ui['display_'+item_type+'s']($(this).text());
             }); 
             $(this.client_items_display+' ul li').find('img').click(function() {            
                 var item_type = client_ui.singular($(client_ui.client_item_type_selected).text());
-                var item = $(this).siblings('.item').text();
-                client_ui['delete_'+item_type](item);
+                client_ui['delete_'+item_type]($(this).parents('li').eq(0).text());
             }); 
         }
         this.show_items_toolbar('contacts', false);
