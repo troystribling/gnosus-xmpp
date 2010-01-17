@@ -184,14 +184,14 @@ function Contact(jid, name, ask, subscription, groups) {
 
 Contact.prototype = {
     show: function() {
-        var show = "offline";
+        var stat = 'offline';
         for (var k in this.resources) {
-            show = this.resources[k];
-            if (show == 'online') {
+            stat = this.resources[k].show;
+            if (stat == 'online') {
                 break;
             }
         }
-        return show;
+        return stat;
     },
     add_resource: function(resource) {
         this.resources[resource.jid] = resource;
@@ -207,7 +207,7 @@ Contact.prototype = {
 /*-------------------------------------------------------------------------------*/
 function Resource(jid, show, status) {
     this.jid = jid;
-    this.show = show || 'onine';
+    this.show = show || 'online';
     this.status = status || 'unknown';
     this.client_name = '';
     this.client_version = '';

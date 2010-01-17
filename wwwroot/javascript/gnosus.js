@@ -7,16 +7,10 @@ function init_data_edit_row() {
     }
     $('tr.data-edit').hover(
         function() { 
-            $(this).addClass('data-edit-select'); 
-            $(this).find('.data-edit-controls').each(function(i) {
-                $(this).show();
-            });
-        }, 
+            $(this).addClass('data-edit-select').find('.data-edit-controls').show();
+        },
         function() { 
-            $(this).removeClass('data-edit-select'); 
-            $(this).find('.data-edit-controls').each(function(i) {
-                $(this).hide();
-            });
+            $(this).removeClass('data-edit-select').find('.data-edit-controls').hide();
         }
     ); 
 }

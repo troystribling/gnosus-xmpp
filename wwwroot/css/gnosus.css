@@ -335,8 +335,6 @@ p.form {
     outline: none;
     text-decoration: none;
 }
-tr.data-edit {
-}
 tr.data-edit-select {
     background-color: #000;
     color: #999;
@@ -446,23 +444,40 @@ tr.data-edit-select {
 }
 .client-items-display ul {
     list-style-type: none;
-    margin: 0px;
+    margin: 5px 0px 5px 0px;
     padding: 0px;
 }
 .client-items-display li {
+    position: relative;
+    cursor: pointer;
     font-size: 0.85em;
     margin: 0;
 } 
-.client-items-display .contact {
-    padding: 10px 20px 10px 20px;
-}
 .client-items-display .online {
     color: #000;
 }
+.client-items-display .selected .online {
+    color: #FFF;
+    background-color: #000;
+} 
 .client-items-display .offline {
     color: #CCC;
+    background-color: #FFF;
 }
-.client-items-display .selected {
+.client-items-display .selected .offline {
+    color: #CCC;
+    background-color: #000;
+} 
+.client-items-display .contact {
+    padding: 5px 10px 5px 10px;
+}
+.client-items-display .controls {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    padding: 0px;
+    z-index: 1;
+    display: none;
 }
 /*******  client-item-buttons *******/
 .client-items-add {
@@ -505,33 +520,6 @@ tr.data-edit-select {
 .client-item-type-selected:hover {
     color: #DDD;
     background-color: #000;
-}
-.client-item-type-selector .open {
-    color: #DDD;
-    background-color: #000;
-}
-ul.client-item-type-choices {
-    list-style-type: none;
-    color: #000;
-    background-color: #DDD;
-    border: 1px solid #CCC;
-    position: relative;
-    top: 0px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
-}
-.client-item-type-choices li {
-    font-size: 0.85em;
-    background-color: #DDD;
-    text-align: left;
-    display: block;
-    cursor: pointer;
-    padding: 3px 10px 3px 10px;
-} 
-.client-item-type-choices .choice {
-    background-color: #000;
-    color: #DDD;
 }
 /*******  client-messages *******/
 .client-messages {
