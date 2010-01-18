@@ -171,7 +171,7 @@ GnosusUi.prototype = {
          this.handlers['chat_message'] = function (ev, msg) {
              var msg_model = Gnosus.add_chat_message(msg);
              var chat_msg = client_ui.build_chat_text_message(msg_model)
-             $(client_ui.client_messages_list).append(chat_msg);
+             $(client_ui.client_messages_list).prepend(chat_msg);
          }
          $(document).bind('chat_message', this.handlers['chat_message'].bind(this));
      },               
@@ -211,16 +211,11 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     build_chat_text_message: function(msg) {
         var account_rexp = new RegExp(Gnosus.account.jid, 'g');
-        var from_to = '';
-        if (msg.from.match(account_rexp)) {
-            from_to = '&gt&gt '+Strophe.getBareJidFromJid(msg.to);
-        } else {
-            from_to = '&lt&lt '+Strophe.getBareJidFromJid(msg.from);
-        }
+        var from_to = msg.from.match(account_rexp) ? ('&gt&gt '+Strophe.getBareJidFromJid(msg.to)) : ('&lt&lt '+Strophe.getBareJidFromJid(msg.from));
         var chat = '<li><div class="chat-text-message">' +
                        '<div class="info">' +
                            '<div class="from-to">'+from_to+'</div>' +
-                           '<div class="date">'+msg.created_at.toString().toLowerCase()+'</div>' +
+                           '<div class="date">'+msg.created_at_as_string()+'</div>' +
                        '</div>' +
                        '<div class="text">'+msg.text+'</div>' +
                    '</div></li>';

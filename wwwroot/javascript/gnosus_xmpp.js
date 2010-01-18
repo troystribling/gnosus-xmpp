@@ -136,11 +136,17 @@ Gnosus = {
     /*-------------------------------------------------------------------------------*/
     add_chat_message: function(msg) {
         var msg_model = new Message($(msg).attr('to'), $(msg).attr('from'), 'chat', $(msg).find('body').text(), 'text');
-        Gnosus.messages.push(msg_model);  
+        Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
     find_all_messages: function() {
         return Gnosus.messages;
+    },
+    find_messages_by_jid_and_type: function(jid, type) {
+        var jid_rexp = new RegExp(jid, 'g');
+        $.grep(Gnosus.messages, function(m) {
+            return ((m.from.match(jid_rexp) || m.to.match(jid_exp)) && m.type == type)
+        })      
     }    
 }
 
@@ -172,7 +178,11 @@ function Message(to, from, type, text, content_type, node, item_id) {
     this.created_at = new Date(); 
 }
 
-Message.prototype = {    
+Message.prototype = {
+    created_at_as_string: function() {
+        return this.created_at.getFullYear()+'/'+(this.created_at.getMonth()+1)+'/'+this.created_at.getDate()+' '+
+               this.created_at.getHours()+':'+this.created_at.getMinutes();
+    }
 }
 
 /*-------------------------------------------------------------------------------*/

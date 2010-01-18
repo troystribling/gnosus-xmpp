@@ -432,6 +432,7 @@ tr.data-edit-select {
 .client-items {
 }
 .client-items-display {
+    height: 260px;
 	overflow: auto;
 }
 .client-items-toolbar  {
@@ -525,6 +526,7 @@ tr.data-edit-select {
 .client-messages {
 }
 .client-messages-display {
+    height: 260px;
 	overflow: auto;
 }
 .client-messages-toolbar  {
