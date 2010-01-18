@@ -468,7 +468,7 @@ tr.data-edit-select {
     color: #CCC;
     background-color: #000;
 } 
-.client-items-display .contact {
+.client-items-display .contacts {
     padding: 5px 10px 5px 10px;
 }
 .client-items-display .controls {
@@ -528,11 +528,40 @@ tr.data-edit-select {
 	overflow: auto;
 }
 .client-messages-toolbar  {
+    overflow: hidden;
     color: #FFF;
     background-color: #DDD;
     height: 35px;
     margin: 0px;
     padding: 5px 0px 0px 0px;
 }
-.client-messages-list {
+ul.client-messages-list {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px 10px 0px 10px;
+}
+ul.client-messages-list li {
+    font-size: 0.85em;
+    padding: 0px 0px 10px 0px;
+    margin: 10px 0px 0px 0px;
+    border-bottom: 1px solid #DDD;
+}
+/*******  chat-text-message *******/
+.chat-text-message { 
+}
+.chat-text-message .info {
+}
+.chat-text-message .from-to {    
+    color: #999;
+    float: left;
+    font-size: 0.75em;
+}
+.chat-text-message .date {    
+    color: #999;
+    float: right;
+    font-size: 0.75em;
+    right: 0px;
+}
+.chat-text-message .text {
+    padding: 25px 0px 0px 0px;  
 }

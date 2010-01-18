@@ -15,8 +15,8 @@ function GnosusUi(num) {
     this.client_messages_toolbar   = '#client-messages-toolbar';
     this.client_messages_tools     = '#client-messages-tools-'+num;
     $(this.client).splitter({type: "v", outline: true, minLeft: 250, sizeLeft: 250, minRight: 500, cookie: "vsplitter"});
-    this.show_items('contact');
-    this.show_all_messages_display();
+    this.show_items('contacts');
+    this.show_messages_display('contacts');
 }
 
 /*--------------------------------------------------------------------------------*/    
@@ -27,29 +27,59 @@ GnosusUi.prototype = {
         for (var evt in this.handlers) {
             $(document).unbind(evt, this.handlers[evt]);
         } 
+        delete(this.handlers);
         this.handlers = {};                   
     },
     
     /*-------------------------------------------------------------------------------*/    
     to_id: function(str) {return str.replace('#','');},
 
-    /*-------------------------------------------------------------------------------*/    
-    singular: function(str) {return str.replace(/s$/,'');},
-
     /*-------------------------------------------------------------------------------  
      * items
      *-------------------------------------------------------------------------------*/    
-     show_items_toolbar: function(selected, add_item) {
+     show_items: function (item_type) {
+         this.handlers['roster_item'] = function (ev, roster) {
+             $(this.client_items_display).empty();
+             var items = ['<ul>'];
+             $.each(Gnosus['find_all_'+item_type](), function () {
+                 items.push('<li><div class="'+item_type+' item ' + this.show() + '">');
+                 items.push(this.name);
+                 items.push('</div><div style="display: none" class="controls">');
+                 items.push('<img src="/images/data-delete.png"/>')
+                 items.push('</div></li>');
+             });
+             items.push('</ul>');
+             var client_ui = this;
+             $(this.client_items_display).append(items.join(''));
+             $(this.client_items_display+' ul li').hover(
+                 function() {$(this).addClass('selected').find('.controls').show();},
+                 function() {$(this).removeClass('selected').find('.controls').hide();}
+             ); 
+             $(this.client_items_display+' ul li').find('.item').click(function() {
+                 var item_type = $(this).attr('class').split(' ')[0];
+                 client_ui['display_'+item_type]($(this).text());
+             }); 
+             $(this.client_items_display+' ul li').find('img').click(function() {            
+                 var item_type = $(client_ui.client_item_type_selected).text();
+                 client_ui['delete_'+item_type]($(this).parents('li').eq(0).text());
+             }); 
+         }
+         this.show_items_toolbar('contacts', false);
+         $(document).bind('roster_item', this.handlers['roster_item'].bind(this));
+     },
+
+     /*-------------------------------------------------------------------------------*/    
+     show_items_toolbar: function(item_type, add_item) {
          $(this.client_items_toolbar).empty();
          var toolbar = '<div id="'+this.to_id(this.client_items_home)+'" class="client-items-home"/>' +        
                        '<div class="client-item-type-selector">'+ 
-                           '<div id="'+this.to_id(this.client_item_type_selected)+'" class="client-item-type-selected">' + selected + '</div>' +
+                           '<div id="'+this.to_id(this.client_item_type_selected)+'" class="client-item-type-selected">' + item_type + '</div>' +
                        '</div>' +
                        '<div id="'+this.to_id(this.client_items_add)+'" class="client-items-add"/>';  
          $(this.client_items_toolbar).append(toolbar);
          var client_ui = this;
          $(this.client_items_add).click(function() { 
-             var item_type = client_ui.singular($(client_ui.client_item_type_selected).text());
+             var item_type = $(client_ui.client_item_type_selected).text();
              client_ui['add_'+item_type]();
          });
          $(this.client_items_home).click(function() {            
@@ -62,38 +92,6 @@ GnosusUi.prototype = {
          });
      }, 
 
-     /*-------------------------------------------------------------------------------*/    
-    show_items: function (item_type) {
-        this.handlers['roster_item'] = function (ev, roster) {
-            $(this.client_items_display).empty();
-            var items = ['<ul>'];
-            $.each(Gnosus['find_all_'+item_type+'s'](), function () {
-                items.push('<li><div class="'+item_type+' item ' + this.show() + '">');
-                items.push(this.name);
-                items.push('</div><div style="display: none" class="controls">');
-                items.push('<img src="/images/data-delete.png"/>')
-                items.push('</div></li>');
-            });
-            items.push('</ul>');
-            var client_ui = this;
-            $(this.client_items_display).append(items.join(''));
-            $(this.client_items_display+' ul li').hover(
-                function() {$(this).addClass('selected').find('.controls').show();},
-                function() {$(this).removeClass('selected').find('.controls').hide();}
-            ); 
-            $(this.client_items_display+' ul li').find('.item').click(function() {
-                var item_type = $(this).attr('class').split(' ')[0];
-                client_ui['display_'+item_type+'s']($(this).text());
-            }); 
-            $(this.client_items_display+' ul li').find('img').click(function() {            
-                var item_type = client_ui.singular($(client_ui.client_item_type_selected).text());
-                client_ui['delete_'+item_type]($(this).parents('li').eq(0).text());
-            }); 
-        }
-        this.show_items_toolbar('contacts', false);
-        $(document).bind('roster_item', this.handlers['roster_item'].bind(this));
-    },
-    
     /*-------------------------------------------------------------------------------*/    
     display_contacts: function(item) {
     },
@@ -111,31 +109,31 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    delete_contact: function(item) {
+    delete_contacts: function(item) {
     },
     
     /*-------------------------------------------------------------------------------*/    
-    delete_resource: function(item) {
+    delete_resources: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    delete_subscription: function(item) {
+    delete_subscriptions: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    delete_publication: function(item) {
+    delete_publications: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_contact: function() {
+    add_contacts: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_resource: function() {
+    add_resources: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_subscription: function() {
+    add_subscriptions: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -161,6 +159,24 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------  
      * messages
      *-------------------------------------------------------------------------------*/    
+     show_messages_display: function(item_type) {
+         $(this.client_messages_display).empty();
+         var msgs = ['<ul id="'+this.to_id(this.client_messages_list)+'" class="client-messages-list">'];
+         var client_ui = this;
+         $.each(Gnosus.find_all_messages(), function () {
+             msgs.push(client_ui['build_'+self.type+'_'+self.content_type+'_message'](this));
+         });
+         msgs.push('</ul>')
+         $(this.client_messages_display).append(msgs.join(''));
+         this.handlers['chat_message'] = function (ev, msg) {
+             var msg_model = Gnosus.add_chat_message(msg);
+             var chat_msg = client_ui.build_chat_text_message(msg_model)
+             $(client_ui.client_messages_list).append(chat_msg);
+         }
+         $(document).bind('chat_message', this.handlers['chat_message'].bind(this));
+     },               
+
+    /*-------------------------------------------------------------------------------*/    
     show_contact_messages_toolbar: function() {
         $(this.client_messages_toolbar).empty();
         var toolbar = '<ul id="'+this.to_id(this.client_messages_tools)+'" class="client-messages-tools">' +
@@ -183,22 +199,6 @@ GnosusUi.prototype = {
     }, 
 
     /*-------------------------------------------------------------------------------*/    
-    show_all_messages_display: function() {
-        $(this.client_messages_display).empty();
-        var msgs = ['<ul id="'+this.to_id(this.client_messages_list)+'" class="client-messages-list">'];
-        $.each(Gnosus.find_all_messages(), function () {
-            msgs.push('<li><div class="chat-message">');
-            msgs.push(this.text);
-            msgs.push('</div></li>');
-        });
-        msgs.push('</ul>')
-        $(this.client_messages_display).append(msgs.join(''));
-        this.handlers['chat_message'] = function (ev, msg) {
-        }
-        $(document).bind('chat_message', this.handlers['chat_message'].bind(this));
-    },               
-
-    /*-------------------------------------------------------------------------------*/    
     show_all_messages_toolbar: function() {
         $(this.client_messages_toolbar).empty();
     },               
@@ -207,4 +207,24 @@ GnosusUi.prototype = {
     show_command_menu: function() {
         $(this.client_messages_toolbar).empty();
     },
+    
+    /*-------------------------------------------------------------------------------*/    
+    build_chat_text_message: function(msg) {
+        var account_rexp = new RegExp(Gnosus.account.jid, 'g');
+        var from_to = '';
+        if (msg.from.match(account_rexp)) {
+            from_to = '&gt&gt '+Strophe.getBareJidFromJid(msg.to);
+        } else {
+            from_to = '&lt&lt '+Strophe.getBareJidFromJid(msg.from);
+        }
+        var chat = '<li><div class="chat-text-message">' +
+                       '<div class="info">' +
+                           '<div class="from-to">'+from_to+'</div>' +
+                           '<div class="date">'+msg.created_at.toString().toLowerCase()+'</div>' +
+                       '</div>' +
+                       '<div class="text">'+msg.text+'</div>' +
+                   '</div></li>';
+        return chat;
+    }
+    
 }

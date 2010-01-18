@@ -135,7 +135,9 @@ Gnosus = {
     
     /*-------------------------------------------------------------------------------*/
     add_chat_message: function(msg) {
-        Gnosus.messages.push(new Message($(msg).attr('to'), $(msg).attr('from'), 'chat', $(msg).find('body').text(), 'text'));        
+        var msg_model = new Message($(msg).attr('to'), $(msg).attr('from'), 'chat', $(msg).find('body').text(), 'text');
+        Gnosus.messages.push(msg_model);  
+        return msg_model;      
     },
     find_all_messages: function() {
         return Gnosus.messages;
@@ -162,6 +164,7 @@ Account.prototype = {
 function Message(to, from, type, text, content_type, node, item_id) {
     this.to = to;
     this.from = from;
+    this.type = type;
     this.text = text;
     this.content_type = content_type;
     this.node = node;
@@ -350,10 +353,12 @@ Strophe.addConnectionPlugin('messages', {
     /*-------------------------------------------------------------------------------*/
     onMessage: function (msg) {
         var type = $(msg).attr('type');
-        if (type == "chat" && $(msg).attr('body')) {
+        var body = $(msg).find('body').text();
+        if (type == "chat" && body) {
             Gnosus.add_chat_message(msg);
     	    $(document).trigger("chat_message", msg);            
 	    }
+        return true;
     },
  
     /*-------------------------------------------------------------------------------*/
