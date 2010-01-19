@@ -366,7 +366,7 @@ Strophe.addConnectionPlugin('messages', {
         var body = $(msg).find('body').text();
         if (type == "chat" && body) {
             Gnosus.add_chat_message(msg);
-    	    $(document).trigger("chat_message", msg);            
+    	    $(document).trigger("chat", msg);            
 	    }
         return true;
     },

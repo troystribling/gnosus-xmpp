@@ -522,27 +522,19 @@ tr.data-edit-select {
     color: #DDD;
     background-color: #000;
 }
-/*******  client-messages *******/
-.client-messages {
+/*******  client-display *******/
+.client-display {
 }
-.client-messages-display {
+.client-display-content {
     height: 260px;
 	overflow: auto;
 }
-.client-messages-toolbar  {
-    overflow: hidden;
-    color: #FFF;
-    background-color: #DDD;
-    height: 35px;
-    margin: 0px;
-    padding: 5px 0px 0px 0px;
-}
-ul.client-messages-list {
+ul.client-display-list {
     list-style-type: none;
     padding: 0px;
     margin: 0px 10px 0px 10px;
 }
-ul.client-messages-list li {
+ul.client-display-list li {
     font-size: 0.85em;
     padding: 0px 0px 10px 0px;
     margin: 10px 0px 0px 0px;
@@ -566,4 +558,23 @@ ul.client-messages-list li {
 }
 .chat-text-message .text {
     padding: 25px 0px 0px 0px;  
+}
+/*******  client-display-toolbar *******/
+.client-display-toolbar  {
+    overflow: hidden;
+    color: #FFF;
+    background-color: #DDD;
+    height: 35px;
+    margin: 0px;
+    padding: 5px 0px 0px 0px;
+}
+ul.client-display-modes {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px 10px 0px 10px;
+}
+ul.client-display-modes li {
+    display: inline;
+    font-size: 0.85em;
+    margin: 10px 0px 0px 0px;
 }
