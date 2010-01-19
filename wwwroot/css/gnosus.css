@@ -431,7 +431,7 @@ tr.data-edit-select {
 /*******  client-items *******/
 .client-items {
 }
-.client-items-display {
+.client-items-content {
     height: 260px;
 	overflow: auto;
 }
@@ -443,36 +443,36 @@ tr.data-edit-select {
     margin: 0px;
     padding: 5px 0px 0px 0px;
 }
-.client-items-display ul {
+.client-items-content ul {
     list-style-type: none;
     margin: 5px 0px 5px 0px;
     padding: 0px;
 }
-.client-items-display li {
+.client-items-content li {
     position: relative;
     cursor: pointer;
     font-size: 0.85em;
     margin: 0;
 } 
-.client-items-display .online {
+.client-items-content .online {
     color: #000;
 }
-.client-items-display .selected .online {
+.client-items-content .selected .online {
     color: #FFF;
     background-color: #000;
 } 
-.client-items-display .offline {
+.client-items-content .offline {
     color: #CCC;
     background-color: #FFF;
 }
-.client-items-display .selected .offline {
+.client-items-content .selected .offline {
     color: #CCC;
     background-color: #000;
 } 
-.client-items-display .contacts {
+.client-items-content .contacts {
     padding: 5px 10px 5px 10px;
 }
-.client-items-display .controls {
+.client-items-content .controls {
     position: absolute;
     right: 10px;
     top: 5px;
@@ -568,13 +568,17 @@ ul.client-display-list li {
     margin: 0px;
     padding: 5px 0px 0px 0px;
 }
-ul.client-display-modes {
+ul.contact-display-modes {
     list-style-type: none;
     padding: 0px;
     margin: 0px 10px 0px 10px;
 }
-ul.client-display-modes li {
+ul.contact-display-modes li {
     display: inline;
     font-size: 0.85em;
     margin: 10px 0px 0px 0px;
+}
+.contact-display-modes .selected {
+    color: #DDD;
+    background-color: #FFF;
 }
