@@ -57,8 +57,18 @@ Gnosus = {
         jid = item.attr('jid');
         Gnosus.contacts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
     },
-    find_contact: function(jid) {
+    find_contact_by_jid: function(jid) {
         return Gnosus.contacts[jid];
+    },
+    find_contact_by_name: function(name) {
+        var result = null;
+        for (var contact in Gnosus.contacts) {
+            if (Gnosus.contacts[contact].name == name) {
+                result = Gnosus.contacts[contact];
+                break;
+            }
+        }            
+        return result;
     },
     find_all_contacts: function() {
         return Gnosus.contacts;
@@ -287,7 +297,7 @@ Strophe.addConnectionPlugin('roster', {
         var from = $(presence).attr('from');
         var jid = Strophe.getBareJidFromJid(from);
         var ptype = $(presence).attr('type') || 'available'; 
-        if (Gnosus.find_contact(jid) && ptype != 'error') {
+        if (Gnosus.find_contact_by_jid(jid) && ptype != 'error') {
             if (ptype === 'unavailable') {
                 Gnosus.remove_contact_resource(presence);
             } else {

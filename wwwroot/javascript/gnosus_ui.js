@@ -57,7 +57,9 @@ GnosusUi.prototype = {
              ); 
              $(this.client_items_content+' ul li').find('.item').click(function() {
                  var item_type = $(this).attr('class').split(' ')[0];
-                 client_ui['display_'+item_type]($(this).text());
+                 $(this).parent('li').find('.selected').removeClass('selected');
+                 $(this).addClass('selected')
+                 client_ui['show_'+item_type+'_display']($(this).text());
              }); 
              $(this.client_items_content+' ul li').find('img').click(function() {            
                  var item_type = $(client_ui.client_item_type_selected).text();
@@ -84,6 +86,7 @@ GnosusUi.prototype = {
          });
          $(this.client_items_home).click(function() {            
              var item_type = $(client_ui.client_item_type_selected).text();
+             $(this.client_items_content+' ul li').find('.selected').removeClass('selected');
              client_ui['home_'+item_type]();
          });
          var type_choices = this.item_type_choices;
@@ -91,22 +94,6 @@ GnosusUi.prototype = {
              $(this).text(type_choices[$(this).text()]);
          });
      }, 
-
-    /*-------------------------------------------------------------------------------*/    
-    display_contacts: function(item) {
-    },
-    
-    /*-------------------------------------------------------------------------------*/    
-    display_resources: function(item) {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    display_subscriptions: function(item) {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    display_publications: function(item) {
-    },
 
     /*-------------------------------------------------------------------------------*/    
     delete_contacts: function(item) {
@@ -142,6 +129,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     home_contacts: function() {
+        this.show_all_messages_display();
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -177,20 +165,24 @@ GnosusUi.prototype = {
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_display: function() {
-         this.show_contacts_toolbar()
-         this['show_contacts_'+display_type+'_display']();
+     show_contacts_display: function(contact_name) {
+         this.show_contacts_toolbar();
+         var display_type = $(this.contact_display_modes+' li.selected').text();
+         this['show_contacts_'+display_type+'_display'](contact_name);
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_chat_display: function() {
-         self.show_contacts_toolbar();
-         this.build_content_list(Gnosus.find_messages_by_jid_and_type(jid, 'chat'));
+     show_contacts_chat_display: function(contact_name) {
+         contact = Gnosus.find_contact_by_name(contact_name);
+         this.build_content_list(Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
          this.unbind();
          this.handlers[display_type] = function (ev, msg) {
              var msg_model = Gnosus.add_chat_message(msg);
-             var chat_msg = client_ui.build_chat_text_message(msg_model)
-             $(client_ui.client_display_list).prepend(chat_msg);
+             contact_name = $(this.client_items_content+' ul li').find('.selected');
+             if (contact_name == msg_model.name) {
+                 var chat_msg = client_ui.build_chat_text_message(msg_model)
+                 $(this.client_display_list).prepend(chat_msg);
+             }
          }
          $(document).bind('chat', this.handlers['chat'].bind(this));
      },               
@@ -206,8 +198,8 @@ GnosusUi.prototype = {
                       '</ul>';
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
-        $(contact_display_modes+' li').click(function() {
-            $(this).siblings('li').removeClass('selected');
+        $(this.contact_display_modes+' li').click(function() {
+            $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
             var mode = $(this).text();
             client_ui['show_contacts_'+mode+'_display']();
