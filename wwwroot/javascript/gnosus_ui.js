@@ -157,9 +157,7 @@ GnosusUi.prototype = {
          this.build_content_list(Gnosus.find_all_messages());
          this.unbind();
          this.handlers['chat'] = function (ev, msg) {
-             var msg_model = Gnosus.add_chat_message(msg);
-             var chat_msg = this.build_chat_text_message(msg_model)
-             $(this.client_display_list).prepend(chat_msg);
+             $(this.client_display_list).prepend(this.build_chat_text_message(msg));
          }
          $(document).bind('chat', this.handlers['chat'].bind(this));
      },               
@@ -173,15 +171,13 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      show_contacts_chat_display: function(contact_name) {
-         contact = Gnosus.find_contact_by_name(contact_name);
+         var contact = Gnosus.find_contact_by_name(contact_name);
          this.build_content_list(Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
          this.unbind();
-         this.handlers[display_type] = function (ev, msg) {
-             var msg_model = Gnosus.add_chat_message(msg);
+         this.handlers['chat'] = function (ev, msg) {
              contact_name = $(this.client_items_content+' ul li').find('.selected');
-             if (contact_name == msg_model.name) {
-                 var chat_msg = client_ui.build_chat_text_message(msg_model)
-                 $(this.client_display_list).prepend(chat_msg);
+             if (contact_name == msg.name) {
+                 $(this.client_display_list).prepend(client_ui.build_chat_text_message(msg));
              }
          }
          $(document).bind('chat', this.handlers['chat'].bind(this));
@@ -226,7 +222,7 @@ GnosusUi.prototype = {
         var msgs = ['<ul id="'+this.to_id(this.client_display_list)+'" class="client-display-list">'];
         var client_ui = this;
         $.each(content_list, function () {
-            msgs.push(client_ui['build_'+self.type+'_'+self.content_type+'_message'](this));
+            msgs.push(client_ui['build_'+this.type+'_'+this.content_type+'_message'](this));
         });
         msgs.push('</ul>')
         $(this.client_display_content).append(msgs.join(''));

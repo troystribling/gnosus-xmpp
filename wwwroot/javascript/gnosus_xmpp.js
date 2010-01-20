@@ -154,9 +154,10 @@ Gnosus = {
     },
     find_messages_by_jid_and_type: function(jid, type) {
         var jid_rexp = new RegExp(jid, 'g');
-        $.grep(Gnosus.messages, function(m) {
-            return ((m.from.match(jid_rexp) || m.to.match(jid_exp)) && m.type == type)
-        })      
+        var result = $.grep(Gnosus.messages, function(m) {
+                        return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == type)
+                      });   
+        return result;         
     }    
 }
 
@@ -375,8 +376,7 @@ Strophe.addConnectionPlugin('messages', {
         var type = $(msg).attr('type');
         var body = $(msg).find('body').text();
         if (type == "chat" && body) {
-            Gnosus.add_chat_message(msg);
-    	    $(document).trigger("chat", msg);            
+    	    $(document).trigger("chat", Gnosus.add_chat_message(msg));            
 	    }
         return true;
     },
