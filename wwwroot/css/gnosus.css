@@ -461,11 +461,19 @@ tr.data-edit-select {
     color: #FFF;
     background-color: #000;
 } 
+.client-items-content .open .online {
+    color: #FFF;
+    background-color: #000;
+} 
 .client-items-content .offline {
     color: #CCC;
     background-color: #FFF;
 }
 .client-items-content .selected .offline {
+    color: #CCC;
+    background-color: #000;
+} 
+.client-items-content .open .offline {
     color: #CCC;
     background-color: #000;
 } 
@@ -562,8 +570,9 @@ ul.client-display-list li {
 /*******  client-display-toolbar *******/
 .client-display-toolbar  {
     overflow: hidden;
-    color: #FFF;
+    color: #000;
     background-color: #DDD;
+    text-align: center;
     height: 35px;
     margin: 0px;
     padding: 5px 0px 0px 0px;
@@ -576,9 +585,11 @@ ul.contact-display-modes {
 ul.contact-display-modes li {
     display: inline;
     font-size: 0.85em;
+    cursor: pointer;
+    padding: 0px 10px 0px 10px;
     margin: 10px 0px 0px 0px;
 }
 .contact-display-modes .selected {
     color: #DDD;
-    background-color: #FFF;
+    background-color: #000;
 }

@@ -2,7 +2,8 @@
 ui displays
 **********************************************************************************/
 function GnosusUi(num) {
-    this.handlers = {},
+    this.items_handlers = {},
+    this.display_handlers = {},
     this.item_type_choices = {publications:'contacts', contacts:'resources', resources:'subscriptions', subscriptions:'publications'};
     this.client                    = '#client-'+num;
     this.client_items_content      = '#client-items-content-'+num;
@@ -23,14 +24,21 @@ function GnosusUi(num) {
 GnosusUi.prototype = {
     
     /*-------------------------------------------------------------------------------*/    
-    unbind: function() {
-        for (var evt in this.handlers) {
-            $(document).unbind(evt, this.handlers[evt]);
+    items_unbind: function() {
+        for (var evt in this.items_handlers) {
+            $(document).unbind(evt);
+            delete(this.items_handlers[evt]);
         } 
-        delete(this.handlers);
-        this.handlers = {};                   
     },
     
+    /*-------------------------------------------------------------------------------*/    
+    display_unbind: function() {
+        for (var evt in this.display_handlers) {
+            $(document).unbind(evt);
+            delete(this.display_handlers[evt]);
+        } 
+    },
+
     /*-------------------------------------------------------------------------------*/    
     to_id: function(str) {return str.replace('#','');},
 
@@ -38,7 +46,9 @@ GnosusUi.prototype = {
      * items
      *-------------------------------------------------------------------------------*/    
      show_items: function (item_type) {
-         this.handlers['roster_item'] = function (ev, roster) {
+         this.show_items_toolbar('contacts', false);
+         this.items_unbind();
+         this.items_handlers['roster_item'] = function (ev, roster) {
              $(this.client_items_content).empty();
              var items = ['<ul>'];
              $.each(Gnosus['find_all_'+item_type](), function () {
@@ -57,8 +67,8 @@ GnosusUi.prototype = {
              ); 
              $(this.client_items_content+' ul li').find('.item').click(function() {
                  var item_type = $(this).attr('class').split(' ')[0];
-                 $(this).parent('li').find('.selected').removeClass('selected');
-                 $(this).addClass('selected')
+                 $(this).parent('li').siblings('.open').removeClass('open');
+                 $(this).parent('li').addClass('open')
                  client_ui['show_'+item_type+'_display']($(this).text());
              }); 
              $(this.client_items_content+' ul li').find('img').click(function() {            
@@ -66,8 +76,7 @@ GnosusUi.prototype = {
                  client_ui['delete_'+item_type]($(this).parents('li').eq(0).text());
              }); 
          }
-         this.show_items_toolbar('contacts', false);
-         $(document).bind('roster_item', this.handlers['roster_item'].bind(this));
+         $(document).bind('roster_item', this.items_handlers['roster_item'].bind(this));
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -86,7 +95,7 @@ GnosusUi.prototype = {
          });
          $(this.client_items_home).click(function() {            
              var item_type = $(client_ui.client_item_type_selected).text();
-             $(this.client_items_content+' ul li').find('.selected').removeClass('selected');
+             $(client_ui.client_items_content+' ul li').removeClass('open');
              client_ui['home_'+item_type]();
          });
          var type_choices = this.item_type_choices;
@@ -153,13 +162,13 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      show_all_messages_display: function() {
+         this.display_unbind();
          $(this.client_display_toolbar).empty();
          this.build_content_list(Gnosus.find_all_messages());
-         this.unbind();
-         this.handlers['chat'] = function (ev, msg) {
+         this.display_handlers['chat'] = function (ev, msg) {
              $(this.client_display_list).prepend(this.build_chat_text_message(msg));
          }
-         $(document).bind('chat', this.handlers['chat'].bind(this));
+         $(document).bind('chat', this.display_handlers['chat'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    
@@ -171,16 +180,17 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      show_contacts_chat_display: function(contact_name) {
+         this.display_unbind();
          var contact = Gnosus.find_contact_by_name(contact_name);
          this.build_content_list(Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
-         this.unbind();
-         this.handlers['chat'] = function (ev, msg) {
-             contact_name = $(this.client_items_content+' ul li').find('.selected');
-             if (contact_name == msg.name) {
-                 $(this.client_display_list).prepend(client_ui.build_chat_text_message(msg));
+         this.display_handlers['chat'] = function (ev, msg) {
+             var contact_name = $(this.client_items_content+' ul li.open').children('.item').text();
+             var contact = Gnosus.find_contact_by_name(contact_name);
+             if (msg.from.match(new RegExp(contact.jid, 'g'))) {
+                 $(this.client_display_list).prepend(this.build_chat_text_message(msg));
              }
          }
-         $(document).bind('chat', this.handlers['chat'].bind(this));
+         $(document).bind('chat', this.display_handlers['chat'].bind(this));
      },               
 
     /*-------------------------------------------------------------------------------*/    
