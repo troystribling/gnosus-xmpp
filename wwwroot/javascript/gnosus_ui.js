@@ -193,6 +193,18 @@ GnosusUi.prototype = {
          $(document).bind('chat', this.display_handlers['chat'].bind(this));
      },               
 
+     /*-------------------------------------------------------------------------------*/    
+     show_contacts_resources_display: function(contact_name) {
+     },               
+
+     /*-------------------------------------------------------------------------------*/    
+     show_contacts_commands_display: function(contact_name) {
+     },               
+
+     /*-------------------------------------------------------------------------------*/    
+     show_contacts_publications_display: function(contact_name) {
+     },               
+
     /*-------------------------------------------------------------------------------*/    
     show_contacts_toolbar: function() {
         $(this.client_display_toolbar).empty();
