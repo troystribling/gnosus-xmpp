@@ -567,6 +567,23 @@ ul.client-display-list li {
 .chat-text-message .text {
     padding: 25px 0px 0px 0px;  
 }
+/*******  sent-chat-message *******/
+.send-chat-message {  
+    border-bottom: 1px solid #DDD;
+}
+.send-chat-message textarea { 
+    font-family: arial, verdana, helvetica, sans-serif;
+    font-size: 0.75em;
+    margin: 10px;
+    padding: 10px 10px 0px 10px;
+    height: 30px;
+    width: 100%; 
+    border: none; 
+    background-color: #EEE;
+}
+.send-chat-message .send:hover {    
+    color: #000;
+}
 /*******  client-display-toolbar *******/
 .client-display-toolbar  {
     overflow: hidden;

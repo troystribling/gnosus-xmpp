@@ -14,7 +14,8 @@ function GnosusUi(num) {
     this.client_display_content    = '#client-display-content-'+num;
     this.client_display_list       = '#client-display-list-'+num;
     this.client_display_toolbar    = '#client-display-toolbar-'+num;
-    this.contact_display_modes      = '#contact-display-modes-'+num;
+    this.contact_display_modes     = '#contact-display-modes-'+num;
+    this.send_chat_message         = '#send-chat-message-'+num;
     $(this.client).splitter({type: "v", outline: true, minLeft: 250, sizeLeft: 250, minRight: 500, cookie: "vsplitter"});
     this.show_items('contacts');
     this.show_display('all_messages');
@@ -162,6 +163,7 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      show_all_messages_display: function() {
+         $(this.client_display_content).empty();
          this.display_unbind();
          $(this.client_display_toolbar).empty();
          this.build_content_list(Gnosus.find_all_messages());
@@ -180,9 +182,16 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      show_contacts_chat_display: function(contact_name) {
+         $(this.client_display_content).empty();
          this.display_unbind();
          var contact = Gnosus.find_contact_by_name(contact_name);
+         var send_message = '<div id="'+this.to_id(this.send_chat_message)+'"class ="send-chat-message">'+
+                                '<textarea></textarea>'+
+                            '</div>';
+         $(this.client_display_content).append(send_message);
          this.build_content_list(Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
+         $(this.send_chat_message+'.send').click(function() {
+         });
          this.display_handlers['chat'] = function (ev, msg) {
              var contact_name = $(this.client_items_content+' ul li.open').children('.item').text();
              var contact = Gnosus.find_contact_by_name(contact_name);
@@ -217,10 +226,11 @@ GnosusUi.prototype = {
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
         $(this.contact_display_modes+' li').click(function() {
+            var contact_name = $(client_ui.client_items_content+' ul li.open').text();
             $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
             var mode = $(this).text();
-            client_ui['show_contacts_'+mode+'_display']();
+            client_ui['show_contacts_'+mode+'_display'](contact_name);
         });
     }, 
 
@@ -240,7 +250,6 @@ GnosusUi.prototype = {
      * utils 
      *-------------------------------------------------------------------------------*/  
      build_content_list: function(content_list) {
-        $(this.client_display_content).empty();
         var msgs = ['<ul id="'+this.to_id(this.client_display_list)+'" class="client-display-list">'];
         var client_ui = this;
         $.each(content_list, function () {
