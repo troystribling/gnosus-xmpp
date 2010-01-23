@@ -416,20 +416,16 @@ tr.data-edit-select {
 }
 /*******  client *******/
 .client {
+    position: relative;
     -moz-box-shadow: 0px 0px 25px #aaa;
     -webkit-box-shadow: 0px 0px 25px #aaa;
     height: 300px;
 }
-.client .vsplitbar {
-	width: 5px;
-	background: #DDD url('/images/vgrabber.gif') no-repeat center;
-}
-.client .vsplitbar.active {
-	background: #DDD url('/images/vgrabber.gif') no-repeat center;
-	opacity: 0.7;
-}
 /*******  client-items *******/
 .client-items {
+    position: absolute;
+    width: 275px;
+    border-right: 5px solid #DDD;
 }
 .client-items-content {
     height: 260px;
@@ -458,8 +454,8 @@ tr.data-edit-select {
     color: #000;
 }
 .client-items-content .selected .online {
-    color: #FFF;
-    background-color: #000;
+    color: #000;
+    background-color: #DDD;
 } 
 .client-items-content .open .online {
     color: #FFF;
@@ -470,8 +466,8 @@ tr.data-edit-select {
     background-color: #FFF;
 }
 .client-items-content .selected .offline {
-    color: #CCC;
-    background-color: #000;
+    color: #000;
+    background-color: #DDD;
 } 
 .client-items-content .open .offline {
     color: #CCC;
@@ -532,12 +528,15 @@ tr.data-edit-select {
 }
 /*******  client-display *******/
 .client-display {
+    position: absolute;
+    top: 0px;
+    left: 280px;
+    width: 720px;
 }
 .client-display-content {
-    height: 260px;
-	overflow: auto;
 }
 ul.client-display-list {
+	overflow: auto;
     list-style-type: none;
     padding: 0px;
     margin: 0px 10px 0px 10px;
@@ -547,6 +546,15 @@ ul.client-display-list li {
     padding: 0px 0px 10px 0px;
     margin: 10px 0px 0px 0px;
     border-bottom: 1px solid #DDD;
+}
+.client-display-list.no-input{
+    height: 260px;
+}
+.client-display-list.no-input{
+    height: 260px;
+}
+.client-display-list.input{
+    height: 198px;
 }
 /*******  chat-text-message *******/
 .chat-text-message { 
@@ -567,21 +575,24 @@ ul.client-display-list li {
 .chat-text-message .text {
     padding: 25px 0px 0px 0px;  
 }
-/*******  sent-chat-message *******/
-.send-chat-message {  
+/*******  client-display-input *******/
+.client-display-input {  
     border-bottom: 1px solid #DDD;
 }
-.send-chat-message textarea { 
+.client-display-input textarea { 
     font-family: arial, verdana, helvetica, sans-serif;
     font-size: 0.75em;
     margin: 10px;
-    padding: 10px 10px 0px 10px;
+    padding: 8px 8px 0px 8px;
     height: 30px;
-    width: 100%; 
-    border: none; 
+    width: 681px; 
+    border: 1px solid #DDD; 
     background-color: #EEE;
 }
-.send-chat-message .send:hover {    
+.client-display-input textarea.init { 
+    color: #AAA;
+}
+.client-display-input .send:hover {    
     color: #000;
 }
 /*******  client-display-toolbar *******/

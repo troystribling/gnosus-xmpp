@@ -191,8 +191,10 @@ function Message(to, from, type, text, content_type, node, item_id) {
 
 Message.prototype = {
     created_at_as_string: function() {
+        var minutes = this.created_at.getMinutes();
+        minutes = minutes < 10 ? '0'+minutes : minutes
         return this.created_at.getFullYear()+'/'+(this.created_at.getMonth()+1)+'/'+this.created_at.getDate()+' '+
-               this.created_at.getHours()+':'+this.created_at.getMinutes();
+               this.created_at.getHours()+':'+minutes;
     }
 }
 

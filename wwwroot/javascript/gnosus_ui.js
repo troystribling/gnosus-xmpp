@@ -15,8 +15,7 @@ function GnosusUi(num) {
     this.client_display_list       = '#client-display-list-'+num;
     this.client_display_toolbar    = '#client-display-toolbar-'+num;
     this.contact_display_modes     = '#contact-display-modes-'+num;
-    this.send_chat_message         = '#send-chat-message-'+num;
-    $(this.client).splitter({type: "v", outline: true, minLeft: 250, sizeLeft: 250, minRight: 500, cookie: "vsplitter"});
+    this.client_display_input      = '#client-display-input-'+num;
     this.show_items('contacts');
     this.show_display('all_messages');
 }
@@ -166,7 +165,7 @@ GnosusUi.prototype = {
          $(this.client_display_content).empty();
          this.display_unbind();
          $(this.client_display_toolbar).empty();
-         this.build_content_list(Gnosus.find_all_messages());
+         this.build_content_list('no-input', Gnosus.find_all_messages());
          this.display_handlers['chat'] = function (ev, msg) {
              $(this.client_display_list).prepend(this.build_chat_text_message(msg));
          }
@@ -185,12 +184,30 @@ GnosusUi.prototype = {
          $(this.client_display_content).empty();
          this.display_unbind();
          var contact = Gnosus.find_contact_by_name(contact_name);
-         var send_message = '<div id="'+this.to_id(this.send_chat_message)+'"class ="send-chat-message">'+
-                                '<textarea></textarea>'+
+         var send_message = '<div id="'+this.to_id(this.client_display_input)+'"class ="client-display-input">'+
+                                '<textarea class="init">enter a message</textarea>'+
                             '</div>';
          $(this.client_display_content).append(send_message);
-         this.build_content_list(Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
-         $(this.send_chat_message+'.send').click(function() {
+         this.build_content_list('input', Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
+         $(this.client_display_input+' textarea').keyup(function() {
+             var input = $(this).val();
+             if (input.match(/\n$/)) {
+                 var msg = input.replace(/\n$/,'');
+                 $(this).val('');
+            }
+         });
+         $(this.client_display_input+' textarea').blur(function() {
+             var input = $(this).val();
+             if (input == '') {
+                 $(this).val('enter a message');
+                 $(this).addClass('init');
+             }
+         });
+         $(this.client_display_input+' textarea').focus(function() {
+             if ($(this).attr('class').match(/init/)) {
+                 $(this).removeClass('init');
+                 $(this).val('');
+             }
          });
          this.display_handlers['chat'] = function (ev, msg) {
              var contact_name = $(this.client_items_content+' ul li.open').children('.item').text();
@@ -249,8 +266,8 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------
      * utils 
      *-------------------------------------------------------------------------------*/  
-     build_content_list: function(content_list) {
-        var msgs = ['<ul id="'+this.to_id(this.client_display_list)+'" class="client-display-list">'];
+     build_content_list: function(list_type, content_list) {
+        var msgs = ['<ul id="'+this.to_id(this.client_display_list)+'" class="client-display-list '+list_type+'">'];
         var client_ui = this;
         $.each(content_list, function () {
             msgs.push(client_ui['build_'+this.type+'_'+this.content_type+'_message'](this));
