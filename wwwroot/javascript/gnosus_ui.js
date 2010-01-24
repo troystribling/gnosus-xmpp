@@ -183,28 +183,34 @@ GnosusUi.prototype = {
      show_contacts_chat_display: function(contact_name) {
          $(this.client_display_content).empty();
          this.display_unbind();
+         var enter_msg = 'enter message';
          var contact = Gnosus.find_contact_by_name(contact_name);
          var send_message = '<div id="'+this.to_id(this.client_display_input)+'"class ="client-display-input">'+
-                                '<textarea class="init">enter a message</textarea>'+
+                                '<textarea class="init">'+enter_msg+'</textarea>'+
                             '</div>';
          $(this.client_display_content).append(send_message);
          this.build_content_list('input', Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
-         $(this.client_display_input+' textarea').keyup(function() {
-             var input = $(this).val();
-             if (input.match(/\n$/)) {
-                 var msg = input.replace(/\n$/,'');
+         var textarea = $(this.client_display_input+' textarea');
+         var orig_textarea_height = textarea.height();
+         textarea.autoResize();
+         textarea.keyup(function(evt) {
+             var input = evt.keyCode;
+             if (input == '13') {
+                 var msg = $(this).val().replace(/\n$/,'');
                  $(this).val('');
+                 $(this).height(orig_textarea_height);
+                 $(this).css('overflow','hidden');
             }
          });
-         $(this.client_display_input+' textarea').blur(function() {
-             var input = $(this).val();
-             if (input == '') {
-                 $(this).val('enter a message');
+         textarea.blur(function() {
+             if ($(this).val() == '') {
+                 $(this).val(enter_msg);
                  $(this).addClass('init');
+                 $(this).height(orig_textarea_height);
              }
          });
-         $(this.client_display_input+' textarea').focus(function() {
-             if ($(this).attr('class').match(/init/)) {
+         textarea.focus(function() {
+             if ($(this).hasClass('init')) {
                  $(this).removeClass('init');
                  $(this).val('');
              }
@@ -290,4 +296,43 @@ GnosusUi.prototype = {
         return chat;
     }
     
-}
+};
+
+/**********************************************************************************
+ * jQuery autoResize (textarea auto-resizer)
+ /**********************************************************************************/
+(function($){    
+    $.fn.autoResize = function() {
+        this.filter('textarea').each(function(){
+            var textarea = $(this).css({resize:'none','overflow':'hidden'}),
+                origHeight = textarea.height(),
+                extraSpace = 10,
+                limit = 109;
+                clone = (function(){
+                    var props = {};
+                    $.each(['height','width','lineHeight','textDecoration','letterSpacing'], function(i, prop){
+                        props[prop] = textarea.css(prop);
+                    });
+                    return textarea.clone().removeAttr('id').removeAttr('name').css({
+                        position: 'absolute',
+                        top: 0,
+                        left: -9999
+                    }).css(props).attr('tabIndex','-1').insertBefore(textarea);
+                             
+                })();
+                updateSize = function() {
+                    clone.height(0).val($(this).val()).scrollTop(10000);
+                    var height = Math.max(clone.scrollTop(), origHeight);
+                    if (height >= limit) {
+                        $(this).css('overflow-y','scroll');
+                        return;
+                    } else if (height > origHeight) {
+                        height += extraSpace;
+                    }
+                    $(this).height(height);
+                };
+                $(this).keyup(updateSize);            
+        });
+        return this;        
+    };    
+})(jQuery);
