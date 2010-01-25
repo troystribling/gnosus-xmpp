@@ -21,7 +21,7 @@ function connect(service, jid, password) {
     conn.rawInput = rawInput;
     conn.rawOutput = rawOutput;
 	conn.connect(jid, password, onConnect);
-	Gnosus.connection = conn;
+	GnosusXmpp.connection = conn;
 	Gnosus.account = new Account(service, jid, password)
 }
 
@@ -41,26 +41,25 @@ function onConnect(status) {
 }
 
 /**********************************************************************************
-client interface
+data model interface
 **********************************************************************************/
 Gnosus = {
 
     /*-------------------------------------------------------------------------------*/
-    connection: null,
     account: null,
     contacts: {},
     messages: [],
 
     /*-------------------------------------------------------------------------------*/
-    add_contact: function(item) {
+    addContact: function(item) {
         var groups = item.find('group').map(function (g, i) {g.text();});
         jid = item.attr('jid');
         Gnosus.contacts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
     },
-    find_contact_by_jid: function(jid) {
+    findContactByJid: function(jid) {
         return Gnosus.contacts[jid];
     },
-    find_contact_by_name: function(name) {
+    findContactByName: function(name) {
         var result = null;
         for (var contact in Gnosus.contacts) {
             if (Gnosus.contacts[contact].name == name) {
@@ -70,17 +69,17 @@ Gnosus = {
         }            
         return result;
     },
-    find_all_contacts: function() {
+    findAllContacts: function() {
         return Gnosus.contacts;
     },
-    update_contact: function(item) {
+    updateContact: function(item) {
         var contact = Gnosus.contacts[item.attr('jid')];
         if (contact) {
             contact.groups = [];
-            contact.set_attributes(item);
+            contact.setAttributes(item);
         }
     },
-    remove_contact: function(item) {
+    removeContact: function(item) {
         jid = item.attr('jid');
         if (Gnosus.contacts[jid]) {
             delete(Gnosus.contacts[jid]);
@@ -88,71 +87,76 @@ Gnosus = {
     },
 
     /*-------------------------------------------------------------------------------*/
-    add_contact_resource: function(presence) {
+    addContactResource: function(presence) {
         var from = $(presence).attr('from');
         var bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.contacts[bare_jid]) {
             resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
-            Gnosus.contacts[bare_jid].add_resource(resource);
+            Gnosus.contacts[bare_jid].addResource(resource);
         }
     },
-    remove_contact_resource: function(presence) {
+    removeContactResource: function(presence) {
         var from = $(presence).attr('from');
         var bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].remove_resource(from);
+            Gnosus.contacts[bare_jid].removeResource(from);
         }
     },
-    remove_contact_resources: function(jid) {
+    removeContactResources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].remove_resources();
+            Gnosus.contacts[bare_jid].removeResources();
         }
     },
-    find_all_contact_resources: function(jid) {
+    findAllContactResources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources : null;
     },
-    find_contact_resource: function(jid) {
+    findContactResource: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources[jid] : null;
     },
-    contact_offline: function() {
+    contactOffline: function() {
         for (var contact in Gnosus.contacts) {
             Gnosus.contacts[contact].resources = {};
         }            
     },
 
     /*-------------------------------------------------------------------------------*/
-    add_account_resource: function(presence) {
+    addAccountResource: function(presence) {
         var from = $(presence).attr('from');
         resource = new Resource(from);
-        Gnosus.account.add_resource(resource);
+        Gnosus.account.addResource(resource);
     },
-    remove_account_resource: function(presence) {
+    removeAccountResource: function(presence) {
         var from = $(presence).attr('from');
-        Gnosus.account.remove_resource(from);
+        Gnosus.account.removeResource(from);
     },
-    remove_account_resources: function() {
-        Gnosus.account.remove_resources();
+    removeAccountResources: function() {
+        Gnosus.account.removeResources();
     },
-    find_all_account_resources: function() {
+    findAllAccountResources: function() {
         return Gnosus.account.resources;
     },
-    find_account_resource: function(jid) {
+    findAccountResource: function(jid) {
         return Gnosus.account.resources[jid];
     },
     
     /*-------------------------------------------------------------------------------*/
-    add_chat_message: function(msg) {
-        var msg_model = new Message($(msg).attr('to'), $(msg).attr('from'), 'chat', $(msg).find('body').text(), 'text');
+    addIncomingChatTextMessage: function(msg) {
+        var msg_model = new Message($(msg).attr('to'), $(msg).attr('from'), $(msg).find('body').text(), 'chat', 'text');
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
-    find_all_messages: function() {
+    addOutgoingChatTextMessage: function(to, body) {
+        var msg_model = new Message(to, Gnosus.account.fullJid(), body, 'chat', 'text');
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
+    },
+    findAllMessages: function() {
         return Gnosus.messages;
     },
-    find_messages_by_jid_and_type: function(jid, type) {
+    findMessagesByJidAndType: function(jid, type) {
         var jid_rexp = new RegExp(jid, 'g');
         var result = $.grep(Gnosus.messages, function(m) {
                         return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == type)
@@ -167,18 +171,22 @@ models
 function Account(service, jid, password) {
     this.service = service;
     this.jid = Strophe.getBareJidFromJid(jid);
+    this.resource = Strophe.getResourceFromJid(jid) || 'gnos.us';
     this.password = password;
     this.resources = {};
 }
 
 Account.prototype = {
-    add_resource: function(resource) {
+    fullJid: function() {
+        return this.jid+'/'+this.resource;
+    },
+    addResource: function(resource) {
         this.resources[resource.jid] = resource;
     }
 }
 
 /*-------------------------------------------------------------------------------*/
-function Message(to, from, type, text, content_type, node, item_id) {
+function Message(to, from, text, type, content_type, node, item_id) {
     this.to = to;
     this.from = from;
     this.type = type;
@@ -190,7 +198,7 @@ function Message(to, from, type, text, content_type, node, item_id) {
 }
 
 Message.prototype = {
-    created_at_as_string: function() {
+    createdAtAsString: function() {
         var minutes = this.created_at.getMinutes();
         minutes = minutes < 10 ? '0'+minutes : minutes
         return this.created_at.getFullYear()+'/'+(this.created_at.getMonth()+1)+'/'+this.created_at.getDate()+' '+
@@ -219,13 +227,13 @@ Contact.prototype = {
         }
         return stat;
     },
-    add_resource: function(resource) {
+    addResource: function(resource) {
         this.resources[resource.jid] = resource;
     },
-    remove_resource: function(jid) {
+    removeResource: function(jid) {
         delete(this.resources[jid]);
     },
-    remove_resources: function() {
+    removeResources: function() {
         this.resources = {};
     }
 }
@@ -241,12 +249,70 @@ function Resource(jid, show, status) {
 }
 
 Resource.prototype = {
-    set_version_attributes: function(version) {
+    setVersionAttributes: function(version) {
         this.client_name = $(version).find('name').text() || 'none';
         this.client_version =  $(version).find('version').text() || 'none';
         this.client_os =  $(version).find('os').text() || 'none';
     }
 }
+/**********************************************************************************
+Gnosus XMPP Interface interface
+**********************************************************************************/
+GnosusXmpp = {
+    
+    /*---------------------------------------------------------------------------*/
+    connection: null,
+    
+    /*-------------------------------------------------------------------------------*/
+    addContact: function (jid, name, groups) {
+        var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {name: name || "", jid: jid});
+        if (groups && groups.length > 0) {
+            $.each(groups, function () {
+                iq.c("group").t(this).up();
+            });
+        }
+        GnosusXmpp.connection.sendIQ(iq);
+    },
+    
+    /*-------------------------------------------------------------------------------*/
+    deleteContact: function (jid) {
+        var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {jid: jid, subscription: 'remove'});
+        GnosusXmpp.connection.sendIQ(iq);
+    },
+  
+    /*-------------------------------------------------------------------------------*/
+    modifyContact: function (jid, name, groups) {
+        GnosusXmpp.addContact(jid, name, groups);
+    },
+ 
+    /*-------------------------------------------------------------------------------*/
+    initialPresence: function () {
+        var presence = $pres({priority: 1});
+        GnosusXmpp.connection.send(presence);
+    },
+    
+    /*-------------------------------------------------------------------------------*/
+    subscribe: function (jid, name, groups) {
+        this.addContact(jid, name, groups);
+        var presence = $pres({to: jid, type: 'subscribe'});
+        GnosusXmpp.connection.send(presence);
+    },
+    
+    /*-------------------------------------------------------------------------------*/
+    unsubscribe: function (jid) {
+        var presence = $pres({to: jid, type: "unsubscribe"});
+        GnosusXmpp.connection.send(presence);
+        this.deleteContact(jid);
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    chatTextMessage: function (to, body) {
+        var msg = $msg({to: to, type: 'chat'}).c('body').t(body);
+        GnosusXmpp.connection.send(msg);
+        return Gnosus.addOutgoingChatTextMessage(to, body);
+    }      
+}
+
 /**********************************************************************************
 roster
 **********************************************************************************/
@@ -261,19 +327,19 @@ Strophe.addConnectionPlugin('roster', {
     /*-------------------------------------------------------------------------------*/
     statusChanged: function (status) {
         if (status === Strophe.Status.CONNECTED) {
-            Gnosus.connection.addHandler(this.onRosterSet.bind(this), Strophe.NS.ROSTER, 'iq', 'set');
-            Gnosus.connection.addHandler(this.onPresence.bind(this), null, 'presence');
+            this.connection.addHandler(this.onRosterSet.bind(this), Strophe.NS.ROSTER, 'iq', 'set');
+            this.connection.addHandler(this.onPresence.bind(this), null, 'presence');
             var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER}); 
             var that = this;
-            Gnosus.connection.sendIQ(roster_iq, function(iq) {
+            this.connection.sendIQ(roster_iq, function(iq) {
                 $(iq).find('item').each(function () {
-                    Gnosus.add_contact($(this));
+                    Gnosus.addContact($(this));
                 });
                 $(document).trigger('roster_item', that);
             });
-            this.initial_presence();
+            GnosusXmpp.initialPresence();
         } else if (status === Strophe.Status.DISCONNECTED) {
-            Gnosus.contact_offline();
+            Gnosus.contactOffline();
             $(document).trigger('roster_item', this);
         }
     },
@@ -284,11 +350,11 @@ Strophe.addConnectionPlugin('roster', {
         var jid = item.attr('jid');
         var subscription = item.attr('subscription') || '';        
         if (subscription === 'remove') {
-            Gnosus.remove_contact(item);
+            Gnosus.removeContact(item);
         } else if (subscription === 'none') {
-            Gnosus.add_contact(item);
+            Gnosus.addContact(item);
         } else {
-            Gnosus.update_contact(item);
+            Gnosus.updateContact(item);
         }
         this.connection.send($iq({type: 'result', id: $(iq).attr('id')}));
         $(document).trigger("roster_item", this);
@@ -300,62 +366,20 @@ Strophe.addConnectionPlugin('roster', {
         var from = $(presence).attr('from');
         var jid = Strophe.getBareJidFromJid(from);
         var ptype = $(presence).attr('type') || 'available'; 
-        if (Gnosus.find_contact_by_jid(jid) && ptype != 'error') {
+        if (Gnosus.findContactByJid(jid) && ptype != 'error') {
             if (ptype === 'unavailable') {
-                Gnosus.remove_contact_resource(presence);
+                Gnosus.removeContactResource(presence);
             } else {
-                Gnosus.add_contact_resource(presence);
+                Gnosus.addContactResource(presence);
             }        
             $(document).trigger("roster_item", this);
         } else if (jid == Gnosus.account.jid) {
-            Gnosus.add_account_resource(presence);
+            Gnosus.addAccountResource(presence);
         }
         return true;
-    },
- 
-    /*-------------------------------------------------------------------------------*/
-    addContact: function (jid, name, groups) {
-        var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {name: name || "", jid: jid});
-        if (groups && groups.length > 0) {
-            $.each(groups, function () {
-                iq.c("group").t(this).up();
-            });
-        }
-        Gnosus.connection.sendIQ(iq);
-    },
-    
-    /*-------------------------------------------------------------------------------*/
-    deleteContact: function (jid) {
-        var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {jid: jid, subscription: 'remove'});
-        Gnosus.connection.sendIQ(iq);
-    },
-  
-    /*-------------------------------------------------------------------------------*/
-    modifyContact: function (jid, name, groups) {
-        Gnosus.addContact(jid, name, groups);
-    },
- 
-    /*-------------------------------------------------------------------------------*/
-    initial_presence: function () {
-        var presence = $pres({priority: 1});
-        Gnosus.connection.send(presence);
-    },
-    
-    /*-------------------------------------------------------------------------------*/
-    subscribe: function (jid, name, groups) {
-        this.addContact(jid, name, groups);
-        var presence = $pres({to: jid, type: 'subscribe'});
-        Gnosus.connection.send(presence);
-    },
-    
-    /*-------------------------------------------------------------------------------*/
-    unsubscribe: function (jid) {
-        var presence = $pres({to: jid, type: "unsubscribe"});
-        Gnosus.connection.send(presence);
-        this.deleteContact(jid);
     }
 });
-
+ 
 /**********************************************************************************
 messages
 **********************************************************************************/
@@ -369,7 +393,7 @@ Strophe.addConnectionPlugin('messages', {
     /*-------------------------------------------------------------------------------*/
     statusChanged: function (status) {
         if (status === Strophe.Status.CONNECTED) {
-        	Gnosus.connection.addHandler(this.onMessage.bind(this), null, 'message'); 
+        	GnosusXmpp.connection.addHandler(this.onMessage.bind(this), null, 'message'); 
         }
     },
  
@@ -378,13 +402,9 @@ Strophe.addConnectionPlugin('messages', {
         var type = $(msg).attr('type');
         var body = $(msg).find('body').text();
         if (type == "chat" && body) {
-    	    $(document).trigger("chat", Gnosus.add_chat_message(msg));            
+    	    $(document).trigger("chat", Gnosus.addIncomingChatTextMessage(msg));            
 	    }
         return true;
-    },
- 
-    /*-------------------------------------------------------------------------------*/
-    sendMessage: function (to, body) {
     }
- 
+
 });

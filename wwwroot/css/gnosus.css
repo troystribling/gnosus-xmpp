@@ -538,8 +538,8 @@ tr.data-edit-select {
 ul.client-display-list {
 	overflow: auto;
     list-style-type: none;
-    padding: 0px;
-    margin: 0px 10px 0px 10px;
+    padding: 0px 10px 0px 10px;
+    margin: 0px;
 }
 ul.client-display-list li {
     font-size: 0.85em;
@@ -550,18 +550,15 @@ ul.client-display-list li {
 .client-display-list.no-input{
     height: 260px;
 }
-.client-display-list.no-input{
-    height: 260px;
-}
 .client-display-list.input{
-    height: 198px;
+    height: 194px;
 }
 /*******  chat-text-message *******/
 .chat-text-message { 
 }
 .chat-text-message .info {
 }
-.chat-text-message .from-to {    
+.chat-text-message .from {    
     color: #999;
     float: left;
     font-size: 0.75em;
@@ -577,7 +574,7 @@ ul.client-display-list li {
 }
 /*******  client-display-input *******/
 .client-display-input {  
-    border-bottom: 1px solid #DDD;
+    border-bottom: 5px solid #DDD;
 }
 .client-display-input textarea { 
     font-family: arial, verdana, helvetica, sans-serif;

@@ -16,15 +16,17 @@ function GnosusUi(num) {
     this.client_display_toolbar    = '#client-display-toolbar-'+num;
     this.contact_display_modes     = '#contact-display-modes-'+num;
     this.client_display_input      = '#client-display-input-'+num;
-    this.show_items('contacts');
-    this.show_display('all_messages');
+    this.showItems('contacts');
+    this.showDisplay('AllMessages');
 }
 
 /*--------------------------------------------------------------------------------*/    
 GnosusUi.prototype = {
     
-    /*-------------------------------------------------------------------------------*/    
-    items_unbind: function() {
+    /*-------------------------------------------------------------------------------  
+     * utils
+     *-------------------------------------------------------------------------------*/    
+    itemsUnbind: function() {
         for (var evt in this.items_handlers) {
             $(document).unbind(evt);
             delete(this.items_handlers[evt]);
@@ -32,7 +34,7 @@ GnosusUi.prototype = {
     },
     
     /*-------------------------------------------------------------------------------*/    
-    display_unbind: function() {
+    displayUnbind: function() {
         for (var evt in this.display_handlers) {
             $(document).unbind(evt);
             delete(this.display_handlers[evt]);
@@ -40,18 +42,36 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    to_id: function(str) {return str.replace('#','');},
+    capitalize: function(str) {return str.charAt(0).toUpperCase()+str.substr(1);},
 
+    /*-------------------------------------------------------------------------------*/    
+    toId: function(str) {return str.replace('#','');},
+
+    /*-------------------------------------------------------------------------------*/    
+    contactOpen: function () {
+        return $(this.client_items_content+' ul li.open').children('.item').text();
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    contactDisplayMode: function () {
+        return $(this.contact_display_modes+' li.selected').text();
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    itemTypeSelected: function () {
+        return $(this.client_item_type_selected).text();
+    },
+    
     /*-------------------------------------------------------------------------------  
      * items
      *-------------------------------------------------------------------------------*/    
-     show_items: function (item_type) {
-         this.show_items_toolbar('contacts', false);
-         this.items_unbind();
+     showItems: function (item_type) {
+         this.showItemsToolbar('contacts', false);
+         this.itemsUnbind();
          this.items_handlers['roster_item'] = function (ev, roster) {
              $(this.client_items_content).empty();
              var items = ['<ul>'];
-             $.each(Gnosus['find_all_'+item_type](), function () {
+             $.each(Gnosus['findAll'+this.capitalize(item_type)](), function () {
                  items.push('<li><div class="'+item_type+' item ' + this.show() + '">');
                  items.push(this.name);
                  items.push('</div><div style="display: none" class="controls">');
@@ -69,34 +89,34 @@ GnosusUi.prototype = {
                  var item_type = $(this).attr('class').split(' ')[0];
                  $(this).parent('li').siblings('.open').removeClass('open');
                  $(this).parent('li').addClass('open')
-                 client_ui['show_'+item_type+'_display']($(this).text());
+                 client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
              }); 
              $(this.client_items_content+' ul li').find('img').click(function() {            
-                 var item_type = $(client_ui.client_item_type_selected).text();
-                 client_ui['delete_'+item_type]($(this).parents('li').eq(0).text());
+                 var item_type = client_ui.itemTypeSelected();
+                 client_ui['delete'+client_ui.capitalize(item_type)]($(this).parents('li').eq(0).text());
              }); 
          }
          $(document).bind('roster_item', this.items_handlers['roster_item'].bind(this));
      },
 
      /*-------------------------------------------------------------------------------*/    
-     show_items_toolbar: function(item_type, add_item) {
+     showItemsToolbar: function(item_type, add_item) {
          $(this.client_items_toolbar).empty();
-         var toolbar = '<div id="'+this.to_id(this.client_items_home)+'" class="client-items-home"/>' +        
+         var toolbar = '<div id="'+this.toId(this.client_items_home)+'" class="client-items-home"/>' +        
                        '<div class="client-item-type-selector">'+ 
-                           '<div id="'+this.to_id(this.client_item_type_selected)+'" class="client-item-type-selected">' + item_type + '</div>' +
+                           '<div id="'+this.toId(this.client_item_type_selected)+'" class="client-item-type-selected">' + item_type + '</div>' +
                        '</div>' +
-                       '<div id="'+this.to_id(this.client_items_add)+'" class="client-items-add"/>';  
+                       '<div id="'+this.toId(this.client_items_add)+'" class="client-items-add"/>';  
          $(this.client_items_toolbar).append(toolbar);
          var client_ui = this;
          $(this.client_items_add).click(function() { 
-             var item_type = $(client_ui.client_item_type_selected).text();
-             client_ui['add_'+item_type]();
+             var item_type = client_ui.itemTypeSelected();
+             client_ui['add'+this.capitalize(item_type)]();
          });
          $(this.client_items_home).click(function() {            
-             var item_type = $(client_ui.client_item_type_selected).text();
+             var item_type = client_ui.itemTypeSelected();
              $(client_ui.client_items_content+' ul li').removeClass('open');
-             client_ui['home_'+item_type]();
+             client_ui['home'+client_ui.capitalize(item_type)]();
          });
          var type_choices = this.item_type_choices;
          $(this.client_item_type_selected).click(function() {
@@ -105,101 +125,106 @@ GnosusUi.prototype = {
      }, 
 
     /*-------------------------------------------------------------------------------*/    
-    delete_contacts: function(item) {
+    deleteContacts: function(item) {
     },
     
     /*-------------------------------------------------------------------------------*/    
-    delete_resources: function(item) {
+    deleteResources: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    delete_subscriptions: function(item) {
+    deleteSubscriptions: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    delete_publications: function(item) {
+    deletePublications: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_contacts: function() {
+    addContacts: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_resources: function() {
+    addResources: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_subscriptions: function() {
+    addSubscriptions: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    add_publication: function() {
+    addPublication: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    home_contacts: function() {
-        this.show_all_messages_display();
+    homeContacts: function() {
+        this.showAllMessagesDisplay();
     },
 
     /*-------------------------------------------------------------------------------*/    
-    home_resources: function() {
+    homeResources: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    home_subscriptions: function() {
+    homeSubscriptions: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    home_publications: function() {
+    homePublications: function() {
     },
 
     /*-------------------------------------------------------------------------------  
      * messages
      *-------------------------------------------------------------------------------*/    
-     show_display: function(item_type) {
-         this['show_'+item_type+'_display']();
+     showDisplay: function(item_type) {
+         this['show'+this.capitalize(item_type)+'Display']();
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_all_messages_display: function() {
+     showAllMessagesDisplay: function() {
          $(this.client_display_content).empty();
-         this.display_unbind();
+         this.displayUnbind();
          $(this.client_display_toolbar).empty();
-         this.build_content_list('no-input', Gnosus.find_all_messages());
+         this.buildContentList('no-input', Gnosus.findAllMessages());
          this.display_handlers['chat'] = function (ev, msg) {
-             $(this.client_display_list).prepend(this.build_chat_text_message(msg));
+             $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
          }
          $(document).bind('chat', this.display_handlers['chat'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_display: function(contact_name) {
-         this.show_contacts_toolbar();
-         var display_type = $(this.contact_display_modes+' li.selected').text();
-         this['show_contacts_'+display_type+'_display'](contact_name);
+     showContactsDisplay: function(contact_name) {
+         this.showContactsToolbar();
+         // var display_type = $(this.contact_display_modes+' li.selected').text();
+         var display_type = this.contactDisplayMode();
+         this['showContacts'+this.capitalize(display_type)+'Display'](contact_name);
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_chat_display: function(contact_name) {
+     showContactsChatDisplay: function(contact_name) {
          $(this.client_display_content).empty();
-         this.display_unbind();
-         var enter_msg = 'enter message';
-         var contact = Gnosus.find_contact_by_name(contact_name);
-         var send_message = '<div id="'+this.to_id(this.client_display_input)+'"class ="client-display-input">'+
+         this.displayUnbind();
+         var enter_msg = 'enter message',
+             contact = Gnosus.findContactByName(contact_name),
+             send_message = '<div id="'+this.toId(this.client_display_input)+'"class ="client-display-input">'+
                                 '<textarea class="init">'+enter_msg+'</textarea>'+
                             '</div>';
          $(this.client_display_content).append(send_message);
-         this.build_content_list('input', Gnosus.find_messages_by_jid_and_type(contact.jid, 'chat'));
-         var textarea = $(this.client_display_input+' textarea');
-         var orig_textarea_height = textarea.height();
+         this.buildContentList('input', Gnosus.findMessagesByJidAndType(contact.jid, 'chat'));
+         var client_ui = this,
+             textarea = $(this.client_display_input+' textarea'),
+             orig_textarea_height = textarea.height();
          textarea.autoResize();
          textarea.keyup(function(evt) {
              var input = evt.keyCode;
              if (input == '13') {
-                 var msg = $(this).val().replace(/\n$/,'');
+                 var contact_name = client_ui.contactOpen(),
+                     contact = Gnosus.findContactByName(contact_name),
+                     msg = $(this).val().replace(/\n$/,'');
                  $(this).val('');
                  $(this).height(orig_textarea_height);
                  $(this).css('overflow','hidden');
+                 $(client_ui.client_display_list).prepend(client_ui.buildChatTextMessage(GnosusXmpp.chatTextMessage(contact.jid, msg)));
             }
          });
          textarea.blur(function() {
@@ -216,31 +241,31 @@ GnosusUi.prototype = {
              }
          });
          this.display_handlers['chat'] = function (ev, msg) {
-             var contact_name = $(this.client_items_content+' ul li.open').children('.item').text();
-             var contact = Gnosus.find_contact_by_name(contact_name);
+             var contact_name = client_ui.contactOpen(),
+                 contact = Gnosus.findContactByName(contact_name);
              if (msg.from.match(new RegExp(contact.jid, 'g'))) {
-                 $(this.client_display_list).prepend(this.build_chat_text_message(msg));
+                 $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
              }
          }
          $(document).bind('chat', this.display_handlers['chat'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_resources_display: function(contact_name) {
+     showContactsResourcesDisplay: function(contact_name) {
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_commands_display: function(contact_name) {
+     showContactsCommandsDisplay: function(contact_name) {
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     show_contacts_publications_display: function(contact_name) {
+     showContactsPublicationsDisplay: function(contact_name) {
      },               
 
     /*-------------------------------------------------------------------------------*/    
-    show_contacts_toolbar: function() {
+    showContactsToolbar: function() {
         $(this.client_display_toolbar).empty();
-        var toolbar = '<ul id="'+this.to_id(this.contact_display_modes)+'" class="contact-display-modes">' +
+        var toolbar = '<ul id="'+this.toId(this.contact_display_modes)+'" class="contact-display-modes">' +
                           '<li class="selected">chat</li>' +
                           '<li>commands</li>' +
                           '<li>resources</li>' +
@@ -249,47 +274,45 @@ GnosusUi.prototype = {
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
         $(this.contact_display_modes+' li').click(function() {
-            var contact_name = $(client_ui.client_items_content+' ul li.open').text();
+            var contact_name = client_ui.contactOpen()
             $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
             var mode = $(this).text();
-            client_ui['show_contacts_'+mode+'_display'](contact_name);
+            client_ui['showContacts'+this.capitalize(mode)+'Display'](contact_name);
         });
     }, 
 
     /*-------------------------------------------------------------------------------*/    
-    show_resource_display: function() {
+    showResourceDisplay: function() {
         $(this.client_messages_display).empty();
-        this.unbind();
-        this.show_resource_toolbar();
     }, 
 
     /*-------------------------------------------------------------------------------*/    
-    show_resource_toolbar: function() {
+    showResourceToolbar: function() {
         $(this.client_messages_toolbar).empty();
     }, 
 
     /*-------------------------------------------------------------------------------
      * utils 
      *-------------------------------------------------------------------------------*/  
-     build_content_list: function(list_type, content_list) {
-        var msgs = ['<ul id="'+this.to_id(this.client_display_list)+'" class="client-display-list '+list_type+'">'];
+     buildContentList: function(list_type, content_list) {
+        var msgs = ['<ul id="'+this.toId(this.client_display_list)+'" class="client-display-list '+list_type+'">'];
         var client_ui = this;
         $.each(content_list, function () {
-            msgs.push(client_ui['build_'+this.type+'_'+this.content_type+'_message'](this));
+            msgs.push(client_ui['build'+client_ui.capitalize(this.type)+client_ui.capitalize(this.content_type)+'Message'](this));
         });
         msgs.push('</ul>')
         $(this.client_display_content).append(msgs.join(''));
     },   
       
     /*-------------------------------------------------------------------------------*/    
-    build_chat_text_message: function(msg) {
-        var account_rexp = new RegExp(Gnosus.account.jid, 'g');
-        var from_to = msg.from.match(account_rexp) ? ('&gt&gt '+Strophe.getBareJidFromJid(msg.to)) : ('&lt&lt '+Strophe.getBareJidFromJid(msg.from));
-        var chat = '<li><div class="chat-text-message">' +
+    buildChatTextMessage: function(msg) {
+        var account_rexp = new RegExp(Gnosus.account.jid, 'g'),
+            from = msg.from,
+            chat = '<li><div class="chat-text-message">' +
                        '<div class="info">' +
-                           '<div class="from-to">'+from_to+'</div>' +
-                           '<div class="date">'+msg.created_at_as_string()+'</div>' +
+                           '<div class="from">'+from+'</div>' +
+                           '<div class="date">'+msg.createdAtAsString()+'</div>' +
                        '</div>' +
                        '<div class="text">'+msg.text+'</div>' +
                    '</div></li>';
@@ -306,7 +329,7 @@ GnosusUi.prototype = {
         this.filter('textarea').each(function(){
             var textarea = $(this).css({resize:'none','overflow':'hidden'}),
                 origHeight = textarea.height(),
-                extraSpace = 10,
+                extraSpace = 9,
                 limit = 109;
                 clone = (function(){
                     var props = {};
