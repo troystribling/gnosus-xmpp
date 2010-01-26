@@ -16,6 +16,7 @@ function GnosusUi(num) {
     this.client_display_toolbar    = '#client-display-toolbar-'+num;
     this.contact_display_modes     = '#contact-display-modes-'+num;
     this.client_display_input      = '#client-display-input-'+num;
+    this.item_dialog               = '#item-dialog-'+num;
     this.showItems('contacts');
     this.showDisplay('AllMessages');
 }
@@ -43,6 +44,9 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     capitalize: function(str) {return str.charAt(0).toUpperCase()+str.substr(1);},
+
+    /*-------------------------------------------------------------------------------*/    
+    singular: function(str) {return str.replace(/s$/,'');},
 
     /*-------------------------------------------------------------------------------*/    
     toId: function(str) {return str.replace('#','');},
@@ -93,7 +97,7 @@ GnosusUi.prototype = {
              }); 
              $(this.client_items_content+' ul li').find('img').click(function() {            
                  var item_type = client_ui.itemTypeSelected();
-                 client_ui['delete'+client_ui.capitalize(item_type)]($(this).parents('li').eq(0).text());
+                 client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))]($(this).parents('li').eq(0).text());
              }); 
          }
          $(document).bind('roster_item', this.items_handlers['roster_item'].bind(this));
@@ -111,7 +115,7 @@ GnosusUi.prototype = {
          var client_ui = this;
          $(this.client_items_add).click(function() { 
              var item_type = client_ui.itemTypeSelected();
-             client_ui['add'+this.capitalize(item_type)]();
+             client_ui['add'+client_ui.capitalize(client_ui.singular(item_type))+'Dialog']();
          });
          $(this.client_items_home).click(function() {            
              var item_type = client_ui.itemTypeSelected();
@@ -123,38 +127,6 @@ GnosusUi.prototype = {
              $(this).text(type_choices[$(this).text()]);
          });
      }, 
-
-    /*-------------------------------------------------------------------------------*/    
-    deleteContacts: function(item) {
-    },
-    
-    /*-------------------------------------------------------------------------------*/    
-    deleteResources: function(item) {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    deleteSubscriptions: function(item) {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    deletePublications: function(item) {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    addContacts: function() {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    addResources: function() {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    addSubscriptions: function() {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    addPublication: function() {
-    },
 
     /*-------------------------------------------------------------------------------*/    
     homeContacts: function() {
@@ -171,6 +143,60 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     homePublications: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    deleteContact: function(item) {
+    },
+    
+    /*-------------------------------------------------------------------------------*/    
+    deleteSubscription: function(item) {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    deletePublication: function(item) {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addContactDialog: function() {
+        var dialog = '<div id="'+this.toId(this.item_dialog)+'" title="add contact"/>' +        
+                     '</div>'; 
+        $(this.client).append(dialog) 
+        $(this.item_dialog).dialog();            
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addSubscriptionDialog: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addPublicationDialog: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addContact: function() {
+        this.cancelItemDialog();            
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    cancelItemDialog: function() {
+        $(this.contact_dialog).remove();            
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addSubscription: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    cancelSubscription: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addPublication: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    cancelPublication: function() {
     },
 
     /*-------------------------------------------------------------------------------  
@@ -195,7 +221,6 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showContactsDisplay: function(contact_name) {
          this.showContactsToolbar();
-         // var display_type = $(this.contact_display_modes+' li.selected').text();
          var display_type = this.contactDisplayMode();
          this['showContacts'+this.capitalize(display_type)+'Display'](contact_name);
      },               
