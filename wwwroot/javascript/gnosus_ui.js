@@ -74,17 +74,13 @@ GnosusUi.prototype = {
          this.itemsUnbind();
          this.items_handlers['roster_init'] = function (ev, roster) {
              $(this.client_items_content).empty();
-             var items = ['<ul>'];
+             var items = '<ul>';
              $.each(Gnosus['findAll'+this.capitalize(item_type)](), function () {
-                 items.push('<li><div class="'+item_type+' item ' + this.show() + '">');
-                 items.push(this.name);
-                 items.push('</div><div style="display: none" class="controls">');
-                 items.push('<img src="/images/data-delete.png"/>')
-                 items.push('</div></li>');
+                 items += this.buildItemListItem(this.name, item_type, this.show());
              });
-             items.push('</ul>');
+             items += '</ul>';
+             $(this.client_items_content).append(items);
              var client_ui = this;
-             $(this.client_items_content).append(items.join(''));
              $(this.client_items_content+' ul li').hover(
                  function() {$(this).addClass('selected').find('.controls').show();},
                  function() {$(this).removeClass('selected').find('.controls').hide();}
@@ -102,13 +98,8 @@ GnosusUi.prototype = {
          }
          $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
          this.items_handlers['roster_add'] = function (ev, contact) {
-             var items = [];
-             items.push('<li><div class="'+item_type+' item ' + this.show() + '">');
-             items.push(this.name);
-             items.push('</div><div style="display: none" class="controls">');
-             items.push('<img src="/images/data-delete.png"/>')
-             items.push('</div></li>');
-             $(this.client_items_content).append(items.join(''));
+             var items = this.buildItemListItem(contact.name, item_type, contact.show());
+             $(this.client_items_content).append(items);
              $(this.client_items_content+' ul li:last').hover(
                  function() {$(this).addClass('selected').find('.controls').show();},
                  function() {$(this).removeClass('selected').find('.controls').hide();}
@@ -126,9 +117,14 @@ GnosusUi.prototype = {
          }
          $(document).bind('roster_add', this.items_handlers['roster_add'].bind(this));
          this.items_handlers['presence'] = function (ev, contact) {
-             $(this.client_items_content+' ul li .item:contains('+contact.name+')')
+             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
+                .removeClass('online').removeClass('offline').addClass(contact.show());
          }
          $(document).bind('presence', this.items_handlers['presence'].bind(this));
+         this.items_handlers['roster_remove'] = function (ev, contact) {
+             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').remove();
+         }
+         $(document).bind('roster_remove', this.items_handlers['roster_remove'].bind(this));
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -366,11 +362,25 @@ GnosusUi.prototype = {
         return chat;
     }
     
+    /*-------------------------------------------------------------------------------*/ 
+    buildItemListItem: function (item_name, item_type, item_status) : { 
+        var status = item_status || '',  
+            item = '<li>' +
+                       '<div class="'+item_type+' item ' + status + '">' + 
+                           item_name +
+                       '</div>' +
+                       '<div style="display: none" class="controls">' +
+                           '<img src="/images/data-delete.png"/>' +
+                       '</div>' +
+                   '</li>';
+        return item;
+    }
+    
 };
 
 /**********************************************************************************
- * jQuery autoResize (textarea auto-resizer)
- /**********************************************************************************/
+ plugins
+/**********************************************************************************/
 (function($){    
     $.fn.autoResize = function() {
         this.filter('textarea').each(function(){
