@@ -72,7 +72,7 @@ GnosusUi.prototype = {
      showItems: function (item_type) {
          this.showItemsToolbar('contacts', false);
          this.itemsUnbind();
-         this.items_handlers['roster_item'] = function (ev, roster) {
+         this.items_handlers['roster_init'] = function (ev, roster) {
              $(this.client_items_content).empty();
              var items = ['<ul>'];
              $.each(Gnosus['findAll'+this.capitalize(item_type)](), function () {
@@ -100,7 +100,35 @@ GnosusUi.prototype = {
                  client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))]($(this).parents('li').eq(0).text());
              }); 
          }
-         $(document).bind('roster_item', this.items_handlers['roster_item'].bind(this));
+         $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
+         this.items_handlers['roster_add'] = function (ev, contact) {
+             var items = [];
+             items.push('<li><div class="'+item_type+' item ' + this.show() + '">');
+             items.push(this.name);
+             items.push('</div><div style="display: none" class="controls">');
+             items.push('<img src="/images/data-delete.png"/>')
+             items.push('</div></li>');
+             $(this.client_items_content).append(items.join(''));
+             $(this.client_items_content+' ul li:last').hover(
+                 function() {$(this).addClass('selected').find('.controls').show();},
+                 function() {$(this).removeClass('selected').find('.controls').hide();}
+             ); 
+             $(this.client_items_content+' ul li:last').find('.item').click(function() {
+                 var item_type = $(this).attr('class').split(' ')[0];
+                 $(this).parent('li').siblings('.open').removeClass('open');
+                 $(this).parent('li').addClass('open')
+                 client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
+             }); 
+             $(this.client_items_content+' ul li:last').find('img').click(function() {            
+                 var item_type = client_ui.itemTypeSelected();
+                 client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))]($(this).parents('li').eq(0).text());
+             }); 
+         }
+         $(document).bind('roster_add', this.items_handlers['roster_add'].bind(this));
+         this.items_handlers['presence'] = function (ev, contact) {
+             $(this.client_items_content+' ul li .item:contains('+contact.name+')')
+         }
+         $(document).bind('presence', this.items_handlers['presence'].bind(this));
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -161,8 +189,9 @@ GnosusUi.prototype = {
     addContactDialog: function() {
         var dialog = '<div id="'+this.toId(this.item_dialog)+'" title="add contact"/>' +        
                      '</div>'; 
-        $(this.client).append(dialog) 
-        $(this.item_dialog).dialog();            
+        $(this.client).append(dialog); 
+        $(this.item_dialog).dialog({modal:true, resizable:false,
+            buttons:{'send':this.addContact.bind(this)}});            
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -175,12 +204,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     addContact: function() {
-        this.cancelItemDialog();            
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    cancelItemDialog: function() {
-        $(this.contact_dialog).remove();            
+        this.removeItemDialog();            
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -188,16 +212,14 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    cancelSubscription: function() {
-    },
-
-    /*-------------------------------------------------------------------------------*/    
     addPublication: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    cancelPublication: function() {
+    removeItemDialog: function() {
+        $(this.item_dialog).remove();            
     },
+
 
     /*-------------------------------------------------------------------------------  
      * messages

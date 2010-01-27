@@ -618,3 +618,7 @@ ul.contact-display-modes li {
     color: #DDD;
     background-color: #000;
 }
+/*******  jquery-ui *******/
+.ui-widget-header {
+    font-weight: normal;
+}

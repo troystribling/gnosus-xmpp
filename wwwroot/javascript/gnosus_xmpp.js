@@ -55,6 +55,7 @@ Gnosus = {
         var groups = item.find('group').map(function (g, i) {g.text();});
         jid = item.attr('jid');
         Gnosus.contacts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
+        return Gnosus.contacts[jid];
     },
     findContactByJid: function(jid) {
         return Gnosus.contacts[jid];
@@ -78,12 +79,15 @@ Gnosus = {
             contact.groups = [];
             contact.setAttributes(item);
         }
+        return contact;
     },
     removeContact: function(item) {
         jid = item.attr('jid');
-        if (Gnosus.contacts[jid]) {
+        var contact = Gnosus.contacts[jid];
+        if (contact) {
             delete(Gnosus.contacts[jid]);
         }
+        return contact;
     },
 
     /*-------------------------------------------------------------------------------*/
@@ -327,52 +331,53 @@ Strophe.addConnectionPlugin('roster', {
     /*-------------------------------------------------------------------------------*/
     statusChanged: function (status) {
         if (status === Strophe.Status.CONNECTED) {
-            this.connection.addHandler(this.onRosterSet.bind(this), Strophe.NS.ROSTER, 'iq', 'set');
+            this.connection.addHandler(this.onRosterUpdate.bind(this), Strophe.NS.ROSTER, 'iq', 'set');
             this.connection.addHandler(this.onPresence.bind(this), null, 'presence');
-            var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER}); 
-            var that = this;
+            var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER}),
+                that = this;
             this.connection.sendIQ(roster_iq, function(iq) {
                 $(iq).find('item').each(function () {
                     Gnosus.addContact($(this));
                 });
-                $(document).trigger('roster_item', that);
+                $(document).trigger('roster_init', that);
             });
             GnosusXmpp.initialPresence();
         } else if (status === Strophe.Status.DISCONNECTED) {
             Gnosus.contactOffline();
-            $(document).trigger('roster_item', this);
+            $(document).trigger('roster_init', this);
         }
     },
  
     /*-------------------------------------------------------------------------------*/
-    onRosterSet: function (iq) {
-        var item = $(iq).find('item');
-        var jid = item.attr('jid');
-        var subscription = item.attr('subscription') || '';        
-        if (subscription === 'remove') {
-            Gnosus.removeContact(item);
-        } else if (subscription === 'none') {
-            Gnosus.addContact(item);
-        } else {
-            Gnosus.updateContact(item);
+    onRosterUpdate: function (iq) {
+        $(iq).find('item').each(function () {
+            var jid = item.attr('jid'),
+                subscription = item.attr('subscription') || '';        
+            if (subscription === 'remove') {
+                $(document).trigger('roster_remove', Gnosus.removeContact($(this)));
+            } else if (subscription === 'none') {
+                $(document).trigger('roster_add', Gnosus.addContact($(this)));
+            } else {
+                $(document).trigger('roster_update', Gnosus.updateContact($(this)));
+            }
         }
         this.connection.send($iq({type: 'result', id: $(iq).attr('id')}));
-        $(document).trigger("roster_item", this);
         return true;
     },
  
     /*-------------------------------------------------------------------------------*/
     onPresence: function (presence) {
-        var from = $(presence).attr('from');
-        var jid = Strophe.getBareJidFromJid(from);
-        var ptype = $(presence).attr('type') || 'available'; 
-        if (Gnosus.findContactByJid(jid) && ptype != 'error') {
+        var from = $(presence).attr('from'),
+            jid = Strophe.getBareJidFromJid(from),
+            ptype = $(presence).attr('type') || 'available',
+            contact = Gnosus.findContactByJid(jid);
+        if (contact && ptype != 'error') {
             if (ptype === 'unavailable') {
                 Gnosus.removeContactResource(presence);
             } else {
                 Gnosus.addContactResource(presence);
             }        
-            $(document).trigger("roster_item", this);
+            $(document).trigger("presence", contact);
         } else if (jid == Gnosus.account.jid) {
             Gnosus.addAccountResource(presence);
         }
