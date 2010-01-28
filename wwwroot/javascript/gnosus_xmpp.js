@@ -360,7 +360,7 @@ Strophe.addConnectionPlugin('roster', {
             } else {
                 $(document).trigger('roster_update', Gnosus.updateContact($(this)));
             }
-        }
+        });
         this.connection.send($iq({type: 'result', id: $(iq).attr('id')}));
         return true;
     },

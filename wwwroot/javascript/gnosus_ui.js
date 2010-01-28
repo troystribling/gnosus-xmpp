@@ -75,45 +75,19 @@ GnosusUi.prototype = {
          this.items_handlers['roster_init'] = function (ev, roster) {
              $(this.client_items_content).empty();
              var items = '<ul>';
+             var client_ui = this;
              $.each(Gnosus['findAll'+this.capitalize(item_type)](), function () {
-                 items += this.buildItemListItem(this.name, item_type, this.show());
+                 items += client_ui.buildItemListItem(this.name, item_type, this.show());
              });
              items += '</ul>';
              $(this.client_items_content).append(items);
-             var client_ui = this;
-             $(this.client_items_content+' ul li').hover(
-                 function() {$(this).addClass('selected').find('.controls').show();},
-                 function() {$(this).removeClass('selected').find('.controls').hide();}
-             ); 
-             $(this.client_items_content+' ul li').find('.item').click(function() {
-                 var item_type = $(this).attr('class').split(' ')[0];
-                 $(this).parent('li').siblings('.open').removeClass('open');
-                 $(this).parent('li').addClass('open')
-                 client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
-             }); 
-             $(this.client_items_content+' ul li').find('img').click(function() {            
-                 var item_type = client_ui.itemTypeSelected();
-                 client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))]($(this).parents('li').eq(0).text());
-             }); 
+             this.addItemListEvents($(this.client_items_content+' ul li'));
          }
          $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
          this.items_handlers['roster_add'] = function (ev, contact) {
              var items = this.buildItemListItem(contact.name, item_type, contact.show());
              $(this.client_items_content).append(items);
-             $(this.client_items_content+' ul li:last').hover(
-                 function() {$(this).addClass('selected').find('.controls').show();},
-                 function() {$(this).removeClass('selected').find('.controls').hide();}
-             ); 
-             $(this.client_items_content+' ul li:last').find('.item').click(function() {
-                 var item_type = $(this).attr('class').split(' ')[0];
-                 $(this).parent('li').siblings('.open').removeClass('open');
-                 $(this).parent('li').addClass('open')
-                 client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
-             }); 
-             $(this.client_items_content+' ul li:last').find('img').click(function() {            
-                 var item_type = client_ui.itemTypeSelected();
-                 client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))]($(this).parents('li').eq(0).text());
-             }); 
+             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
          }
          $(document).bind('roster_add', this.items_handlers['roster_add'].bind(this));
          this.items_handlers['presence'] = function (ev, contact) {
@@ -170,24 +144,49 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    deleteContact: function(item) {
+    deleteContactDialog: function(item) {
+        var dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete contact?">'+ 
+                        '<p>'+item+'</p>'+
+                     '</div>'; 
+        $(this.item_dialog).remove();            
+        $(this.client).append(dialog); 
+        $(this.item_dialog).dialog({modal:true, resizable:false, width:380,
+            buttons:{'delete':this.deleteContact.bind(this), 'cancel':this.cancelItemDialog.bind(this)}});            
     },
     
     /*-------------------------------------------------------------------------------*/    
-    deleteSubscription: function(item) {
+    deleteSubscriptionDialog: function(item) {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    deletePublication: function(item) {
+    deletePublicationDialog: function(item) {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    deleteContact: function() {
+        var item = $(this.item_dialog+' p').text();
+        this.cancelItemDialog();            
+    },
+    
+    /*-------------------------------------------------------------------------------*/    
+    deleteSubscription: function() {
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    deletePublication: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
     addContactDialog: function() {
-        var dialog = '<div id="'+this.toId(this.item_dialog)+'" title="add contact"/>' +        
+        var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+  
+                         '<label for="jid">jid</label><input type="text" name="jid" class="jid"/></br>'+
+                         '<label for="group">group</label><input type="text" name="group" class="group"/></br>'+
                      '</div>'; 
+        $(this.item_dialog).remove();            
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false,
-            buttons:{'send':this.addContact.bind(this)}});            
+            buttons:{'send':this.addContact.bind(this), 'cancel':this.cancelItemDialog.bind(this)},
+            dialogClass:'add-contact-dialog', width:380});            
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -200,7 +199,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     addContact: function() {
-        this.removeItemDialog();            
+        this.cancelItemDialog();            
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -212,10 +211,10 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    removeItemDialog: function() {
+    cancelItemDialog: function() {
+        $(this.item_dialog).dialog("close");        
         $(this.item_dialog).remove();            
     },
-
 
     /*-------------------------------------------------------------------------------  
      * messages
@@ -308,11 +307,11 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     showContactsToolbar: function() {
         $(this.client_display_toolbar).empty();
-        var toolbar = '<ul id="'+this.toId(this.contact_display_modes)+'" class="contact-display-modes">' +
-                          '<li class="selected">chat</li>' +
-                          '<li>commands</li>' +
-                          '<li>resources</li>' +
-                          '<li>publications</li>' +
+        var toolbar = '<ul id="'+this.toId(this.contact_display_modes)+'" class="contact-display-modes">'+
+                          '<li class="selected">chat</li>'+
+                          '<li>commands</li>'+
+                          '<li>resources</li>'+
+                          '<li>publications</li>'+
                       '</ul>';
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
@@ -352,30 +351,48 @@ GnosusUi.prototype = {
     buildChatTextMessage: function(msg) {
         var account_rexp = new RegExp(Gnosus.account.jid, 'g'),
             from = msg.from,
-            chat = '<li><div class="chat-text-message">' +
-                       '<div class="info">' +
-                           '<div class="from">'+from+'</div>' +
-                           '<div class="date">'+msg.createdAtAsString()+'</div>' +
-                       '</div>' +
-                       '<div class="text">'+msg.text+'</div>' +
+            chat = '<li><div class="chat-text-message">'+
+                       '<div class="info">'+
+                           '<div class="from">'+from+'</div>'+
+                           '<div class="date">'+msg.createdAtAsString()+'</div>'+
+                       '</div>'+
+                       '<div class="text">'+msg.text+'</div>'+
                    '</div></li>';
         return chat;
-    }
+    },
     
     /*-------------------------------------------------------------------------------*/ 
-    buildItemListItem: function (item_name, item_type, item_status) : { 
+    buildItemListItem: function (item_name, item_type, item_status) { 
         var status = item_status || '',  
             item = '<li>' +
-                       '<div class="'+item_type+' item ' + status + '">' + 
-                           item_name +
-                       '</div>' +
-                       '<div style="display: none" class="controls">' +
-                           '<img src="/images/data-delete.png"/>' +
-                       '</div>' +
+                       '<div class="'+item_type+' item '+status+'">'+ 
+                           item_name+
+                       '</div>'+
+                       '<div style="display: none" class="controls">'+
+                           '<img src="/images/data-delete.png"/>'+
+                       '</div>'+
                    '</li>';
         return item;
-    }
+    },
     
+    /*-------------------------------------------------------------------------------*/ 
+    addItemListEvents: function(select_item) {
+        var client_ui = this;
+        select_item.hover(
+            function() {$(this).addClass('selected').find('.controls').show();},
+            function() {$(this).removeClass('selected').find('.controls').hide();}
+        ); 
+        select_item.find('.item').click(function() {
+            var item_type = $(this).attr('class').split(' ')[0];
+            $(this).parent('li').siblings('.open').removeClass('open');
+            $(this).parent('li').addClass('open')
+            client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
+        }); 
+        select_item.find('img').click(function() {            
+            var item_type = client_ui.itemTypeSelected();
+            client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))+'Dialog']($(this).parents('li').eq(0).text());
+        }); 
+    }
 };
 
 /**********************************************************************************

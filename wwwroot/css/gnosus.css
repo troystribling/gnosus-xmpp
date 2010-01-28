@@ -618,7 +618,20 @@ ul.contact-display-modes li {
     color: #DDD;
     background-color: #000;
 }
+/*******  dialog style   *******/
+.add-contact-dialog label {
+    width: 2.5em;
+}
 /*******  jquery-ui *******/
 .ui-widget-header {
     font-weight: normal;
 }
+.ui-dialog .ui-dialog-buttonpane button {
+    margin: 0.3em 0.1em 0em 0.2em;
+}
+.ui-widget-overlay {
+    opacity: 0.75;
+}
+.ui-dialog .ui-dialog-titlebar-close { 
+    display: none; 
+} 
