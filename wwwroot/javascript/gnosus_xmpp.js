@@ -275,13 +275,19 @@ GnosusXmpp = {
                 iq.c("group").t(this).up();
             });
         }
-        GnosusXmpp.connection.sendIQ(iq);
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            $(document).trigger('roster_add_response', iq);
+            return false;
+        });
     },
     
     /*-------------------------------------------------------------------------------*/
-    deleteContact: function (jid) {
+    removeContact: function (jid) {
         var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {jid: jid, subscription: 'remove'});
-        GnosusXmpp.connection.sendIQ(iq);
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            $(document).trigger('roster_remove_response', iq);
+            return false;
+        });
     },
   
     /*-------------------------------------------------------------------------------*/
@@ -306,7 +312,7 @@ GnosusXmpp = {
     unsubscribe: function (jid) {
         var presence = $pres({to: jid, type: "unsubscribe"});
         GnosusXmpp.connection.send(presence);
-        this.deleteContact(jid);
+        this.removeContact(jid);
     },
 
     /*-------------------------------------------------------------------------------*/
@@ -333,18 +339,17 @@ Strophe.addConnectionPlugin('roster', {
         if (status === Strophe.Status.CONNECTED) {
             this.connection.addHandler(this.onRosterUpdate.bind(this), Strophe.NS.ROSTER, 'iq', 'set');
             this.connection.addHandler(this.onPresence.bind(this), null, 'presence');
-            var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER}),
-                that = this;
+            var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER});
             this.connection.sendIQ(roster_iq, function(iq) {
                 $(iq).find('item').each(function () {
                     Gnosus.addContact($(this));
                 });
-                $(document).trigger('roster_init', that);
+                $(document).trigger('roster_init');
             });
             GnosusXmpp.initialPresence();
         } else if (status === Strophe.Status.DISCONNECTED) {
             Gnosus.contactOffline();
-            $(document).trigger('roster_init', this);
+            $(document).trigger('roster_offline');
         }
     },
  

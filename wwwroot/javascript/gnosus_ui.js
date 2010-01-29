@@ -72,33 +72,7 @@ GnosusUi.prototype = {
      showItems: function (item_type) {
          this.showItemsToolbar('contacts', false);
          this.itemsUnbind();
-         this.items_handlers['roster_init'] = function (ev, roster) {
-             $(this.client_items_content).empty();
-             var items = '<ul>';
-             var client_ui = this;
-             $.each(Gnosus['findAll'+this.capitalize(item_type)](), function () {
-                 items += client_ui.buildItemListItem(this.name, item_type, this.show());
-             });
-             items += '</ul>';
-             $(this.client_items_content).append(items);
-             this.addItemListEvents($(this.client_items_content+' ul li'));
-         }
-         $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
-         this.items_handlers['roster_add'] = function (ev, contact) {
-             var items = this.buildItemListItem(contact.name, item_type, contact.show());
-             $(this.client_items_content).append(items);
-             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
-         }
-         $(document).bind('roster_add', this.items_handlers['roster_add'].bind(this));
-         this.items_handlers['presence'] = function (ev, contact) {
-             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
-                .removeClass('online').removeClass('offline').addClass(contact.show());
-         }
-         $(document).bind('presence', this.items_handlers['presence'].bind(this));
-         this.items_handlers['roster_remove'] = function (ev, contact) {
-             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').remove();
-         }
-         $(document).bind('roster_remove', this.items_handlers['roster_remove'].bind(this));
+         this['addEvents'+this.capitalize(item_type)]();
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -126,6 +100,45 @@ GnosusUi.prototype = {
          });
      }, 
 
+     /*-------------------------------------------------------------------------------*/  
+     addEventsContacts: function() {  
+         this.items_handlers['roster_init'] = function (ev, roster) {
+             $(this.client_items_content).empty();
+             var items = '<ul>';
+             var client_ui = this;
+             $.each(Gnosus.findAllContacts(), function () {
+                 items += client_ui.buildItemListItem(this.name, 'contacts', this.show());
+             });
+             items += '</ul>';
+             $(this.client_items_content).append(items);
+             this.addItemListEvents($(this.client_items_content+' ul li'));
+         }
+         $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
+         this.items_handlers['roster_add'] = function (ev, contact) {
+             var items = this.buildItemListItem(contact.name, 'contacts', contact.show());
+             $(this.client_items_content).append(items);
+             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+         }
+         $(document).bind('roster_add', this.items_handlers['roster_add'].bind(this));
+         this.items_handlers['presence'] = function (ev, contact) {
+             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
+                .removeClass('online').removeClass('offline').addClass(contact.show());
+         }
+         $(document).bind('presence', this.items_handlers['presence'].bind(this));
+         this.items_handlers['roster_remove'] = function (ev, contact) {
+             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').remove();
+         }
+         $(document).bind('roster_remove', this.items_handlers['roster_remove'].bind(this));
+         this.items_handlers['roster_add_response'] = function (ev, contact) {
+             this.unblock();
+         }
+         $(document).bind('roster_add_response', this.items_handlers['roster_add_response'].bind(this));
+         this.items_handlers['roster_remove_response'] = function (ev, contact) {
+             this.unblock();
+         }
+         $(document).bind('roster_remove_response', this.items_handlers['roster_remove_response'].bind(this));
+     },
+
     /*-------------------------------------------------------------------------------*/    
     homeContacts: function() {
         this.showAllMessagesDisplay();
@@ -151,7 +164,7 @@ GnosusUi.prototype = {
         $(this.item_dialog).remove();            
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false, width:380,
-            buttons:{'delete':this.deleteContact.bind(this), 'cancel':this.cancelItemDialog.bind(this)}});            
+            buttons:{'cancel':this.cancelItemDialog.bind(this), 'delete':this.deleteContact.bind(this)}});
     },
     
     /*-------------------------------------------------------------------------------*/    
@@ -180,12 +193,12 @@ GnosusUi.prototype = {
     addContactDialog: function() {
         var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+  
                          '<label for="jid">jid</label><input type="text" name="jid" class="jid"/></br>'+
-                         '<label for="group">group</label><input type="text" name="group" class="group"/></br>'+
+                         '<label for="name">name</label><input type="text" name="name" class="name"/></br>'+
                      '</div>'; 
         $(this.item_dialog).remove();            
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false,
-            buttons:{'send':this.addContact.bind(this), 'cancel':this.cancelItemDialog.bind(this)},
+            buttons:{'cancel':this.cancelItemDialog.bind(this), 'send':this.addContact.bind(this)},
             dialogClass:'add-contact-dialog', width:380});            
     },
 
@@ -199,7 +212,10 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     addContact: function() {
-        this.cancelItemDialog();            
+        var jid = $(this.item_dialog+' input.jid').val();
+        var name = $(this.item_dialog+' input.name').val();
+        this.cancelItemDialog(); 
+        GnosusXmpp.subscribe(jid, name, []);           
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -392,7 +408,20 @@ GnosusUi.prototype = {
             var item_type = client_ui.itemTypeSelected();
             client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))+'Dialog']($(this).parents('li').eq(0).text());
         }); 
+    },
+        
+    /*-------------------------------------------------------------------------------*/ 
+    block: function(msg) {
+        $.blockUI({message: msg, 
+                   css: {border: 'none', padding: '15px', backgroundColor: '#000', 
+                         opacity: .5, color: '#fff'}});  
+    },
+    
+    /*-------------------------------------------------------------------------------*/ 
+    unblock: function() {
+        $.unblockUI();
     }
+    
 };
 
 /**********************************************************************************
