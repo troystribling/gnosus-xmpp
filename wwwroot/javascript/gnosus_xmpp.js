@@ -315,7 +315,7 @@ GnosusXmpp = {
     },
  
     /*-------------------------------------------------------------------------------*/
-    declineSubscriptionRequest: function (jid) {
+    rejectSubscriptionRequest: function (jid) {
         GnosusXmpp.connection.send($pres({to: jid, type: "unsubscribed"}));
     },
  
@@ -370,17 +370,16 @@ Strophe.addConnectionPlugin('roster', {
  
     /*-------------------------------------------------------------------------------*/
     onRosterSet: function (iq) {
+        var that = this;
         $(iq).find('item').each(function () {
             var jid = $(this).attr('jid'),
                 subscription = $(this).attr('subscription') || '';        
             if (subscription === 'remove') {
                 $(document).trigger('roster_item_remove', Gnosus.removeContact($(this)));
             } else if (subscription === 'none') {
-                if (!Gnosus.findContactByJid(jid)) {                
-                    $(document).trigger('roster_item_add', Gnosus.addContact($(this)));
-                } else {
-                    $(document).trigger('roster_item_update', Gnosus.updateContact($(this)));
-                }
+                that.updateContact($(this))
+            } else if (subscription === 'from') {
+                that.updateContact($(this))
             } else {
                 $(document).trigger('roster_item_update', Gnosus.updateContact($(this)));
             }
@@ -389,6 +388,16 @@ Strophe.addConnectionPlugin('roster', {
         return true;
     },
  
+    /*-------------------------------------------------------------------------------*/
+    updateContact: function(item) {
+        var jid = item.attr('jid');
+        if (!Gnosus.findContactByJid(jid)) {                
+            $(document).trigger('roster_item_add', Gnosus.addContact(item));
+        } else {
+            $(document).trigger('roster_item_update', Gnosus.updateContact(item));
+        }
+    },
+
     /*-------------------------------------------------------------------------------*/
     onPresence: function (presence) {
         var from = $(presence).attr('from'),
@@ -400,17 +409,16 @@ Strophe.addConnectionPlugin('roster', {
                 Gnosus.removeContactResource(presence);
                 $(document).trigger("presence_unavailable", contact);
             } else if (ptype === 'subscribe') {
-                if (Gnosus.findContactByJid(jid)) {
-                    GnosusXmpp.acceptSubscriptionRequest(jid);
-                } else {
-                    $(document).trigger("presence_subscribe", contact);
-                }                
+                GnosusXmpp.acceptSubscriptionRequest(jid);
             } else if (ptype === 'unsubscribed') {
+                Gnosus.removeContactResources(jid);
                 $(document).trigger("presence_unsubscribed", contact);
             } else {
                 Gnosus.addContactResource(presence);
                 $(document).trigger("presence", contact);
             }        
+        } else if (ptype === 'subscribe') {
+            $(document).trigger("presence_subscribe", jid);
         } else if (jid == Gnosus.account.jid) {
             Gnosus.addAccountResource(presence);
         }
