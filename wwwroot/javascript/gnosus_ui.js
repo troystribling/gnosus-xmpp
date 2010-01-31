@@ -19,6 +19,7 @@ function GnosusUi(num) {
     this.item_dialog               = '#item-dialog-'+num;
     this.showItems('contacts');
     this.showDisplay('AllMessages');
+    this.block('connecting')
 }
 
 /*--------------------------------------------------------------------------------*/    
@@ -113,6 +114,7 @@ GnosusUi.prototype = {
              items += '</ul>';
              $(this.client_items_content).append(items);
              this.addItemListEvents($(this.client_items_content+' ul li'));
+             this.unblock();             
          }
          $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
          
@@ -200,6 +202,7 @@ GnosusUi.prototype = {
         $(this.item_dialog).dialog({modal:true, resizable:false, width:380,
             buttons:{'cancel':this.cancelItemDialog.bind(this), 
                      'delete':function() {
+                         this.block('deleting contact')
                          GnosusXmpp.removeContact($(this.item_dialog+' p').text());
                          this.cancelItemDialog();            
                      }.bind(this)}});
@@ -223,6 +226,7 @@ GnosusUi.prototype = {
         $(this.item_dialog).dialog({modal:true, resizable:false,
             buttons:{'cancel':this.cancelItemDialog.bind(this), 
                      'send':function() {
+                                this.block('adding contact')
                                 var jid = $(this.item_dialog+' input.jid').val();
                                 this.cancelItemDialog(); 
                                 GnosusXmpp.addContact(jid, null, []);           
@@ -244,15 +248,16 @@ GnosusUi.prototype = {
         $(this.item_dialog).remove();            
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false, width:380,
-            buttons:{'reject':function() {
-                                  GnosusXmpp.rejectSubscriptionRequest($(this.item_dialog+' p').text());
-                                  this.cancelItemDialog();            
-                              }.bind(this), 
-                     'accept':function() {
+            buttons:{'accept':function() {
+                                  this.block('adding contact')
                                   GnosusXmpp.addContact(jid, null, []);
                                   GnosusXmpp.acceptSubscriptionRequest($(this.item_dialog+' p').text());
                                   this.cancelItemDialog();            
-                              }.bind(this)}});
+                              }.bind(this),
+                     'reject':function() {
+                                  GnosusXmpp.rejectSubscriptionRequest($(this.item_dialog+' p').text());
+                                  this.cancelItemDialog();            
+                              }.bind(this),}});
     },
 
     /*-------------------------------------------------------------------------------  
@@ -284,6 +289,7 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showContactsChatDisplay: function(contact_name) {
          $(this.client_display_content).empty();
+         $(this.client_display_toolbar+' div.control').empty();
          this.displayUnbind();
          var enter_msg = 'enter message',
              contact = Gnosus.findContactByName(contact_name),
@@ -332,15 +338,21 @@ GnosusUi.prototype = {
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     showContactsResourcesDisplay: function(contact_name) {
+     showContactsCommandsDisplay: function(contact_name) {
+         $(this.client_display_content).empty();
+         $(this.client_display_toolbar+' div.control').empty();
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     showContactsCommandsDisplay: function(contact_name) {
+     showContactsResourcesDisplay: function(contact_name) {
+         $(this.client_display_content).empty();
+         $(this.client_display_toolbar+' div.control').empty();
      },               
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
+         $(this.client_display_content).empty();
+         $(this.client_display_toolbar+' div.control').empty();
      },               
 
     /*-------------------------------------------------------------------------------*/    
@@ -351,7 +363,8 @@ GnosusUi.prototype = {
                           '<li>commands</li>'+
                           '<li>resources</li>'+
                           '<li>publications</li>'+
-                      '</ul>';
+                      '</ul>' +
+                      '<div class="control"></div>';
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
         $(this.contact_display_modes+' li').click(function() {
@@ -359,7 +372,7 @@ GnosusUi.prototype = {
             $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
             var mode = $(this).text();
-            client_ui['showContacts'+this.capitalize(mode)+'Display'](contact_name);
+            client_ui['showContacts'+client_ui.capitalize(mode)+'Display'](contact_name);
         });
     }, 
 
@@ -436,8 +449,9 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/ 
     block: function(msg) {
         $.blockUI({message: msg, 
-                   css: {border: 'none', padding: '15px', backgroundColor: '#000', 
-                         opacity: .5, color: '#fff'}});  
+                   overlayCSS: {backgroundColor: '#000', opacity: 0.75}, 
+                   css: {border: 'none', padding: '15px', backgroundColor: '#000', '-moz-border-radius': '10px',
+                         '-webkit-border-radius': '10px', opacity: .75, color: '#fff'}});  
     },
     
     /*-------------------------------------------------------------------------------*/ 

@@ -28,6 +28,7 @@ function connect(service, jid, password) {
 /*-------------------------------------------------------------------------------*/
 function onConnect(status) {
     if (status == Strophe.Status.CONNECTING) {
+        $(document).trigger('connecting');
 	    console.log('Strophe is connecting.');
     } else if (status == Strophe.Status.CONNFAIL) {
 	    console.log('Strophe failed to connect.');
@@ -36,6 +37,7 @@ function onConnect(status) {
     } else if (status == Strophe.Status.DISCONNECTED) {
 	    console.log('Strophe is disconnected.');
     } else if (status == Strophe.Status.CONNECTED) {
+        $(document).trigger('connected');
 	    console.log('Strophe is connected.');
     }
 }
