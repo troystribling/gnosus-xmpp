@@ -640,4 +640,20 @@ ul.contact-display-modes li {
 }
 .ui-dialog .ui-dialog-titlebar-close { 
     display: none; 
-} 
+}
+/*******  client-display-toolbar .control *******/
+.client-display-toolbar div.control {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+}
+.client-display-toolbar div.control .add {
+    background-image:url('/images/item-add.png');
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+.client-display-toolbar div.control .add:hover {
+    background-image:url('/images/item-add-hover.png');
+    background-color: #000;
+}

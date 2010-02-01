@@ -14,7 +14,7 @@ function GnosusUi(num) {
     this.client_display_content         = this.client+' .client-display-content';
     this.client_display_list            = this.client+' .client-display-list';
     this.client_display_toolbar         = this.client+' .client-display-toolbar';
-    this.client_display_toolbar_control = this.client+' .client-display-toolbar';
+    this.client_display_content_control = this.client+' .client-display-toolbar div.control';
     this.contact_display_modes          = this.client+' .contact-display-modes';
     this.client_display_input           = this.client+' .client-display-input';
     this.item_dialog                    = '#item-dialog-'+num;
@@ -104,6 +104,7 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/  
      addEventsContacts: function() {  
+
          /*---- roster messages ----*/
          this.items_handlers['roster_init'] = function (ev, roster) {
              $(this.client_items_content).empty();
@@ -119,6 +120,7 @@ GnosusUi.prototype = {
          }
          $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
          
+         /****/
          this.items_handlers['roster_item_add'] = function (ev, contact) {
              var items = this.buildItemListItem(contact.name, 'contacts', contact.show());
              $(this.client_items_content+' ul').append(items);
@@ -126,28 +128,35 @@ GnosusUi.prototype = {
          }
          $(document).bind('roster_item_add', this.items_handlers['roster_item_add'].bind(this));
          
+         /****/
          this.items_handlers['roster_item_remove'] = function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').remove();
          }
          $(document).bind('roster_item_remove', this.items_handlers['roster_item_remove'].bind(this));
          
-         this.items_handlers['roster_add_response'] = function (ev, iq) {
+         /****/
+         this.items_handlers['roster_item_add_response'] = function (ev, iq) {
              this.unblock();
          }
-         $(document).bind('roster_item_add_response', this.items_handlers['roster_add_response'].bind(this));
+         $(document).bind('roster_item_add_response', this.items_handlers['roster_item_add_response'].bind(this));
          
-         this.items_handlers['roster_add_error'] = function (ev, iq) {
-             this.errorDialog('failed to add '+$(iq).attr('from'));
+         /****/
+         this.items_handlers['roster_item_add_error'] = function (ev, iq) {
+             this.unblock();
+             this.errorDialog('failed to add <strong>'+$(iq).attr('from')+'</strong>');
          }
-         $(document).bind('roster_item_add_error', this.items_handlers['roster_add_error'].bind(this));
+         $(document).bind('roster_item_add_error', this.items_handlers['roster_item_add_error'].bind(this));
          
+         /****/
          this.items_handlers['roster_remove_response'] = function (ev, iq) {
              this.unblock();
          }
          $(document).bind('roster_item_remove_response', this.items_handlers['roster_remove_response'].bind(this));
          
+         /****/
          this.items_handlers['roster_remove_error'] = function (ev, iq) {
-             this.errorDialog('failed to remove '+$(iq).attr('from'));
+             this.unblock();
+             this.errorDialog('failed to remove <strong>'+$(iq).attr('from')+'</strong>');
          }
          $(document).bind('roster_item_remove_error', this.items_handlers['roster_remove_error'].bind(this));
          
@@ -158,17 +167,20 @@ GnosusUi.prototype = {
          }
          $(document).bind('presence', this.items_handlers['presence'].bind(this));
          
+         /****/
          this.items_handlers['presence_unavailable'] = function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
                 .removeClass('online').removeClass('offline').addClass(contact.show());
          }
          $(document).bind('presence_unavailable', this.items_handlers['presence_unavailable'].bind(this));
          
+         /****/
          this.items_handlers['presence_subscribe'] = function (ev, jid) {
              this.subscriptionRequestDialog(jid);
          }
          $(document).bind('presence_subscribe', this.items_handlers['presence_subscribe'].bind(this));
          
+         /****/
          this.items_handlers['presence_unsubscribed'] = function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
                 .removeClass('online').removeClass('offline').addClass(contact.show());
@@ -216,8 +228,9 @@ GnosusUi.prototype = {
         $(this.item_dialog).dialog({modal:true, resizable:false, width:380,
             buttons:{'cancel':this.cancelItemDialog.bind(this), 
                      'delete':function() {
-                         this.block('deleting contact')
-                         GnosusXmpp.removeContact($(this.item_dialog+' p').text());
+                         this.block('deleting contact');
+                         var contact = Gnosus.findContactByName($(this.item_dialog+' p').text());
+                         GnosusXmpp.removeContact(contact.jid);
                          this.cancelItemDialog();            
                      }.bind(this)}});
     },
@@ -290,8 +303,8 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showAllMessagesDisplay: function() {
          $(this.client_display_content).empty();
-         this.displayUnbind();
          $(this.client_display_toolbar).empty();
+         this.displayUnbind();
          this.buildContentList('no-input', Gnosus.findAllMessages());
          this.display_handlers['chat'] = function (ev, msg) {
              $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
@@ -302,15 +315,20 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showContactsDisplay: function(contact_name) {
          this.showContactsToolbar();
+         this.showContactsContentDisplay(contact_name);
+     },               
+
+     /*-------------------------------------------------------------------------------*/    
+     showContactsContentDisplay: function(contact_name) {
+         $(this.client_display_content_control).empty();
+         $(this.client_display_content).empty();
+         this.displayUnbind();
          var display_type = this.contactDisplayMode();
          this['showContacts'+this.capitalize(display_type)+'Display'](contact_name);
      },               
 
      /*-------------------------------------------------------------------------------*/    
      showContactsChatDisplay: function(contact_name) {
-         $(this.client_display_content).empty();
-         $(this.client_display_toolbar+' div.control').empty();
-         this.displayUnbind();
          var enter_msg = 'enter message',
              contact = Gnosus.findContactByName(contact_name),
              send_message = '<div class ="client-display-input">'+
@@ -359,20 +377,30 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsCommandsDisplay: function(contact_name) {
-         $(this.client_display_content).empty();
-         $(client_display_toolbar_control).empty();
+         var toolbar = '<div class="add"></div>',
+             contact = Gnosus.findContactByName(contact_name);         
+         $(this.client_display_content_control).append(toolbar);
+         this.block('retrieving command list');
+         for (var resource in contact.resources) {
+             GnosusXmpp.getCommandList(resource);
+         }
+         this.display_handlers['command_list_error'] = function (ev, jid) {
+             this.unblock();
+             this.errorDialog('failed to retrieve command list from <strong>'+jid+'</strong>');
+         }
+         $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
+         this.display_handlers['command_list_response'] = function (ev, jid) {
+             this.unblock();
+         }
+         $(document).bind('command_list_response', this.display_handlers['command_list_response'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    
      showContactsResourcesDisplay: function(contact_name) {
-         $(this.client_display_content).empty();
-         $(client_display_toolbar_control).empty();
      },               
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
-         $(this.client_display_content).empty();
-         $(client_display_toolbar_control).empty();
      },               
 
     /*-------------------------------------------------------------------------------*/    
@@ -391,8 +419,7 @@ GnosusUi.prototype = {
             var contact_name = client_ui.contactOpen()
             $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
-            var mode = $(this).text();
-            client_ui['showContacts'+client_ui.capitalize(mode)+'Display'](contact_name);
+            client_ui.showContactsContentDisplay(contact_name);
         });
     }, 
 
@@ -455,10 +482,9 @@ GnosusUi.prototype = {
             function() {$(this).removeClass('selected').find('.controls').hide();}
         ); 
         select_item.find('.item').click(function() {
-            var item_type = $(this).attr('class').split(' ')[0];
             $(this).parent('li').siblings('.open').removeClass('open');
             $(this).parent('li').addClass('open')
-            client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
+            client_ui['showContactsDisplay']($(this).text());
         }); 
         select_item.find('img').click(function() {            
             var item_type = client_ui.itemTypeSelected();
