@@ -377,22 +377,28 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsCommandsDisplay: function(contact_name) {
-         var toolbar = '<div class="add"></div>',
-             contact = Gnosus.findContactByName(contact_name);         
+          var toolbar = '<div class="add"></div>',
+              contact = Gnosus.findContactByName(contact_name);
          $(this.client_display_content_control).append(toolbar);
+         contact.deleteCommands();
          this.block('retrieving command list');
          for (var resource in contact.resources) {
-             GnosusXmpp.getCommandList(resource);
+             GnosusXmpp.getCommandList(resource.jid);
          }
+         $(this.client_display_content_control+' .add').click(function() {
+         });
+         $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
+         this.display_handlers['command_list_response'] = function (ev, jid) {
+             if (Gnosus.areCommandsAvailable(jid)) {
+                 this.unblock();
+                 var commands = Gnosus.findAllCommands(contact.jid);
+             }
+         }
+         $(document).bind('command_list_response', this.display_handlers['command_list_response'].bind(this));
          this.display_handlers['command_list_error'] = function (ev, jid) {
              this.unblock();
              this.errorDialog('failed to retrieve command list from <strong>'+jid+'</strong>');
          }
-         $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
-         this.display_handlers['command_list_response'] = function (ev, jid) {
-             this.unblock();
-         }
-         $(document).bind('command_list_response', this.display_handlers['command_list_response'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    

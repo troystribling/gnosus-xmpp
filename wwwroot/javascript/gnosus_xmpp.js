@@ -1,4 +1,15 @@
 /**********************************************************************************
+object extensions
+**********************************************************************************/
+Object.prototype.keys = function () {
+  var keys = [];
+  for(i in this) if (this.hasOwnProperty(i)) {
+    keys.push(i);
+  }
+  return keys;
+}
+
+/**********************************************************************************
 logging
 **********************************************************************************/
 function rawInput(data) {
@@ -51,7 +62,6 @@ Gnosus = {
     account: null,
     contacts: {},
     messages: [],
-    command_node: {},
 
     /*-------------------------------------------------------------------------------
     contacts
@@ -182,12 +192,50 @@ Gnosus = {
     /*-------------------------------------------------------------------------------
     commands
     ---------------------------------------------------------------------------------*/
-    addCommand: function(jid, node) {
-        var command_node = new CommandNode(jid, node);
-        if (!command_node[jid]) {
-            command_node[jid] = [];
+    addCommand: function(jid, node, name) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        var resource = null;
+        if (bare_jid == Gnosus.account.jid) {
+            resource = Gnosus.findAccountResource(jid)
+        } else {
+            resource = Gnosus.findContactResource(jid)
         }
-        command_node[jid].push(node);
+        if (resource) {
+            resource.addCommand(node, name);
+        }
+    },
+    areCommandsAvailable: function(jid) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        var resource = null;
+        var has_commands = false;
+        if (bare_jid == Gnosus.account.jid) {
+            resource = Gnosus.findAccountResource(jid)
+        } else {
+            resource = Gnosus.findContactResource(jid)
+        }
+        if (resource) {
+            if (resource.commands) {
+                has_commands = true;
+            }
+        }
+        return has_commands;
+    }
+    findAllCommands: function(jid) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        var all_commands = {};
+        if (bare_jid == Gnosus.account.jid) {
+            var resource = Gnosus.findAccountResource(jid)
+            all_commands = resource.commands
+        } else {
+            var resources = Gnosus.findAllContactResources(jid)
+            resource = Gnosus.findContactResource(jid)
+        }
+        if (resource) {
+            if (resource.commands) {
+                has_commands = true;
+            }
+        }
+        return all_commands.keys;
     }
 }
 
@@ -208,7 +256,12 @@ Account.prototype = {
     },
     addResource: function(resource) {
         this.resources[resource.jid] = resource;
-    }
+    },
+    deleteCommands: function() {
+        for(var jid in this.resources) {
+            this.resources[jid].deleteCommands();
+        });
+    }    
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -268,7 +321,12 @@ Contact.prototype = {
     },
     removeResources: function() {
         this.resources = {};
-    }
+    },
+    deleteCommands: function() {
+        for(var jid in this.resources) {
+            this.resources[jid].deleteCommands();
+        });
+    },
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -279,6 +337,7 @@ function Resource(jid, show, status) {
     this.client_name = '';
     this.client_version = '';
     this.client_os = '';
+    this.commands = null,
 }
 
 Resource.prototype = {
@@ -286,13 +345,23 @@ Resource.prototype = {
         this.client_name = $(version).find('name').text() || 'none';
         this.client_version =  $(version).find('version').text() || 'none';
         this.client_os =  $(version).find('os').text() || 'none';
+    },
+    deleteCommands: function() {
+        this.commands = null;
+    }.
+    addCommand: function(node, name) {
+        if (!this.commands) {
+            this.commands = [];
+        }
+        this.commands.push(new Command(this.jid, node, name));
     }
 }
 
 /*-------------------------------------------------------------------------------*/
-function Command(jid, node) {
+function Command(jid, node, name) {
     this.node = node;
     this.jid = jid;
+    this.name = name;
 }
 
 Command.prototype = {
