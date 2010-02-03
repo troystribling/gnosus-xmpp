@@ -106,7 +106,7 @@ GnosusUi.prototype = {
      addEventsContacts: function() {  
 
          /*---- roster messages ----*/
-         this.items_handlers['roster_init'] = function (ev, roster) {
+         this.items_handlers['roster_init_result'] = function (ev, roster) {
              $(this.client_items_content).empty();
              var items = '<ul>';
              var client_ui = this;
@@ -118,7 +118,14 @@ GnosusUi.prototype = {
              this.addItemListEvents($(this.client_items_content+' ul li'));
              this.unblock();             
          }
-         $(document).bind('roster_init', this.items_handlers['roster_init'].bind(this));
+         $(document).bind('roster_init_result', this.items_handlers['roster_init_result'].bind(this));
+
+         /****/
+         this.items_handlers['roster_init_error'] = function (ev, roster) {
+             this.unblock();             
+             this.errorDialog('roster init failed');
+         }
+         $(document).bind('roster_init_error', this.items_handlers['roster_init_error'].bind(this));
          
          /****/
          this.items_handlers['roster_item_add'] = function (ev, contact) {
@@ -383,22 +390,22 @@ GnosusUi.prototype = {
          contact.deleteCommands();
          this.block('retrieving command list');
          for (var resource in contact.resources) {
-             GnosusXmpp.getCommandList(resource.jid);
+             GnosusXmpp.getCommandList(contact.resources[resource].jid);
          }
          $(this.client_display_content_control+' .add').click(function() {
          });
-         $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
          this.display_handlers['command_list_response'] = function (ev, jid) {
-             if (Gnosus.areCommandsAvailable(jid)) {
+             if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
-                 var commands = Gnosus.findAllCommands(contact.jid);
+                 this.buildContentList('no-input', Gnosus.findMessagesByJidAndType(contact.jid, 'command'));
              }
          }
          $(document).bind('command_list_response', this.display_handlers['command_list_response'].bind(this));
          this.display_handlers['command_list_error'] = function (ev, jid) {
              this.unblock();
-             this.errorDialog('failed to retrieve command list from <strong>'+jid+'</strong>');
+             this.errorDialog('failed to retrieve command list');
          }
+         $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    

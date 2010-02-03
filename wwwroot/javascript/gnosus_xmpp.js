@@ -1,15 +1,4 @@
 /**********************************************************************************
-object extensions
-**********************************************************************************/
-Object.prototype.keys = function () {
-  var keys = [];
-  for(i in this) if (this.hasOwnProperty(i)) {
-    keys.push(i);
-  }
-  return keys;
-}
-
-/**********************************************************************************
 logging
 **********************************************************************************/
 function rawInput(data) {
@@ -206,36 +195,65 @@ Gnosus = {
     },
     areCommandsAvailable: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
-        var resource = null;
         var has_commands = false;
-        if (bare_jid == Gnosus.account.jid) {
-            resource = Gnosus.findAccountResource(jid)
+        if (bare_jid == jid) {
+            var resources = {};
+            if (bare_jid == Gnosus.account.jid) {
+                resources = Gnosus.findAllAccountResources(jid);
+            } else {
+                resources = Gnosus.findAllContactResources(jid)
+            }
+            for (var resource in resources) {
+                if (!resources[resource].commands) {
+                    has_commands = false;
+                    break;
+                } else {
+                    has_commands = true;
+                }
+            }
         } else {
-            resource = Gnosus.findContactResource(jid)
-        }
-        if (resource) {
-            if (resource.commands) {
-                has_commands = true;
+            var resource = null;
+            if (bare_jid == Gnosus.account.jid) {
+                resource = Gnosus.findAccountResource(jid);
+            } else {
+                resource = Gnosus.findContactResource(jid)
+            }
+            if (resource) {
+                if (resource.commands) {
+                    has_commands = true;
+                }
             }
         }
         return has_commands;
-    }
+    },
     findAllCommands: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var all_commands = {};
-        if (bare_jid == Gnosus.account.jid) {
-            var resource = Gnosus.findAccountResource(jid)
-            all_commands = resource.commands
-        } else {
-            var resources = Gnosus.findAllContactResources(jid)
-            resource = Gnosus.findContactResource(jid)
-        }
-        if (resource) {
-            if (resource.commands) {
-                has_commands = true;
+        var addCommandHash = function (cmds) {
+            for (var cmd in cmds) {
+                all_commands[cmd.node] = cmd;
             }
+        };
+        if (bare_jid == jid) {
+            var resources = [];
+            if (bare_jid == Gnosus.account.jid) {
+                resources = Gnosus.findAllAccountResources(jid);
+            } else {
+                resources = Gnosus.findAllContactResources(jid)
+            }
+            for (var resource in resources) {
+                addCommandHash(resource.commands);
+            }
+        } else {
+            var resource = null;
+            if (bare_jid == Gnosus.account.jid) {
+                resource = Gnosus.findAccountResource(jid);
+            } else {
+                resource = Gnosus.findContactResource(jid)
+            }
+            addCommandHash(resource.commands);
         }
-        return all_commands.keys;
+        return all_commands;
     }
 }
 
@@ -260,7 +278,7 @@ Account.prototype = {
     deleteCommands: function() {
         for(var jid in this.resources) {
             this.resources[jid].deleteCommands();
-        });
+        }
     }    
 }
 
@@ -325,7 +343,7 @@ Contact.prototype = {
     deleteCommands: function() {
         for(var jid in this.resources) {
             this.resources[jid].deleteCommands();
-        });
+        }
     },
 }
 
@@ -337,7 +355,7 @@ function Resource(jid, show, status) {
     this.client_name = '';
     this.client_version = '';
     this.client_os = '';
-    this.commands = null,
+    this.commands = null;
 }
 
 Resource.prototype = {
@@ -348,7 +366,7 @@ Resource.prototype = {
     },
     deleteCommands: function() {
         this.commands = null;
-    }.
+    },
     addCommand: function(node, name) {
         if (!this.commands) {
             this.commands = [];
@@ -361,7 +379,7 @@ Resource.prototype = {
 function Command(jid, node, name) {
     this.node = node;
     this.jid = jid;
-    this.name = name;
+    this.name = name || node;
 }
 
 Command.prototype = {
@@ -444,14 +462,14 @@ GnosusXmpp = {
     commands
     ---------------------------------------------------------------------------------*/
     getCommandList: function (jid) {
-        var iq = $iq({to:jid, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+        var command_iq = $iq({to:jid, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
+        GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
             var type = $(iq).attr('type');
             var jid = $(iq).attr('from');
             if (type == 'result') {
                 $(iq).find('item').each(function () {
                     var node = $(this).attr('node');
-                    var cmd_name = $(this).attr('name') || node;
+                    var cmd_name = $(this).attr('name');
                     Gnosus.addCommand(jid, node, cmd_name);
                 });
                 $(document).trigger('command_list_response', jid);
@@ -480,10 +498,15 @@ Strophe.addConnectionPlugin('roster', {
             this.connection.addHandler(this.onPresence.bind(this), null, 'presence');
             var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER});
             this.connection.sendIQ(roster_iq, function(iq) {
-                $(iq).find('item').each(function () {
-                    Gnosus.addContact($(this));
-                });
-                $(document).trigger('roster_init');
+                var type = $(iq).attr('type');
+                if (type == 'result') {
+                    $(iq).find('item').each(function () {
+                        Gnosus.addContact($(this));
+                    });
+                    $(document).trigger('roster_init_result');
+                } else {
+                    $(document).trigger('roster_init_error');
+                }
             });
             GnosusXmpp.initialPresence();
         } else if (status === Strophe.Status.DISCONNECTED) {
