@@ -422,6 +422,7 @@ GnosusUi.prototype = {
                  cat = parts[0];
                  cmd = parts[1];
              }
+             cats[cat] = cmd;
          });
          dialog += '<div class="command">'+n+'</div>';
          dialog += '</div>';
