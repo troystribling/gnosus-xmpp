@@ -230,9 +230,12 @@ Gnosus = {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var all_commands = {};
         var addCommandHash = function (cmds) {
-            for (var cmd in cmds) {
-                all_commands[cmd.node] = cmd;
-            }
+            $.each(cmds, function() {
+                if (!all_commands[this.name]) {
+                    all_commands[this.name] = []
+                }
+                all_commands[this.name].push($(this));
+            });
         };
         if (bare_jid == jid) {
             var resources = [];
@@ -242,7 +245,7 @@ Gnosus = {
                 resources = Gnosus.findAllContactResources(jid)
             }
             for (var resource in resources) {
-                addCommandHash(resource.commands);
+                addCommandHash(resources[resource].commands);
             }
         } else {
             var resource = null;
@@ -468,9 +471,7 @@ GnosusXmpp = {
             var jid = $(iq).attr('from');
             if (type == 'result') {
                 $(iq).find('item').each(function () {
-                    var node = $(this).attr('node');
-                    var cmd_name = $(this).attr('name');
-                    Gnosus.addCommand(jid, node, cmd_name);
+                    Gnosus.addCommand(jid, $(this).attr('node'), $(this).attr('name'));
                 });
                 $(document).trigger('command_list_response', jid);
             } else {

@@ -618,7 +618,7 @@ ul.contact-display-modes li {
     color: #DDD;
     background-color: #000;
 }
-/*******  dialog style   *******/
+/*******  add contact dialog style  *******/
 .add-contact-dialog label {
     width: 1.0em;
 }
@@ -656,4 +656,11 @@ ul.contact-display-modes li {
 .client-display-toolbar div.control .add:hover {
     background-image:url('/images/item-add-hover.png');
     background-color: #000;
+}
+/*******  command dialog style *******/
+.command-dialog {
+}
+.command-dialog .commands {
+}
+.command-dialog .commands .command {
 }

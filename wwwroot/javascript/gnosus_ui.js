@@ -393,7 +393,8 @@ GnosusUi.prototype = {
              GnosusXmpp.getCommandList(contact.resources[resource].jid);
          }
          $(this.client_display_content_control+' .add').click(function() {
-         });
+             this.commandsDialog(contact);
+         }.bind(this));
          this.display_handlers['command_list_response'] = function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
@@ -407,6 +408,29 @@ GnosusUi.prototype = {
          }
          $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
      },               
+
+     /*-------------------------------------------------------------------------------*/    
+     commandsDialog: function(contact) {
+         var commands = Gnosus.findAllCommands(contact.jid),
+             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="commands" class="commands">',
+             cats = {};
+         $.each(commands, function(n,c) {
+             var parts = n.split('/'),
+                 cat = 'unclassified',
+                 cmd = parts[0];
+             if (parts.length > 1) {
+                 cat = parts[0];
+                 cmd = parts[1];
+             }
+         });
+         dialog += '<div class="command">'+n+'</div>';
+         dialog += '</div>';
+         $(this.item_dialog).remove();            
+         $(this.client).append(dialog); 
+         $(this.item_dialog).dialog({modal:true, resizable:false, 
+             buttons:{'cancel':this.cancelItemDialog.bind(this)},
+             dialogClass:'command-dialog', width:400, height:400});            
+     },
 
      /*-------------------------------------------------------------------------------*/    
      showContactsResourcesDisplay: function(contact_name) {
