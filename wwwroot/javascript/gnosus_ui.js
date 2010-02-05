@@ -412,25 +412,41 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      commandsDialog: function(contact) {
          var commands = Gnosus.findAllCommands(contact.jid),
-             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="commands" class="commands">',
+             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="commands">' +
+                          '<div class="commands">',
              cats = {};
          $.each(commands, function(n,c) {
              var parts = n.split('/'),
-                 cat = 'unclassified',
-                 cmd = parts[0];
+                 cat = 'ungrouped',
+                 cmd = n;
              if (parts.length > 1) {
-                 cat = parts[0];
-                 cmd = parts[1];
+                 cat = parts.shift();
+                 cmd = parts.join('/');
              }
-             cats[cat] = cmd;
+             if (!cats[cat]) {
+                 cats[cat]= [];
+             }
+             cats[cat].push(cmd);
          });
-         dialog += '<div class="command">'+n+'</div>';
-         dialog += '</div>';
+         $.each(cats, function(cat, cmd) {
+             dialog += '<h3><a href="#" class="command-category">'+cat+'</a></h3>'+
+                           '<div>';
+             $.each(cmd, function() {
+                 dialog += '<div class="command">'+this+'</div>';
+             });
+             dialog += '</div>';
+         });
+         dialog += '</div></div>';
          $(this.item_dialog).remove();            
          $(this.client).append(dialog); 
          $(this.item_dialog).dialog({modal:true, resizable:false, 
              buttons:{'cancel':this.cancelItemDialog.bind(this)},
-             dialogClass:'command-dialog', width:400, height:400});            
+             dialogClass:'command-dialog', width:400, height:400}); 
+         $(this.item_dialog+' .commands').accordion({collapsible: true});                
+         $(this.item_dialog+' .command').click(function() {
+             GnosusXmpp.sendCommand();
+             this.cancelItemDialog();
+         }.bind(this));
      },
 
      /*-------------------------------------------------------------------------------*/    
