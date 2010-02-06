@@ -444,8 +444,7 @@ GnosusUi.prototype = {
              dialogClass:'command-dialog', width:400, height:400}); 
          $(this.item_dialog+' .commands').accordion({collapsible: true});                
          $(this.item_dialog+' .command').click(function() {
-             var cat = $(this).parent('div').prev('h3').text();
-             var node = cat+'/'+$(this).text();
+             var node = $(this).parent('div').prev('h3').text()+'/'+$(this).text().replace(/ /g,'_');
              $.each(contact.resources, function(jid, r) {
                  GnosusXmpp.sendCommand({to:jid, node:node});
              });
