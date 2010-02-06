@@ -30,18 +30,18 @@ GnosusUi.prototype = {
      * utils
      *-------------------------------------------------------------------------------*/    
     itemsUnbind: function() {
-        for (var evt in this.items_handlers) {
-            $(document).unbind(evt);
-            delete(this.items_handlers[evt]);
-        } 
+        $.each(this.items_handlers, function(e, h) {
+            $(document).unbind(e);
+            delete(h);
+        });
     },
     
     /*-------------------------------------------------------------------------------*/    
     displayUnbind: function() {
-        for (var evt in this.display_handlers) {
-            $(document).unbind(evt);
-            delete(this.display_handlers[evt]);
-        } 
+        $.each(this.display_handlers, function(e,h) {
+            $(document).unbind(e);
+            delete(h);
+        });
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -389,11 +389,11 @@ GnosusUi.prototype = {
          $(this.client_display_content_control).append(toolbar);
          contact.deleteCommands();
          this.block('retrieving command list');
-         for (var resource in contact.resources) {
-             GnosusXmpp.getCommandList(contact.resources[resource].jid);
-         }
+         $.each(contact.resources, function(j,r) {
+             GnosusXmpp.getCommandList(r.jid);
+         });
          $(this.client_display_content_control+' .add').click(function() {
-             this.commandsDialog(contact);
+             this.contactCommandsDialog(contact);
          }.bind(this));
          this.display_handlers['command_list_response'] = function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
@@ -410,11 +410,11 @@ GnosusUi.prototype = {
      },               
 
      /*-------------------------------------------------------------------------------*/    
-     commandsDialog: function(contact) {
-         var commands = Gnosus.findAllCommands(contact.jid),
-             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="commands">' +
-                          '<div class="commands">',
-             cats = {};
+     contactCommandsDialog: function(contact) {
+         var commands  = Gnosus.findAllCommands(contact.jid),
+             dialog    = '<div id="'+this.toId(this.item_dialog)+'" title="commands">'+'<div class="commands">',
+             cats      = {},
+             client_ui = this;
          $.each(commands, function(n,c) {
              var parts = n.split('/'),
                  cat = 'ungrouped',
@@ -430,7 +430,7 @@ GnosusUi.prototype = {
          });
          $.each(cats, function(cat, cmd) {
              dialog += '<h3><a href="#" class="command-category">'+cat+'</a></h3>'+
-                           '<div>';
+                       '<div>';
              $.each(cmd, function() {
                  dialog += '<div class="command">'+this+'</div>';
              });
@@ -444,9 +444,13 @@ GnosusUi.prototype = {
              dialogClass:'command-dialog', width:400, height:400}); 
          $(this.item_dialog+' .commands').accordion({collapsible: true});                
          $(this.item_dialog+' .command').click(function() {
-             GnosusXmpp.sendCommand();
-             this.cancelItemDialog();
-         }.bind(this));
+             var cat = $(this).parent('div').prev('h3').text();
+             var node = cat+'/'+$(this).text();
+             $.each(contact.resources, function(jid, r) {
+                 GnosusXmpp.sendCommand({to:jid, node:node});
+             });
+             client_ui.cancelItemDialog();
+         });
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -536,8 +540,8 @@ GnosusUi.prototype = {
             function() {$(this).removeClass('selected').find('.controls').hide();}
         ); 
         select_item.find('.item').click(function() {
-            $(this).parent('li').siblings('.open').removeClass('open');
-            $(this).parent('li').addClass('open')
+            $(this).parents('li').siblings('.open').removeClass('open');
+            $(this).parents('li').addClass('open')
             client_ui['showContactsDisplay']($(this).text());
         }); 
         select_item.find('img').click(function() {            

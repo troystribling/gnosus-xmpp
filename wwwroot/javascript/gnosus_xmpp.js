@@ -66,12 +66,12 @@ Gnosus = {
     },
     findContactByName: function(name) {
         var result = null;
-        for (var contact in Gnosus.contacts) {
-            if (Gnosus.contacts[contact].name == name) {
-                result = Gnosus.contacts[contact];
+        for (var jid in Gnosus.contacts) {
+            if (Gnosus.contacts[jid].name == name) {
+                result = Gnosus.contacts[jid];
                 break;
             }
-        }            
+        }
         return result;
     },
     findAllContacts: function() {
@@ -127,9 +127,9 @@ Gnosus = {
         return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources[jid] : null;
     },
     contactOffline: function() {
-        for (var contact in Gnosus.contacts) {
-            Gnosus.contacts[contact].resources = {};
-        }            
+        $.each(Gnosus.contacts, function(j,c) {
+            c.resources = {};
+        });
     },
 
     /*-------------------------------------------------------------------------------
@@ -203,8 +203,8 @@ Gnosus = {
             } else {
                 resources = Gnosus.findAllContactResources(jid)
             }
-            for (var resource in resources) {
-                if (!resources[resource].commands) {
+            for (var jid in resources) {
+                if (!resources[jid].commands) {
                     has_commands = false;
                     break;
                 } else {
@@ -244,9 +244,9 @@ Gnosus = {
             } else {
                 resources = Gnosus.findAllContactResources(jid)
             }
-            for (var resource in resources) {
-                addCommandHash(resources[resource].commands);
-            }
+            $.each(resources, function(j,r) {
+                addCommandHash(r.commands);
+            });
         } else {
             var resource = null;
             if (bare_jid == Gnosus.account.jid) {
@@ -279,9 +279,9 @@ Account.prototype = {
         this.resources[resource.jid] = resource;
     },
     deleteCommands: function() {
-        for(var jid in this.resources) {
-            this.resources[jid].deleteCommands();
-        }
+        $.each(this.resources, function(j,r) {
+            r.deleteCommands();
+        });
     }    
 }
 
@@ -319,8 +319,8 @@ function Contact(jid, name, ask, subscription, groups) {
 Contact.prototype = {
     show: function() {
         var stat = 'offline';
-        for (var k in this.resources) {
-            stat = this.resources[k].show;
+        for (var jid in this.resources) {
+            stat = this.resources[jid].show;
             if (stat == 'online') {
                 break;
             }
@@ -344,9 +344,9 @@ Contact.prototype = {
         this.resources = {};
     },
     deleteCommands: function() {
-        for(var jid in this.resources) {
-            this.resources[jid].deleteCommands();
-        }
+        $.each(this.resources, function(j,r) {
+            r.deleteCommands();
+        });
     },
 }
 
@@ -464,8 +464,8 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------
     commands
     ---------------------------------------------------------------------------------*/
-    getCommandList: function (jid) {
-        var command_iq = $iq({to:jid, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
+    getCommandList: function (to) {
+        var command_iq = $iq({to:to, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
         GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
             var type = $(iq).attr('type');
             var jid = $(iq).attr('from');
@@ -481,10 +481,25 @@ GnosusXmpp = {
     },  
     
     /*-------------------------------------------------------------------------------*/
-    sendCommand: function (jid) {
+    sendCommand: function (args) {
+        var cmd_attr = {xmlns: Strophe.NS.COMMANDS, node:args['node']};
+        if (args['action']) {
+            cmd_attr['action'] = args['action'];
+        }
+        var command_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
+        if (args['payload']) {
+        }
+        GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
+            var type = $(iq).attr('type');
+            var jid = $(iq).attr('from');
+            if (type == 'result') {
+                $(document).trigger('command_response', jid);
+            } else {
+                $(document).trigger('command_error', jid);
+            }
+        });
     },
- 
-            
+             
 }
 
 /**********************************************************************************
@@ -649,5 +664,37 @@ Strophe.addConnectionPlugin('disco', {
         this.connection.send(resp);
         return true;
     }
+
+});
+
+/**********************************************************************************
+commands
+**********************************************************************************/
+Strophe.addConnectionPlugin('commands', {
+
+    /*-------------------------------------------------------------------------------*/
+    init: function (connection) {
+        this.connection = connection;
+        Strophe.addNamespace('COMMANDS', 'http://jabber.org/protocol/commands');
+        Strophe.addNamespace('XDATA', 'jabber:x:data');
+    },
+ 
+    /*-------------------------------------------------------------------------------*/
+    statusChanged: function (status) {
+        if (status === Strophe.Status.CONNECTED) {
+        	this.connection.addHandler(this.onCommandSet.bind(this), Strophe.NS.COMMANDS, 'iq', 'set'); 
+        }
+    },
+ 
+    /*-------------------------------------------------------------------------------*/
+    onCommandSet: function (iq) {
+        var resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
+            .c('command', {xmlns:Strophe.NS.COMMANDS, node:$(iq).find('command').attr('node'), action:'execute'}).up()
+            .c('error', {type: 'modify'})
+            .c('bad-request', {xmlns: Strophe.NS.XMPPSTANZAS}).up()
+            .c('bad-action', {xmlns: Strophe.NS.COMMANDS});
+        this.connection.send(resp);
+        return true;
+    },
 
 });
