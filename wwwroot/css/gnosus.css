@@ -557,12 +557,12 @@ ul.client-display-list li {
 .message-info {
 }
 .message-info .from {    
-    color: #999;
+    color: #BBB;
     float: left;
     font-size: 0.75em;
 }
 .message-info .date {    
-    color: #999;
+    color: #BBB;
     float: right;
     font-size: 0.75em;
     right: 0px;
@@ -577,26 +577,60 @@ ul.client-display-list li {
 .command-request-message { 
 }
 .command-request-message .header {
-    color: #999;
+    color: #BBB;
     font-size: 0.75em;
-    padding: 25px 0px 0px 0px;  
+    padding: 20px 0px 0px 0px;  
 }
 .command-request-message .node {
-    padding: 5px 0px 0px 0px;  
+    padding: 7px 0px 0px 0px;  
 }
 /*******  x-message *******/
 .x-message { 
 }
 .x-message .node { 
-    color: #999;
+    color: #BBB;
     font-size: 0.75em;
-    padding: 25px 0px 0px 0px;  
+    padding: 20px 0px 0px 0px;  
 }
 .x-message .scalar {
-    padding: 5px 0px 0px 0px;  
+    padding: 7px 0px 0px 0px;  
 }
-.x-message .array {
-    padding: 25px 0px 0px 0px;  
+.x-message .scalar-array {
+    padding: 7px 0px 0px 0px;  
+}
+.x-message table.hash {
+    border: 1px solid #DDD;
+    margin: 7px 0px 0px 0px;
+    border-collapse: collapse; 
+}
+.x-message table.hash td.attr {
+    background-color: #DDD;
+    padding: 5px 15px;
+    text-align: left;
+    border: 1px solid #CCC;
+}
+.x-message table.hash td.val {
+    padding: 5px 15px;
+    text-align: center;
+    font-size: 0.9em;
+    border: 1px solid #CCC;
+}
+.x-message table.array-hash {
+    border: 1px solid #DDD;
+    margin: 7px 0px 0px 0px;
+    border-collapse: collapse; 
+}
+.x-message table.array-hash th {
+    background-color: #DDD;
+    padding: 5px 15px;
+    text-align: center;
+    border: 1px solid #CCC;
+}
+.x-message table.array-hash td {
+    padding: 5px 15px;
+    text-align: center;
+    font-size: 0.9em;
+    border: 1px solid #CCC;
 }
 /*******  client-display-input *******/
 .client-display-input {  

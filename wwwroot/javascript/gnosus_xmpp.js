@@ -177,6 +177,13 @@ Gnosus = {
                       });   
         return result;         
     },
+    findMessagesByJidAndContentType: function(jid, content_type) {
+        var jid_rexp = new RegExp(jid, 'g');
+        var result = $.grep(Gnosus.messages, function(m) {
+                        return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.content_type == content_type)
+                      });   
+        return result;         
+    },
     
     /*-------------------------------------------------------------------------------
     commands

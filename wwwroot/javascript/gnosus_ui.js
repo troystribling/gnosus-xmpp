@@ -406,7 +406,7 @@ GnosusUi.prototype = {
          this.display_handlers['command_list_response'] = function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
-                 this.buildContentList('no-input', Gnosus.findMessagesByJidAndType(contact.jid, 'command'));
+                 this.buildContentList('no-input', Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'));
              }
          }
          $(document).bind('command_list_response', this.display_handlers['command_list_response'].bind(this));
@@ -523,76 +523,6 @@ GnosusUi.prototype = {
         $(this.client_display_content).append(msgs.join(''));
     },   
       
-    /*-------------------------------------------------------------------------------*/    
-    messageInfo: function(msg) {
-        var from = msg.from;
-        return '<div class="message-info">'+
-                   '<div class="from">'+from+'</div>'+
-                   '<div class="date">'+msg.createdAtAsString()+'</div>'+
-                '</div>';
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    buildChatTextMessage: function(msg) {
-        return '<li><div class="chat-text-message">'+
-                   this.messageInfo(msg)+
-                   '<div class="text">'+msg.text+'</div>'+
-               '</div></li>';
-    },
-
-    /*-------------------------------------------------------------------------------*/    
-    buildCommandRequestCommandMessage: function(msg) {
-        return '<li><div class="command-request-message">'+
-                   this.messageInfo(msg)+
-                   '<div class="header">command request</div>'+
-                   '<div class="node">'+msg.text+'</div>'+
-               '</div></li>';
-    },
-    
-    /*-------------------------------------------------------------------------------*/    
-    buildXCommandMessage: function(msg) {
-        return '<li><div class="x-message">'+
-                   this.messageInfo(msg)+
-                   '<div class="node">'+msg.node+'</div>'+
-                   this.buildXDataBody(msg.text)+
-               '</div></li>';
-    },
-    
-    /*-------------------------------------------------------------------------------*/ 
-    buildXDataBody: function(data) {
-        var fields    = $(data).find('field'),
-            items     = $(data).find('item'),
-            data_type = 'Scalar';
-        if (items.length == 0) {
-            var vals = fields.eq(0).find('values');
-            if (fields.length > 1) {
-                if (vals.length > 1) {
-                    data_type= 'HashArray';
-                } else {
-                    data_type = 'Hash';
-                }
-            } else {
-                if (vals.length > 1) {
-                    data_type= 'ScalarArray';
-                }
-            }           
-        } else {
-            fields = $(items).find('field');
-            vals = $(fields).eq(0).find('values');
-            if (vals.length > 1) {
-                data_type = 'ArrayHashArray';
-            } else {
-                data_type = 'ArrayHash';
-            }
-        }
-        return this['buildXData'+data_type](data);
-    },
-
-    /*-------------------------------------------------------------------------------*/ 
-    buildXDataScalar: function(data) {
-        return '<div class="scalar">'+$(data).find('value').eq(0).text()+'</div>';
-    },
-
     /*-------------------------------------------------------------------------------*/ 
     buildItemListItem: function (item_name, item_type, item_status) { 
         var status = item_status || '',  
@@ -636,8 +566,135 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/ 
     unblock: function() {
         $.unblockUI();
-    }
+    },
     
+    /*-------------------------------------------------------------------------------
+     * message displays 
+     *-------------------------------------------------------------------------------*/ 
+    messageInfo: function(msg) {
+        var from = msg.from;
+        return '<div class="message-info">'+
+                   '<div class="from">'+from+'</div>'+
+                   '<div class="date">'+msg.createdAtAsString()+'</div>'+
+                '</div>';
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    buildChatTextMessage: function(msg) {
+        return '<li><div class="chat-text-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="text">'+msg.text+'</div>'+
+               '</div></li>';
+    },
+
+    /*-------------------------------------------------------------------------------
+     * x data displays 
+     *-------------------------------------------------------------------------------*/ 
+    buildCommandRequestCommandMessage: function(msg) {
+        return '<li><div class="command-request-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="header">command request</div>'+
+                   '<div class="node">'+msg.text+'</div>'+
+               '</div></li>';
+    },
+    
+    /*-------------------------------------------------------------------------------*/    
+    buildXCommandMessage: function(msg) {
+        return '<li><div class="x-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="node">'+msg.node+'</div>'+
+                   this.buildXDataBody(msg.text)+
+               '</div></li>';
+    },
+    
+    /*-------------------------------------------------------------------------------*/    
+    buildXDataBody: function(data) {
+        var fields    = $(data).find('field'),
+            items     = $(data).find('item'),
+            data_type = 'Scalar';
+        if (items.length == 0) {
+            var vals = fields.eq(0).find('value');
+            if (fields.length > 1) {
+                if (vals.length > 1) {
+                    data_type= 'HashArray';
+                } else {
+                    data_type = 'Hash';
+                }
+            } else {
+                if (vals.length > 1) {
+                    data_type= 'ScalarArray';
+                }
+            }           
+        } else {
+            fields = $(items).find('field');
+            vals = $(fields).eq(0).find('value');
+            if (vals.length > 1) {
+                data_type = 'ArrayHashArray';
+            } else {
+                data_type = 'ArrayHash';
+            }
+        }
+        return this['buildXData'+data_type](data);
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildXDataScalar: function(data) {
+        return '<div class="scalar">'+$(data).find('value').eq(0).text()+'</div>';
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildXDataScalarArray: function(data) {
+        var vals = $.map($(data).find('value'), function(v,i) {
+                       return $(v).text();
+                   }).join(', ');
+        return '<div class="scalar-array">'+vals+'</div>';
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildXDataHash: function(data) {
+        var tab = '<table class="hash">'+ 
+                      $.map($(data).find('field'), function(f,i) {
+                          var row = '<tr>'+
+                                        '<td class="attr">'+$(f).attr('var')+'</td>'+
+                                        '<td class="val">'+$(f).find('value').eq(0).text()+'</td>'+
+                                    '</tr>';
+                          return row;
+                      }).join('')+
+                  '</table>';
+        return tab;
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildXDataArrayHash: function(data) {
+        var attrs = $.map($(data).find('reported').find('field'), function(a,i) {
+                        return $(a).attr('var');
+                    }),
+            vals  = $.map($(data).find('item'), function(t,i) {
+                        var hsh = {};
+                        $(t).find('field').each(function() {
+                            var attr = $(this).attr('var');
+                            var val = $(this).find('value').eq(0).text();
+                            hsh[attr] = val;
+                        });
+                        return hsh;         
+                    });
+            
+        var tab = '<table class="array-hash">'+ 
+                      $.map(attrs, function(a,i) {
+                          return '<th>'+a+'</th>';
+                      }).join('')+
+                      $.map(vals, function(h,i) {
+                          var row = '<tr>';
+                          $.each(attrs, function(i,a) {
+                              row += '<td>'+h[a]+'</td>';
+                          });
+                          row += '</tr>';
+                          return row;
+                      }).join('')+
+                  '</table>';
+        return tab;
+    },
+
 };
 
 /**********************************************************************************
