@@ -10,7 +10,7 @@ function GnosusUi(num) {
     this.client_items_toolbar           = this.client+' .client-items-toolbar';
     this.client_item_type_selected      = this.client+' .client-item-type-selected';
     this.client_items_add               = this.client+' .client-items-add';
-    this.client_items_home              = this.client+' .client-items-home';
+    this.client_items_history           = this.client+' .client-items-history';
     this.client_display_content         = this.client+' .client-display-content';
     this.client_display_list            = this.client+' .client-display-list';
     this.client_display_toolbar         = this.client+' .client-display-toolbar';
@@ -48,6 +48,14 @@ GnosusUi.prototype = {
     capitalize: function(str) {return str.charAt(0).toUpperCase()+str.substr(1);},
 
     /*-------------------------------------------------------------------------------*/    
+    camelize: function(str) {
+        var client_ui = this;
+        return $.map(str.split('_'), function(s,i) {
+                   return client_ui.capitalize(s);
+               }).join('');
+    },
+
+    /*-------------------------------------------------------------------------------*/    
     singular: function(str) {return str.replace(/s$/,'');},
 
     /*-------------------------------------------------------------------------------*/    
@@ -80,7 +88,7 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showItemsToolbar: function(item_type, add_item) {
          $(this.client_items_toolbar).empty();
-         var toolbar = '<div class="client-items-home"/>' +        
+         var toolbar = '<div class="client-items-history"/>' +        
                        '<div class="client-item-type-selector">'+ 
                            '<div class="client-item-type-selected">' + item_type + '</div>' +
                        '</div>' +
@@ -91,10 +99,10 @@ GnosusUi.prototype = {
              var item_type = client_ui.itemTypeSelected();
              client_ui['add'+client_ui.capitalize(client_ui.singular(item_type))+'Dialog']();
          });
-         $(this.client_items_home).click(function() {            
+         $(this.client_items_history).click(function() {            
              var item_type = client_ui.itemTypeSelected();
              $(client_ui.client_items_content+' ul li').removeClass('open');
-             client_ui['home'+client_ui.capitalize(item_type)]();
+             client_ui['history'+client_ui.capitalize(item_type)]();
          });
          var type_choices = this.item_type_choices;
          $(this.client_item_type_selected).click(function() {
@@ -209,20 +217,20 @@ GnosusUi.prototype = {
      },
 
     /*-------------------------------------------------------------------------------*/    
-    homeContacts: function() {
+    historyContacts: function() {
         this.showAllMessagesDisplay();
     },
 
     /*-------------------------------------------------------------------------------*/    
-    homeResources: function() {
+    historyResources: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    homeSubscriptions: function() {
+    historySubscriptions: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    homePublications: function() {
+    historyPublications: function() {
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -407,6 +415,16 @@ GnosusUi.prototype = {
              this.errorDialog('failed to retrieve command list');
          }
          $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
+         this.display_handlers['command_response'] = function (ev, msg) {
+             $(this.client_display_list).prepend(this.buildXCommandMessage(msg));
+             this.unblock();
+         }
+         $(document).bind('command_response', this.display_handlers['command_response'].bind(this));
+         this.display_handlers['command_error'] = function (ev, jid) {
+             this.unblock();
+             this.errorDialog('command request failed');
+         }
+         $(document).bind('command_error', this.display_handlers['command_error'].bind(this));
      },               
 
      /*-------------------------------------------------------------------------------*/    
@@ -446,9 +464,10 @@ GnosusUi.prototype = {
          $(this.item_dialog+' .command').click(function() {
              var node = $(this).parent('div').prev('h3').text()+'/'+$(this).text().replace(/ /g,'_');
              $.each(contact.resources, function(jid, r) {
-                 GnosusXmpp.sendCommand({to:jid, node:node});
+                 $(client_ui.client_display_list).prepend(client_ui.buildCommandRequestCommandMessage(GnosusXmpp.sendCommand({to:jid, node:node})));
              });
              client_ui.cancelItemDialog();
+             client_ui.block('command request pending');
          });
      },
 
@@ -497,26 +516,83 @@ GnosusUi.prototype = {
         var msgs = ['<ul class="client-display-list '+list_type+'">'];
         var client_ui = this;
         $.each(content_list, function () {
-            msgs.push(client_ui['build'+client_ui.capitalize(this.type)+client_ui.capitalize(this.content_type)+'Message'](this));
+            var msg = 'build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message';
+            msgs.push(client_ui['build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message'](this));
         });
         msgs.push('</ul>')
         $(this.client_display_content).append(msgs.join(''));
     },   
       
     /*-------------------------------------------------------------------------------*/    
+    messageInfo: function(msg) {
+        var from = msg.from;
+        return '<div class="message-info">'+
+                   '<div class="from">'+from+'</div>'+
+                   '<div class="date">'+msg.createdAtAsString()+'</div>'+
+                '</div>';
+    },
+
+    /*-------------------------------------------------------------------------------*/    
     buildChatTextMessage: function(msg) {
-        var account_rexp = new RegExp(Gnosus.account.jid, 'g'),
-            from = msg.from,
-            chat = '<li><div class="chat-text-message">'+
-                       '<div class="info">'+
-                           '<div class="from">'+from+'</div>'+
-                           '<div class="date">'+msg.createdAtAsString()+'</div>'+
-                       '</div>'+
-                       '<div class="text">'+msg.text+'</div>'+
-                   '</div></li>';
-        return chat;
+        return '<li><div class="chat-text-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="text">'+msg.text+'</div>'+
+               '</div></li>';
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    buildCommandRequestCommandMessage: function(msg) {
+        return '<li><div class="command-request-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="header">command request</div>'+
+                   '<div class="node">'+msg.text+'</div>'+
+               '</div></li>';
     },
     
+    /*-------------------------------------------------------------------------------*/    
+    buildXCommandMessage: function(msg) {
+        return '<li><div class="x-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="node">'+msg.node+'</div>'+
+                   this.buildXDataBody(msg.text)+
+               '</div></li>';
+    },
+    
+    /*-------------------------------------------------------------------------------*/ 
+    buildXDataBody: function(data) {
+        var fields    = $(data).find('field'),
+            items     = $(data).find('item'),
+            data_type = 'Scalar';
+        if (items.length == 0) {
+            var vals = fields.eq(0).find('values');
+            if (fields.length > 1) {
+                if (vals.length > 1) {
+                    data_type= 'HashArray';
+                } else {
+                    data_type = 'Hash';
+                }
+            } else {
+                if (vals.length > 1) {
+                    data_type= 'ScalarArray';
+                }
+            }           
+        } else {
+            fields = $(items).find('field');
+            vals = $(fields).eq(0).find('values');
+            if (vals.length > 1) {
+                data_type = 'ArrayHashArray';
+            } else {
+                data_type = 'ArrayHash';
+            }
+        }
+        return this['buildXData'+data_type](data);
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildXDataScalar: function(data) {
+        return '<div class="scalar">'+$(data).find('value').eq(0).text()+'</div>';
+    },
+
     /*-------------------------------------------------------------------------------*/ 
     buildItemListItem: function (item_name, item_type, item_status) { 
         var status = item_status || '',  

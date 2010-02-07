@@ -498,8 +498,8 @@ tr.data-edit-select {
     background-image:url('/images/item-add-hover.png');
     background-color: #000;
 }
-.client-items-home {
-    background-image:url('/images/item-home.png');
+.client-items-history {
+    background-image:url('/images/item-history.png');
     position: absolute;
     top: 8px;
     left: 10px;
@@ -507,8 +507,8 @@ tr.data-edit-select {
     height: 25px;
     cursor: pointer;
 }
-.client-items-home:hover {
-    background-image:url('/images/item-home-hover.png');
+.client-items-history:hover {
+    background-image:url('/images/item-history-hover.png');
     background-color: #000;
 }
 /*******  client-item-type-selector *******/
@@ -553,23 +553,49 @@ ul.client-display-list li {
 .client-display-list.input{
     height: 194px;
 }
-/*******  chat-text-message *******/
-.chat-text-message { 
+/*******  message-info *******/
+.message-info {
 }
-.chat-text-message .info {
-}
-.chat-text-message .from {    
+.message-info .from {    
     color: #999;
     float: left;
     font-size: 0.75em;
 }
-.chat-text-message .date {    
+.message-info .date {    
     color: #999;
     float: right;
     font-size: 0.75em;
     right: 0px;
 }
+/*******  chat-text-message *******/
+.chat-text-message { 
+}
 .chat-text-message .text {
+    padding: 25px 0px 0px 0px;  
+}
+/*******  command-request-message *******/
+.command-request-message { 
+}
+.command-request-message .header {
+    color: #999;
+    font-size: 0.75em;
+    padding: 25px 0px 0px 0px;  
+}
+.command-request-message .node {
+    padding: 5px 0px 0px 0px;  
+}
+/*******  x-message *******/
+.x-message { 
+}
+.x-message .node { 
+    color: #999;
+    font-size: 0.75em;
+    padding: 25px 0px 0px 0px;  
+}
+.x-message .scalar {
+    padding: 5px 0px 0px 0px;  
+}
+.x-message .array {
     padding: 25px 0px 0px 0px;  
 }
 /*******  client-display-input *******/

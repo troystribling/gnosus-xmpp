@@ -193,6 +193,18 @@ Gnosus = {
             resource.addCommand(node, name);
         }
     },
+    initCommands: function(jid) {
+        var bare_jid = Strophe.getBareJidFromJid(jid);
+        var resource = null;
+        if (bare_jid == Gnosus.account.jid) {
+            resource = Gnosus.findAccountResource(jid)
+        } else {
+            resource = Gnosus.findContactResource(jid)
+        }
+        if (resource) {
+            resource.initCommands();
+        }
+    },
     areCommandsAvailable: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var has_commands = false;
@@ -257,7 +269,24 @@ Gnosus = {
             addCommandHash(resource.commands);
         }
         return all_commands;
-    }
+    },
+    addIncomingCommandXDataMessage: function(iq) {
+        var cmd  = $(iq).find('command').eq(0);
+            data = $(iq).find('x').eq(0);
+        var msg_model = new Message($(iq).attr('to'), $(iq).attr('from'), data, 'x', 'command', $(cmd).attr('node'));
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
+    },
+    addOutgoingCommandXDataMessage: function(to, node, data) {
+        var msg_model = new Message(to, Gnosus.account.fullJid(), data, 'x', 'command', node);
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
+    },
+    addOutgoingCommandRequestMessage: function(to, node) {
+        var msg_model = new Message(to, Gnosus.account.fullJid(), node, 'command_request', 'command', node);
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
+    },
 }
 
 /**********************************************************************************
@@ -370,10 +399,12 @@ Resource.prototype = {
     deleteCommands: function() {
         this.commands = null;
     },
-    addCommand: function(node, name) {
+    initCommands: function() {
         if (!this.commands) {
             this.commands = [];
         }
+    },
+    addCommand: function(node, name) {
         this.commands.push(new Command(this.jid, node, name));
     }
 }
@@ -470,6 +501,7 @@ GnosusXmpp = {
             var type = $(iq).attr('type');
             var jid = $(iq).attr('from');
             if (type == 'result') {
+                Gnosus.initCommands(jid);
                 $(iq).find('item').each(function () {
                     Gnosus.addCommand(jid, $(this).attr('node'), $(this).attr('name'));
                 });
@@ -482,24 +514,28 @@ GnosusXmpp = {
     
     /*-------------------------------------------------------------------------------*/
     sendCommand: function (args) {
-        var cmd_attr = {xmlns: Strophe.NS.COMMANDS, node:args['node']};
+        var cmd_attr = {xmlns: Strophe.NS.COMMANDS, node:args['node']},
+            msg = null;
+            command_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['action']) {
             cmd_attr['action'] = args['action'];
         }
-        var command_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['payload']) {
+            msg = Gnosus.addOutgoingCommandXDataMessage(args['to'], args['node'], args['payload']);
+        } else {
+            msg = Gnosus.addOutgoingCommandRequestMessage(args['to'], args['node']);
         }
         GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
             var type = $(iq).attr('type');
             var jid = $(iq).attr('from');
             if (type == 'result') {
-                $(document).trigger('command_response', jid);
+                $(document).trigger('command_response', Gnosus.addIncomingCommandXDataMessage(iq));
             } else {
                 $(document).trigger('command_error', jid);
             }
         });
-    },
-             
+        return msg;
+    },             
 }
 
 /**********************************************************************************
