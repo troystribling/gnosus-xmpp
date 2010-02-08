@@ -635,16 +635,14 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/ 
     buildXDataHash: function(data) {
         var client_ui = this;
-        var tab = '<table class="hash">'+ 
-                      $.map($(data).find('field'), function(f,i) {
-                          var row = '<tr>'+
-                                        '<td class="attr">'+$(f).attr('var')+'</td>'+
-                                        '<td class="val">'+client_ui.getXDataValues(f)+'</td>'+
-                                    '</tr>';
-                          return row;
-                      }).join('')+
-                  '</table>';
-        return tab;
+        return '<table class="hash">'+ 
+                   $.map($(data).find('field'), function(f,i) {
+                          return '<tr>'+
+                                     '<td class="attr">'+$(f).attr('var')+'</td>'+
+                                     '<td class="val">'+client_ui.getXDataValues(f)+'</td>'+
+                                 '</tr>';
+                   }).join('')+
+               '</table>';
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -656,9 +654,7 @@ GnosusUi.prototype = {
             vals      = $.map($(data).find('item'), function(t,i) {
                             var hsh = {};
                             $(t).find('field').each(function() {
-                                var attr = $(this).attr('var');
-                                var val = client_ui.getXDataValues(this);
-                                hsh[attr] = val;
+                                hsh[$(this).attr('var')] = client_ui.getXDataValues(this);
                             });
                             return hsh;         
                         });           
