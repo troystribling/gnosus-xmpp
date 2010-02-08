@@ -415,6 +415,15 @@ GnosusUi.prototype = {
              this.errorDialog('failed to retrieve command list');
          }
          $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
+         this.display_handlers['command_form'] = function (ev, iq) {
+             this.unblock();
+             this.formDialog(iq);
+         }
+         $(document).bind('command_form', this.display_handlers['command_form'].bind(this));
+         this.display_handlers['command_cancel'] = function (ev, msg) {
+             this.unblock();
+         }
+         $(document).bind('command_cancel', this.display_handlers['command_cancel'].bind(this));
          this.display_handlers['command_response'] = function (ev, msg) {
              $(this.client_display_list).prepend(this.buildXCommandMessage(msg));
              this.unblock();
@@ -441,17 +450,13 @@ GnosusUi.prototype = {
                  cat = parts.shift();
                  cmd = parts.join('/');
              }
-             if (!cats[cat]) {
-                 cats[cat]= [];
-             }
+             if (!cats[cat]) {cats[cat]= [];}
              cats[cat].push(cmd);
          });
          $.each(cats, function(cat, cmd) {
              dialog += '<h3><a href="#" class="command-category">'+cat+'</a></h3>'+
                        '<div>';
-             $.each(cmd, function() {
-                 dialog += '<div class="command">'+this+'</div>';
-             });
+             $.each(cmd, function() {dialog += '<div class="command">'+this+'</div>';});
              dialog += '</div>';
          });
          dialog += '</div></div>';
@@ -468,6 +473,32 @@ GnosusUi.prototype = {
              });
              client_ui.cancelItemDialog();
              client_ui.block('command request pending');
+         });
+     },
+
+     /*-------------------------------------------------------------------------------*/    
+     formDialog: function(form) {
+         var form    = '<div id="'+this.toId(this.item_dialog)+'" title="command form">',
+             title   = $(form).find('title').text(),
+             inst    = $(form).find('instructions').text();
+             client_ui = this;
+        $(form).find('field').each(function() {
+         });
+         dialog += '</div>';
+         $(this.item_dialog).remove();            
+         $(this.client).append(dialog); 
+         $(this.item_dialog).dialog({modal:true, resizable:false, 
+             buttons:{
+                 'cancel':function() {
+                              GnosusXmpp.sendCommandCancel(form);
+                              this.cancelItemDialog();            
+                              this.block('canceling');
+                          }.bind(this),
+                 'send':function(){
+                            this.cancelItemDialog();            
+                            client_ui.block('command request pending');
+                        }.bind(this)},
+             dialogClass:'x-form', width:400, height:400
          });
      },
 

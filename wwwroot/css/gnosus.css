@@ -630,6 +630,9 @@ ul.client-display-list li {
     font-size: 0.9em;
     border: 1px solid #CCC;
 }
+/*******  x-form *******/
+.x-form { 
+}
 /*******  client-display-input *******/
 .client-display-input {  
     border-bottom: 5px solid #DDD;

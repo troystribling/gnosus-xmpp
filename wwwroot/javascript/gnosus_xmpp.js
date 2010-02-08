@@ -330,7 +330,7 @@ function Message(to, from, text, type, content_type, node, item_id) {
     this.content_type = content_type;
     this.node = node;
     this.item_id = item_id;
-    this.created_at = new Date(); 
+    this.created_at = new Date();
 }
 
 Message.prototype = {
@@ -522,7 +522,7 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------*/
     sendCommand: function (args) {
         var cmd_attr = {xmlns: Strophe.NS.COMMANDS, node:args['node']},
-            msg = null;
+            msg = null,
             command_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['action']) {
             cmd_attr['action'] = args['action'];
@@ -533,16 +533,42 @@ GnosusXmpp = {
             msg = Gnosus.addOutgoingCommandRequestMessage(args['to'], args['node']);
         }
         GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
-            var type = $(iq).attr('type');
-            var jid = $(iq).attr('from');
+            var type = $(iq).attr('type'),
+                jid  = $(iq).attr('from');
             if (type == 'result') {
-                $(document).trigger('command_response', Gnosus.addIncomingCommandXDataMessage(iq));
+                var x   = $(iq).find('x').eq(0),
+                    x_type = 'result';
+                if (x) {x_type = $(x).attr}
+                if (x_type == 'form') {
+                    $(document).trigger('command_form', iq);
+                } else {
+                    $(document).trigger('command_response', Gnosus.addIncomingCommandXDataMessage(iq));
+                }
             } else {
                 $(document).trigger('command_error', jid);
             }
         });
         return msg;
-    },             
+    },
+     
+    /*-------------------------------------------------------------------------------*/
+    sendCommandCancel: function (req) {
+        var to         = $(req).attr('from'),
+            msg        = Gnosus.addOutgoingCommandRequestMessage(to, 'cancel'),            
+            command    = $(req).find('command').eq(0),
+            command_iq = $iq({to:to, type: 'set'}).c('command', 
+                {xmlns: Strophe.NS.COMMANDS, node:$(command).attr('node'), sessionid:$(command).attr('sessionid'), action:'cancel'});
+        GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
+            var type = $(iq).attr('type'),
+                jid  = $(iq).attr('from');
+            if (type == 'result') {
+                $(document).trigger('command_cancel', Gnosus.addOutgoingCommandRequestMessage(to, 'canceled'));
+            } else {
+                $(document).trigger('command_error', jid);
+            }
+        });
+        return msg;
+    },            
 }
 
 /**********************************************************************************
