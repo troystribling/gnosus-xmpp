@@ -595,9 +595,6 @@ ul.client-display-list li {
 .x-message .scalar {
     padding: 7px 0px 0px 0px;  
 }
-.x-message .scalar-array {
-    padding: 7px 0px 0px 0px;  
-}
 .x-message table.hash {
     border: 1px solid #DDD;
     margin: 7px 0px 0px 0px;
@@ -606,6 +603,7 @@ ul.client-display-list li {
 .x-message table.hash td.attr {
     background-color: #DDD;
     padding: 5px 15px;
+    font-weight: bold;
     text-align: left;
     border: 1px solid #CCC;
 }

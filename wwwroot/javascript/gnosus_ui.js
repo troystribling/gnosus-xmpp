@@ -609,54 +609,37 @@ GnosusUi.prototype = {
     
     /*-------------------------------------------------------------------------------*/    
     buildXDataBody: function(data) {
-        var fields    = $(data).find('field'),
-            items     = $(data).find('item'),
-            data_type = 'Scalar';
-        if (items.length == 0) {
-            var vals = fields.eq(0).find('value');
-            if (fields.length > 1) {
-                if (vals.length > 1) {
-                    data_type= 'HashArray';
-                } else {
-                    data_type = 'Hash';
-                }
-            } else {
-                if (vals.length > 1) {
-                    data_type= 'ScalarArray';
-                }
+        var data_type = 'Scalar';
+        if ($(data).find('item').length == 0) {
+            if ($(data).find('field').length > 1) {
+                data_type = 'Hash';
             }           
         } else {
-            fields = $(items).find('field');
-            vals = $(fields).eq(0).find('value');
-            if (vals.length > 1) {
-                data_type = 'ArrayHashArray';
-            } else {
-                data_type = 'ArrayHash';
-            }
+            data_type = 'ArrayHash';
         }
         return this['buildXData'+data_type](data);
     },
 
     /*-------------------------------------------------------------------------------*/ 
     buildXDataScalar: function(data) {
-        return '<div class="scalar">'+$(data).find('value').eq(0).text()+'</div>';
+        return '<div class="scalar">'+this.getXDataValues(data)+'</div>';
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    buildXDataScalarArray: function(data) {
-        var vals = $.map($(data).find('value'), function(v,i) {
-                       return $(v).text();
-                   }).join(', ');
-        return '<div class="scalar-array">'+vals+'</div>';
+    getXDataValues: function(field) {
+        return $.map($(field).find('value'), function(v,i) {
+                   return $(v).text();
+               }).join(', ');
     },
-
+    
     /*-------------------------------------------------------------------------------*/ 
     buildXDataHash: function(data) {
+        var client_ui = this;
         var tab = '<table class="hash">'+ 
                       $.map($(data).find('field'), function(f,i) {
                           var row = '<tr>'+
                                         '<td class="attr">'+$(f).attr('var')+'</td>'+
-                                        '<td class="val">'+$(f).find('value').eq(0).text()+'</td>'+
+                                        '<td class="val">'+client_ui.getXDataValues(f)+'</td>'+
                                     '</tr>';
                           return row;
                       }).join('')+
@@ -666,35 +649,33 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildXDataArrayHash: function(data) {
-        var attrs = $.map($(data).find('reported').find('field'), function(a,i) {
-                        return $(a).attr('var');
-                    }),
-            vals  = $.map($(data).find('item'), function(t,i) {
-                        var hsh = {};
-                        $(t).find('field').each(function() {
-                            var attr = $(this).attr('var');
-                            var val = $(this).find('value').eq(0).text();
-                            hsh[attr] = val;
-                        });
-                        return hsh;         
-                    });
-            
-        var tab = '<table class="array-hash">'+ 
-                      $.map(attrs, function(a,i) {
-                          return '<th>'+a+'</th>';
-                      }).join('')+
-                      $.map(vals, function(h,i) {
-                          var row = '<tr>';
-                          $.each(attrs, function(i,a) {
-                              row += '<td>'+h[a]+'</td>';
-                          });
-                          row += '</tr>';
-                          return row;
-                      }).join('')+
-                  '</table>';
-        return tab;
+        var client_ui = this,
+            attrs     = $.map($(data).find('reported').find('field'), function(a,i) {
+                            return $(a).attr('var');
+                        }),
+            vals      = $.map($(data).find('item'), function(t,i) {
+                            var hsh = {};
+                            $(t).find('field').each(function() {
+                                var attr = $(this).attr('var');
+                                var val = client_ui.getXDataValues(this);
+                                hsh[attr] = val;
+                            });
+                            return hsh;         
+                        });           
+        return '<table class="array-hash">'+ 
+                   $.map(attrs, function(a,i) {
+                       return '<th>'+a+'</th>';
+                   }).join('')+
+                   $.map(vals, function(h,i) {
+                       var row = '<tr>';
+                       $.each(attrs, function(i,a) {
+                           row += '<td>'+h[a]+'</td>';
+                       });
+                       row += '</tr>';
+                       return row;
+                   }).join('')+
+               '</table>';
     },
-
 };
 
 /**********************************************************************************
