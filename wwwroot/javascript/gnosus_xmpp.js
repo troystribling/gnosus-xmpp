@@ -526,6 +526,8 @@ GnosusXmpp = {
             command_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['action']) {
             cmd_attr['action'] = args['action'];
+        } else {
+            cmd_attr['action'] = 'execute';
         }
         if (args['payload']) {
             msg = Gnosus.addOutgoingCommandXDataMessage(args['to'], args['node'], args['payload']);
@@ -538,7 +540,7 @@ GnosusXmpp = {
             if (type == 'result') {
                 var x   = $(iq).find('x').eq(0),
                     x_type = 'result';
-                if (x) {x_type = $(x).attr}
+                if (x) {x_type = $(x).attr('type')}
                 if (x_type == 'form') {
                     $(document).trigger('command_form', iq);
                 } else {

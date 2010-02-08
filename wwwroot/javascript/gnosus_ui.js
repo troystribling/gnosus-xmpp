@@ -484,9 +484,9 @@ GnosusUi.prototype = {
              client_ui = this;
         $(form).find('field').each(function() {
          });
-         dialog += '</div>';
+         form += '</div>';
          $(this.item_dialog).remove();            
-         $(this.client).append(dialog); 
+         $(this.client).append(form); 
          $(this.item_dialog).dialog({modal:true, resizable:false, 
              buttons:{
                  'cancel':function() {
