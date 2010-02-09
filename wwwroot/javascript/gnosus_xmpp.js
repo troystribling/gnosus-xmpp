@@ -280,17 +280,17 @@ Gnosus = {
     addIncomingCommandXDataMessage: function(iq) {
         var cmd  = $(iq).find('command').eq(0);
             data = $(iq).find('x').eq(0);
-        var msg_model = new Message($(iq).attr('to'), $(iq).attr('from'), data, 'x', 'command', $(cmd).attr('node'));
+        var msg_model = new Message($(iq).attr('to'), $(iq).attr('from'), data, 'x', 'command', $(cmd).attr('node'), $(iq).attr('id'));
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
-    addOutgoingCommandXDataMessage: function(to, node, data) {
-        var msg_model = new Message(to, Gnosus.account.fullJid(), data, 'x', 'command', node);
+    addCommandTextMessage: function(to, node, text, id) {
+        var msg_model = new Message(to, Gnosus.account.fullJid(), text, 'text', 'command', node, id);
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
-    addOutgoingCommandRequestMessage: function(to, node) {
-        var msg_model = new Message(to, Gnosus.account.fullJid(), node, 'command_request', 'command', node);
+    addOutgoingCommandXDataMessage: function(to, node, data, id) {
+        var msg_model = new Message(to, Gnosus.account.fullJid(), data, 'x', 'command', node, id);
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
@@ -322,7 +322,7 @@ Account.prototype = {
 }
 
 /*-------------------------------------------------------------------------------*/
-function Message(to, from, text, type, content_type, node, item_id) {
+function Message(to, from, text, type, content_type, node, id, item_id) {
     this.to = to;
     this.from = from;
     this.type = type;
@@ -331,6 +331,7 @@ function Message(to, from, text, type, content_type, node, item_id) {
     this.node = node;
     this.item_id = item_id;
     this.created_at = new Date();
+    this.id = id;
 }
 
 Message.prototype = {
@@ -532,7 +533,7 @@ GnosusXmpp = {
         if (args['payload']) {
             msg = Gnosus.addOutgoingCommandXDataMessage(args['to'], args['node'], args['payload']);
         } else {
-            msg = Gnosus.addOutgoingCommandRequestMessage(args['to'], args['node']);
+            msg = Gnosus.addCommandTextMessage(args['to'], args['node'], 'command request');
         }
         GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
             var type = $(iq).attr('type'),
@@ -556,15 +557,15 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------*/
     sendCommandCancel: function (req) {
         var to         = $(req).attr('from'),
-            msg        = Gnosus.addOutgoingCommandRequestMessage(to, 'cancel'),            
             command    = $(req).find('command').eq(0),
+            msg        = Gnosus.addCommandTextMessage(to, $(command).attr('node'), 'cancel', $(req).attr('id')),            
             command_iq = $iq({to:to, type: 'set'}).c('command', 
                 {xmlns: Strophe.NS.COMMANDS, node:$(command).attr('node'), sessionid:$(command).attr('sessionid'), action:'cancel'});
         GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
             var type = $(iq).attr('type'),
                 jid  = $(iq).attr('from');
             if (type == 'result') {
-                $(document).trigger('command_cancel', Gnosus.addOutgoingCommandRequestMessage(to, 'canceled'));
+                $(document).trigger('command_cancel', Gnosus.addCommandTextMessage(to, $(command).attr('node'), 'canceled'), $(req).attr('id'));
             } else {
                 $(document).trigger('command_error', jid);
             }

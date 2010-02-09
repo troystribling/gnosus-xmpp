@@ -421,6 +421,7 @@ GnosusUi.prototype = {
          }
          $(document).bind('command_form', this.display_handlers['command_form'].bind(this));
          this.display_handlers['command_cancel'] = function (ev, msg) {
+             $(this.client_display_list).prepend(this.buildTextCommandMessage(msg));
              this.unblock();
          }
          $(document).bind('command_cancel', this.display_handlers['command_cancel'].bind(this));
@@ -469,7 +470,7 @@ GnosusUi.prototype = {
          $(this.item_dialog+' .command').click(function() {
              var node = $(this).parent('div').prev('h3').text()+'/'+$(this).text().replace(/ /g,'_');
              $.each(contact.resources, function(jid, r) {
-                 $(client_ui.client_display_list).prepend(client_ui.buildCommandRequestCommandMessage(GnosusXmpp.sendCommand({to:jid, node:node})));
+                 $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.sendCommand({to:jid, node:node})));
              });
              client_ui.cancelItemDialog();
              client_ui.block('command request pending');
@@ -478,19 +479,19 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      formDialog: function(form) {
-         var form    = '<div id="'+this.toId(this.item_dialog)+'" title="command form">',
+         var dialog  = '<div id="'+this.toId(this.item_dialog)+'" title="command form">',
              title   = $(form).find('title').text(),
              inst    = $(form).find('instructions').text();
              client_ui = this;
         $(form).find('field').each(function() {
          });
-         form += '</div>';
+         dialog += '</div>';
          $(this.item_dialog).remove();            
-         $(this.client).append(form); 
+         $(this.client).append(dialog); 
          $(this.item_dialog).dialog({modal:true, resizable:false, 
              buttons:{
                  'cancel':function() {
-                              GnosusXmpp.sendCommandCancel(form);
+                              $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.sendCommandCancel(form)));
                               this.cancelItemDialog();            
                               this.block('canceling');
                           }.bind(this),
@@ -621,10 +622,10 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------
      * x data displays 
      *-------------------------------------------------------------------------------*/ 
-    buildCommandRequestCommandMessage: function(msg) {
+    buildTextCommandMessage: function(msg) {
         return '<li><div class="command-request-message">'+
                    this.messageInfo(msg)+
-                   '<div class="header">command request</div>'+
+                   '<div class="header">'+msg.node+'</div>'+
                    '<div class="node">'+msg.text+'</div>'+
                '</div></li>';
     },
