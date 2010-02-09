@@ -48,9 +48,10 @@ GnosusUi.prototype = {
     capitalize: function(str) {return str.charAt(0).toUpperCase()+str.substr(1);},
 
     /*-------------------------------------------------------------------------------*/    
-    camelize: function(str) {
-        var client_ui = this;
-        return $.map(str.split('_'), function(s,i) {
+    camelize: function(str, del) {
+        var delmiter = del || '_',
+            client_ui = this;
+        return $.map(str.split(delmiter), function(s,i) {
                    return client_ui.capitalize(s);
                }).join('');
     },
@@ -479,28 +480,33 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      formDialog: function(form) {
-         var dialog  = '<div id="'+this.toId(this.item_dialog)+'" title="command form">',
-             title   = $(form).find('title').text(),
+         var title   = $(form).find('title').text() || 'command form',
+             dialog  = '<div id="'+this.toId(this.item_dialog)+'" title="'+title+'">',
              inst    = $(form).find('instructions').text();
              client_ui = this;
+        if (inst) {
+            dialog += '<div class="instructions">'+inst+'</div>';
+        }     
         $(form).find('field').each(function() {
-         });
-         dialog += '</div>';
-         $(this.item_dialog).remove();            
-         $(this.client).append(dialog); 
-         $(this.item_dialog).dialog({modal:true, resizable:false, 
-             buttons:{
-                 'cancel':function() {
-                              $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.sendCommandCancel(form)));
+            var meth = 'build'+client_ui.camelize($(this).attr('type'))+'Control';
+            if (client_ui[meth]) {dialog += client_ui[meth](this);}
+        });
+        dialog += '</div>';
+        $(this.item_dialog).remove();            
+        $(this.client).append(dialog); 
+        $(this.item_dialog).dialog({modal:true, resizable:false, 
+            buttons:{
+                'cancel':function() {
+                             $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.sendCommandCancel(form)));
                               this.cancelItemDialog();            
                               this.block('canceling');
                           }.bind(this),
-                 'send':function(){
-                            this.cancelItemDialog();            
-                            client_ui.block('command request pending');
+                'send':function(){
+                           this.cancelItemDialog();            
+                           client_ui.block('command request pending');
                         }.bind(this)},
-             dialogClass:'x-form', width:400, height:400
-         });
+            dialogClass:'x-form', width:400, height:400
+        });
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -703,6 +709,42 @@ GnosusUi.prototype = {
                        return row;
                    }).join('')+
                '</table>';
+    },
+    /*-------------------------------------------------------------------------------
+     * x data form controls 
+     *-------------------------------------------------------------------------------*/ 
+    buildFixedControl: function(field) {
+        return '';
+    },
+ 
+    /*-------------------------------------------------------------------------------*/ 
+    buildBooleanControl: function(field) {
+        return '';
+    },
+    
+    /*-------------------------------------------------------------------------------*/ 
+    buildJidSingleControl: function(field) {
+        return '';
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildListSingleControl: function(field) {
+        return '';
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildTextSingleControl: function(field) {
+        return '';
+    },
+    
+    /*-------------------------------------------------------------------------------*/ 
+    buildTextMultiControl: function(field) {
+        return '';
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildTextPrivateControl: function(field) {
+        return '';
     },
 };
 

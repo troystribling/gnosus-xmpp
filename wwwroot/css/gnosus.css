@@ -596,7 +596,7 @@ ul.client-display-list li {
     padding: 7px 0px 0px 0px;  
 }
 .x-message table.hash {
-    border: 1px solid #DDD;
+    border: 1px solid #BBB;
     margin: 7px 0px 0px 0px;
     border-collapse: collapse; 
 }
@@ -605,16 +605,16 @@ ul.client-display-list li {
     padding: 5px 15px;
     font-weight: bold;
     text-align: left;
-    border: 1px solid #CCC;
+    border: 1px solid #BBB;
 }
 .x-message table.hash td.val {
     padding: 5px 15px;
     text-align: center;
     font-size: 0.9em;
-    border: 1px solid #CCC;
+    border: 1px solid #BBB;
 }
 .x-message table.array-hash {
-    border: 1px solid #DDD;
+    border: 1px solid #BBB;
     margin: 7px 0px 0px 0px;
     border-collapse: collapse; 
 }
@@ -622,16 +622,28 @@ ul.client-display-list li {
     background-color: #DDD;
     padding: 5px 15px;
     text-align: center;
-    border: 1px solid #CCC;
+    border: 1px solid #BBB;
 }
 .x-message table.array-hash td {
     padding: 5px 15px;
     text-align: center;
     font-size: 0.9em;
-    border: 1px solid #CCC;
+    border: 1px solid #BBB;
 }
 /*******  x-form *******/
 .x-form { 
+}
+.x-form .instructions { 
+    padding: 0px 0px 12px 0px;
+    border-bottom: 1px solid #BBB;
+}
+.x-form .input-item { 
+}
+.x-form .fixed { 
+}
+.x-form label.text-single { 
+}
+.x-form input.text-single { 
 }
 /*******  client-display-input *******/
 .client-display-input {  

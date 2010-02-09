@@ -504,8 +504,8 @@ GnosusXmpp = {
     commands
     ---------------------------------------------------------------------------------*/
     getCommandList: function (to) {
-        var command_iq = $iq({to:to, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
-        GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
+        var cmd_iq = $iq({to:to, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
+        GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
             var type = $(iq).attr('type');
             var jid = $(iq).attr('from');
             if (type == 'result') {
@@ -523,8 +523,7 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------*/
     sendCommand: function (args) {
         var cmd_attr = {xmlns: Strophe.NS.COMMANDS, node:args['node']},
-            msg = null,
-            command_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
+            msg = null;
         if (args['action']) {
             cmd_attr['action'] = args['action'];
         } else {
@@ -535,7 +534,8 @@ GnosusXmpp = {
         } else {
             msg = Gnosus.addCommandTextMessage(args['to'], args['node'], 'command request');
         }
-        GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
+        var cmd_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
+        GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
             var type = $(iq).attr('type'),
                 jid  = $(iq).attr('from');
             if (type == 'result') {
@@ -558,10 +558,13 @@ GnosusXmpp = {
     sendCommandCancel: function (req) {
         var to         = $(req).attr('from'),
             command    = $(req).find('command').eq(0),
-            msg        = Gnosus.addCommandTextMessage(to, $(command).attr('node'), 'cancel', $(req).attr('id')),            
-            command_iq = $iq({to:to, type: 'set'}).c('command', 
-                {xmlns: Strophe.NS.COMMANDS, node:$(command).attr('node'), sessionid:$(command).attr('sessionid'), action:'cancel'});
-        GnosusXmpp.connection.sendIQ(command_iq, function(iq) {
+            msg        = Gnosus.addCommandTextMessage(to, $(command).attr('node'), 'cancel', $(req).attr('id')), 
+            cmd_attr   = {xmlns: Strophe.NS.COMMANDS, node:$(command).attr('node'), action:'cancel'};          
+        if ($(command).attr('sessionid')) {
+            cmd_attr['sessionid'] = $(command).attr('sessionid');
+        }  
+        var cmd_iq = $iq({to:to, type: 'set'}).c('command', cmd_attr);         
+        GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
             var type = $(iq).attr('type'),
                 jid  = $(iq).attr('from');
             if (type == 'result') {
