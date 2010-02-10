@@ -529,12 +529,12 @@ GnosusXmpp = {
         } else {
             cmd_attr['action'] = 'execute';
         }
+        var cmd_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['payload']) {
             msg = Gnosus.addOutgoingCommandXDataMessage(args['to'], args['node'], args['payload']);
         } else {
             msg = Gnosus.addCommandTextMessage(args['to'], args['node'], 'command request');
         }
-        var cmd_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
             var type = $(iq).attr('type'),
                 jid  = $(iq).attr('from');
@@ -554,6 +554,15 @@ GnosusXmpp = {
         return msg;
     },
      
+    /*-------------------------------------------------------------------------------*/
+    buildFormXDataPayload: function(form_data) {
+        var xdata = new Strophe.Builder("x", {xmlns:Strophe.NS.XDATA, type:'submit'});
+        $.each(form_data, function() {
+            xdata.c('field', {type:this['type'], var:this['var']}).c('value').t(this['value'])
+        });
+        return xdata;
+    },
+
     /*-------------------------------------------------------------------------------*/
     sendCommandCancel: function (req) {
         var to         = $(req).attr('from'),

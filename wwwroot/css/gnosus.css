@@ -635,15 +635,21 @@ ul.client-display-list li {
 }
 .x-form .instructions { 
     padding: 0px 0px 12px 0px;
+    margin: 0px 0px 10px 0px;
     border-bottom: 1px solid #BBB;
 }
-.x-form .input-item { 
-}
 .x-form .fixed { 
+    border-top: 1px solid #BBB;
+    border-bottom: 1px solid #BBB;
+    padding: 10px 0px 10px 0px;
+    margin: 0px 0px 10px 0px;
 }
-.x-form label.text-single { 
+.x-form .text-single p { 
+    margin: 0px 0px 2px 0px;
 }
-.x-form input.text-single { 
+.x-form .text-single input { 
+    width: 16.55em;
+    margin: 0px 0px 10px 0px;
 }
 /*******  client-display-input *******/
 .client-display-input {  

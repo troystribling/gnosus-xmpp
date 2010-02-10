@@ -488,7 +488,7 @@ GnosusUi.prototype = {
             dialog += '<div class="instructions">'+inst+'</div>';
         }     
         $(form).find('field').each(function() {
-            var meth = 'build'+client_ui.camelize($(this).attr('type'))+'Control';
+            var meth = 'build'+client_ui.camelize($(this).attr('type'), '-')+'Control';
             if (client_ui[meth]) {dialog += client_ui[meth](this);}
         });
         dialog += '</div>';
@@ -501,7 +501,11 @@ GnosusUi.prototype = {
                               this.cancelItemDialog();            
                               this.block('canceling');
                           }.bind(this),
-                'send':function(){
+                'send':function() {
+                           var jid  = $(form).attr('from'),
+                               node = $(form).find('command').eq(0).attr('node');
+                           $(client_ui.client_display_list).prepend(client_ui.buildXCommandMessage(GnosusXmpp.sendCommand(
+                               {to:jid, node:node, action:'submit', payload:GnosusXmpp.buildFormXDataPayload(client_ui.readForm())})));
                            this.cancelItemDialog();            
                            client_ui.block('command request pending');
                         }.bind(this)},
@@ -714,7 +718,8 @@ GnosusUi.prototype = {
      * x data form controls 
      *-------------------------------------------------------------------------------*/ 
     buildFixedControl: function(field) {
-        return '';
+        var label   = $(field).find('value').eq(0).text()
+        return '<div class="fixed">'+label+'</div>';
     },
  
     /*-------------------------------------------------------------------------------*/ 
@@ -734,7 +739,12 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildTextSingleControl: function(field) {
-        return '';
+        var name    = $(field).attr('var'),
+            label   = $(field).attr('label'),
+            control = '<div class="text-single">';
+        if (label) {control += '<p>'+label+'</p>';}    
+        control += '<input type="text" name="'+name+'"/></br></div>'; 
+        return control;              
     },
     
     /*-------------------------------------------------------------------------------*/ 
@@ -746,6 +756,15 @@ GnosusUi.prototype = {
     buildTextPrivateControl: function(field) {
         return '';
     },
+
+    /*-------------------------------------------------------------------------------*/ 
+    readForm: function() {
+        var fields = [];
+        $(this.item_dialog).find('.text-single input').each(function() {
+            fields.push({type:'text-single', var:$(this).attr('name'), value: $(this).val()})
+        });
+        return fields;
+    }
 };
 
 /**********************************************************************************
