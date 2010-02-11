@@ -644,10 +644,10 @@ ul.client-display-list li {
     padding: 10px 0px 10px 0px;
     margin: 0px 0px 10px 0px;
 }
-.x-form .text-single p { 
+.x-form .input-single p { 
     margin: 0px 0px 2px 0px;
 }
-.x-form .text-single input { 
+.x-form .input-single input { 
     width: 16.55em;
     margin: 0px 0px 10px 0px;
 }

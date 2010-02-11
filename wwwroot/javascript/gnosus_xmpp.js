@@ -277,20 +277,16 @@ Gnosus = {
         }
         return all_commands;
     },
-    addIncomingCommandXDataMessage: function(iq) {
-        var cmd  = $(iq).find('command').eq(0);
-            data = $(iq).find('x').eq(0);
-        var msg_model = new Message($(iq).attr('to'), $(iq).attr('from'), data, 'x', 'command', $(cmd).attr('node'), $(iq).attr('id'));
+    addCommandXDataMessage: function(iq) {
+        var cmd  = $(iq).find('command').eq(0),
+            data = $(iq).find('x').eq(0),
+            from = $(iq).attr('from') || Gnosus.account.fullJid();
+        var msg_model = new Message($(iq).attr('to'), from, data, 'x', 'command', $(cmd).attr('node'), $(iq).attr('id'));
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
     addCommandTextMessage: function(to, node, text, id) {
         var msg_model = new Message(to, Gnosus.account.fullJid(), text, 'text', 'command', node, id);
-        Gnosus.messages.unshift(msg_model);  
-        return msg_model;      
-    },
-    addOutgoingCommandXDataMessage: function(to, node, data, id) {
-        var msg_model = new Message(to, Gnosus.account.fullJid(), data, 'x', 'command', node, id);
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
@@ -531,7 +527,8 @@ GnosusXmpp = {
         }
         var cmd_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['payload']) {
-            msg = Gnosus.addOutgoingCommandXDataMessage(args['to'], args['node'], args['payload']);
+            cmd_iq.cnode(args['payload']);
+            msg = Gnosus.addCommandXDataMessage(cmd_iq.nodeTree);
         } else {
             msg = Gnosus.addCommandTextMessage(args['to'], args['node'], 'command request');
         }
@@ -545,7 +542,7 @@ GnosusXmpp = {
                 if (x_type == 'form') {
                     $(document).trigger('command_form', iq);
                 } else {
-                    $(document).trigger('command_response', Gnosus.addIncomingCommandXDataMessage(iq));
+                    $(document).trigger('command_response', Gnosus.addCommandXDataMessage(iq));
                 }
             } else {
                 $(document).trigger('command_error', jid);
@@ -556,11 +553,11 @@ GnosusXmpp = {
      
     /*-------------------------------------------------------------------------------*/
     buildFormXDataPayload: function(form_data) {
-        var xdata = new Strophe.Builder("x", {xmlns:Strophe.NS.XDATA, type:'submit'});
+        var xdata = $build("x", {xmlns:Strophe.NS.XDATA, type:'submit'});
         $.each(form_data, function() {
-            xdata.c('field', {type:this['type'], var:this['var']}).c('value').t(this['value'])
+            xdata.c('field', {type:this['type'], var:this['var']}).c('value').t(this['value']).up().up();
         });
-        return xdata;
+        return xdata.nodeTree;
     },
 
     /*-------------------------------------------------------------------------------*/

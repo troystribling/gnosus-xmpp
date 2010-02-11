@@ -653,6 +653,7 @@ GnosusUi.prototype = {
     buildXDataBody: function(data) {
         var data_type = 'Scalar';
         if ($(data).find('item').length == 0) {
+            var l = $(data).find('field').length;
             if ($(data).find('field').length > 1) {
                 data_type = 'Hash';
             }           
@@ -729,7 +730,7 @@ GnosusUi.prototype = {
     
     /*-------------------------------------------------------------------------------*/ 
     buildJidSingleControl: function(field) {
-        return '';
+        return this.buildInputControl(field, 'text', 'jid-single');
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -739,11 +740,16 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildTextSingleControl: function(field) {
+        return this.buildInputControl(field, 'text', 'text-single');
+    },
+    
+    /*-------------------------------------------------------------------------------*/ 
+    buildInputControl: function(field, type, klass) {
         var name    = $(field).attr('var'),
             label   = $(field).attr('label'),
-            control = '<div class="text-single">';
+            control = '<div class="input-single '+klass+'">';
         if (label) {control += '<p>'+label+'</p>';}    
-        control += '<input type="text" name="'+name+'"/></br></div>'; 
+        control += '<input type="'+type+'" name="'+name+'"/></br></div>'; 
         return control;              
     },
     
@@ -754,7 +760,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildTextPrivateControl: function(field) {
-        return '';
+        return this.buildInputControl(field, 'password', 'text-private');
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -762,6 +768,12 @@ GnosusUi.prototype = {
         var fields = [];
         $(this.item_dialog).find('.text-single input').each(function() {
             fields.push({type:'text-single', var:$(this).attr('name'), value: $(this).val()})
+        });
+        $(this.item_dialog).find('.jid-single input').each(function() {
+            fields.push({type:'jid-single', var:$(this).attr('name'), value: $(this).val()})
+        });
+        $(this.item_dialog).find('.text-private input').each(function() {
+            fields.push({type:'text-private', var:$(this).attr('name'), value: $(this).val()})
         });
         return fields;
     }
