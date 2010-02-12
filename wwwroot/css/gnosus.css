@@ -651,6 +651,21 @@ ul.client-display-list li {
     width: 16.55em;
     margin: 0px 0px 10px 0px;
 }
+.x-form .list-single select { 
+    padding: 0px 15px 0px 0px;
+    margin: 0px 0px 10px 0px;
+}
+.x-form .list-single p { 
+    margin: 0px 0px 2px 0px;
+}
+.x-form .text-multi p {
+    margin: 0px 0px 2px 0px;
+}
+.x-form .text-multi textarea {
+    width: 16.10em;
+    height: 7.0em;
+    margin: 0px 0px 10px 0px;
+}
 /*******  client-display-input *******/
 .client-display-input {  
     border-bottom: 5px solid #DDD;

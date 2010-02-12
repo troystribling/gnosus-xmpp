@@ -552,7 +552,7 @@ GnosusUi.prototype = {
     }, 
 
     /*-------------------------------------------------------------------------------
-     * utils 
+     * display utils 
      *-------------------------------------------------------------------------------*/  
      buildContentList: function(list_type, content_list) {
         var msgs = ['<ul class="client-display-list '+list_type+'">'];
@@ -578,7 +578,7 @@ GnosusUi.prototype = {
                    '</li>';
         return item;
     },
-    
+
     /*-------------------------------------------------------------------------------*/ 
     addItemListEvents: function(select_item) {
         var client_ui = this;
@@ -729,13 +729,17 @@ GnosusUi.prototype = {
     },
     
     /*-------------------------------------------------------------------------------*/ 
-    buildJidSingleControl: function(field) {
-        return this.buildInputControl(field, 'text', 'jid-single');
-    },
-
-    /*-------------------------------------------------------------------------------*/ 
     buildListSingleControl: function(field) {
-        return '';
+        var name    = $(field).attr('var'),
+            label   = $(field).attr('label'),
+            control = '<div class="list-single">';
+        if (label) {control += '<p>'+label+'</p>';}    
+        control += '<select name="'+name+'">'
+        $(field).find('option').each(function() {
+           control += '<option value="'+$(this).text()+'">'+$(this).attr('label')+'</option>'; 
+        });
+        control += '</select></br></div>'; 
+        return control;              
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -743,6 +747,16 @@ GnosusUi.prototype = {
         return this.buildInputControl(field, 'text', 'text-single');
     },
     
+    /*-------------------------------------------------------------------------------*/ 
+    buildTextPrivateControl: function(field) {
+        return this.buildInputControl(field, 'password', 'text-private');
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildJidSingleControl: function(field) {
+        return this.buildInputControl(field, 'text', 'jid-single');
+    },
+
     /*-------------------------------------------------------------------------------*/ 
     buildInputControl: function(field, type, klass) {
         var name    = $(field).attr('var'),
@@ -755,25 +769,31 @@ GnosusUi.prototype = {
     
     /*-------------------------------------------------------------------------------*/ 
     buildTextMultiControl: function(field) {
-        return '';
-    },
-
-    /*-------------------------------------------------------------------------------*/ 
-    buildTextPrivateControl: function(field) {
-        return this.buildInputControl(field, 'password', 'text-private');
+        var name    = $(field).attr('var'),
+            label   = $(field).attr('label'),
+            control = '<div class="text-multi">';
+        if (label) {control += '<p>'+label+'</p>';}    
+        control += '<textarea name="'+name+'"/></br></div>'; 
+        return control;              
     },
 
     /*-------------------------------------------------------------------------------*/ 
     readForm: function() {
-        var fields = [];
+        var fields    = [];
+        $(this.item_dialog).find('.jid-single input').each(function() {
+            fields.push({type:'jid-single', var:$(this).attr('name'), value:$(this).val()})
+        });
         $(this.item_dialog).find('.text-single input').each(function() {
             fields.push({type:'text-single', var:$(this).attr('name'), value: $(this).val()})
         });
-        $(this.item_dialog).find('.jid-single input').each(function() {
-            fields.push({type:'jid-single', var:$(this).attr('name'), value: $(this).val()})
-        });
         $(this.item_dialog).find('.text-private input').each(function() {
             fields.push({type:'text-private', var:$(this).attr('name'), value: $(this).val()})
+        });
+        $(this.item_dialog).find('.list-single select').each(function() {
+            fields.push({type:'list-single', var:$(this).attr('name'), value: $(this).val()})
+        });
+        $(this.item_dialog).find('.text-multi textarea').each(function() {
+            fields.push({type:'text-multi', var:$(this).attr('name'), value: $(this).val()})
         });
         return fields;
     }
