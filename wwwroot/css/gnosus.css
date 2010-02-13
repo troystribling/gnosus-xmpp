@@ -649,7 +649,7 @@ ul.client-display-list li {
     margin: 0px 0px 2px 0px;
 }
 .x-form .input-single input { 
-    width: 16.55em;
+    width: 15.85em;
     margin: 0px 0px 10px 0px;
 }
 .x-form .list-single select { 
@@ -728,9 +728,17 @@ ul.contact-display-modes li {
     color: #DDD;
     background-color: #000;
 }
+/*******  dialog-error style  *******/
+.dialog-error {
+    color: #F00;
+    background-color: #F0A0A0;
+    border: 1px solid #F00;
+    margin: 0px 0px 10px 0px;
+    padding: 10px 10px 10px 10px;
+}
 /*******  add contact dialog style  *******/
 .add-contact-dialog label {
-    width: 1.0em;
+    width: 1.1em;
 }
 .add-contact-dialog input {
     width: 14.0em;

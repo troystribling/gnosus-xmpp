@@ -261,8 +261,10 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     addContactDialog: function() {
-        var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+  
-                         '<label for="jid">jid</label><input type="text" name="jid" class="jid"/></br>'+
+        var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+ 
+                         '<div class="validate-jid">'+  
+                            '<label for="jid">jid</label><input type="text" name="jid" class="jid"/></br>'+
+                         '</div>'+
                      '</div>'; 
         $(this.item_dialog).remove();            
         $(this.client).append(dialog); 
@@ -271,16 +273,11 @@ GnosusUi.prototype = {
                      'send':function() {
                                 var jid = $(this.item_dialog+' input.jid').val();
                                 this.cancelItemDialog(); 
-                                if (jid.match(/\@/)) {
-                                    this.block('adding contact')
-                                    GnosusXmpp.addContact(jid, null, []); 
-                                } else if (jid =='') {
-                                    this.errorDialog('JID missing');
-                                } else {
-                                    this.errorDialog('<strong>'+jid+'</strong> is an invalid JID');
-                                }        
+                                this.block('adding contact')
+                                GnosusXmpp.addContact(jid, null, []); 
                             }.bind(this)},
-            dialogClass:'add-contact-dialog', width:380});            
+            dialogClass:'add-contact-dialog', width:380}); 
+        this.addJidValidation();                               
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -511,6 +508,7 @@ GnosusUi.prototype = {
                         }.bind(this)},
             dialogClass:'x-form', width:400, height:400
         });
+        this.addJidValidation();        
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -598,14 +596,17 @@ GnosusUi.prototype = {
     },
         
     /*-------------------------------------------------------------------------------*/ 
-    validateJid: function() {
-        $(this.item_dialog).find('.jid').each(function() {
+    addJidValidation: function() {
+        $(this.item_dialog).find('.validate-jid input').blur(function() {
             var jid = $(this).val();
             if (jid) {
-                if (!jid.match(/\@/)) {                    
+                if (!jid.match(/\@/)) { 
+                    $(this).after('<div class="dialog-error">jid is invalid</div>')                   
                 }
-            } else {
-            }
+            } 
+        });
+        $(this.item_dialog).find('.validate-jid input').focus(function() {
+            $(this).siblings('.dialog-error').remove();
         });
     },
     
@@ -772,7 +773,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildJidSingleControl: function(field) {
-        return this.buildInputControl(field, 'text', 'jid-single jid');
+        return this.buildInputControl(field, 'text', 'jid-single validate-jid');
     },
 
     /*-------------------------------------------------------------------------------*/ 
