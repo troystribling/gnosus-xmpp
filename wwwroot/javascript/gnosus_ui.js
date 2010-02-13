@@ -598,6 +598,18 @@ GnosusUi.prototype = {
     },
         
     /*-------------------------------------------------------------------------------*/ 
+    validateJid: function() {
+        $(this.item_dialog).find('.jid').each(function() {
+            var jid = $(this).val();
+            if (jid) {
+                if (!jid.match(/\@/)) {                    
+                }
+            } else {
+            }
+        });
+    },
+    
+    /*-------------------------------------------------------------------------------*/ 
     block: function(msg) {
         $.blockUI({message: msg, 
                    overlayCSS: {backgroundColor: '#000', opacity: 0.75}, 
@@ -725,7 +737,13 @@ GnosusUi.prototype = {
  
     /*-------------------------------------------------------------------------------*/ 
     buildBooleanControl: function(field) {
-        return '';
+        var name    = $(field).attr('var'),
+            label   = $(field).attr('label'),
+            control = '<div class="boolean">';
+        control += '<input type="checkbox" name="'+name+'"/>'; 
+        if (label) {control += '<label>'+label+'</label>';}  
+        control += '</br></div>'  
+        return control;              
     },
     
     /*-------------------------------------------------------------------------------*/ 
@@ -733,7 +751,7 @@ GnosusUi.prototype = {
         var name    = $(field).attr('var'),
             label   = $(field).attr('label'),
             control = '<div class="list-single">';
-        if (label) {control += '<p>'+label+'</p>';}    
+        if (label) {control += '<label>'+label+'</label>';}    
         control += '<select name="'+name+'">'
         $(field).find('option').each(function() {
            control += '<option value="'+$(this).text()+'">'+$(this).attr('label')+'</option>'; 
@@ -754,7 +772,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildJidSingleControl: function(field) {
-        return this.buildInputControl(field, 'text', 'jid-single');
+        return this.buildInputControl(field, 'text', 'jid-single jid');
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -762,7 +780,7 @@ GnosusUi.prototype = {
         var name    = $(field).attr('var'),
             label   = $(field).attr('label'),
             control = '<div class="input-single '+klass+'">';
-        if (label) {control += '<p>'+label+'</p>';}    
+        if (label) {control += '<label>'+label+'</label>';}    
         control += '<input type="'+type+'" name="'+name+'"/></br></div>'; 
         return control;              
     },
@@ -772,7 +790,7 @@ GnosusUi.prototype = {
         var name    = $(field).attr('var'),
             label   = $(field).attr('label'),
             control = '<div class="text-multi">';
-        if (label) {control += '<p>'+label+'</p>';}    
+        if (label) {control += '<label>'+label+'</label>';}    
         control += '<textarea name="'+name+'"/></br></div>'; 
         return control;              
     },
@@ -784,16 +802,21 @@ GnosusUi.prototype = {
             fields.push({type:'jid-single', var:$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.text-single input').each(function() {
-            fields.push({type:'text-single', var:$(this).attr('name'), value: $(this).val()})
+            fields.push({type:'text-single', var:$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.text-private input').each(function() {
-            fields.push({type:'text-private', var:$(this).attr('name'), value: $(this).val()})
+            fields.push({type:'text-private', var:$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.list-single select').each(function() {
-            fields.push({type:'list-single', var:$(this).attr('name'), value: $(this).val()})
+            fields.push({type:'list-single', var:$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.text-multi textarea').each(function() {
-            fields.push({type:'text-multi', var:$(this).attr('name'), value: $(this).val()})
+            fields.push({type:'text-multi', var:$(this).attr('name'), value:$(this).val()})
+        });
+        $(this.item_dialog).find('.boolean input').each(function() {
+            var val = '0';
+            if ($(this).attr('checked')){val = '1'}
+            fields.push({type:'boolean', var:$(this).attr('name'), value:val})
         });
         return fields;
     }

@@ -644,7 +644,8 @@ ul.client-display-list li {
     padding: 10px 0px 10px 0px;
     margin: 0px 0px 10px 0px;
 }
-.x-form .input-single p { 
+.x-form .input-single label { 
+    display: block;
     margin: 0px 0px 2px 0px;
 }
 .x-form .input-single input { 
@@ -655,16 +656,31 @@ ul.client-display-list li {
     padding: 0px 15px 0px 0px;
     margin: 0px 0px 10px 0px;
 }
-.x-form .list-single p { 
+.x-form .list-single label { 
+    display: block;
     margin: 0px 0px 2px 0px;
 }
-.x-form .text-multi p {
+.x-form .text-multi label {
+    display: block;
     margin: 0px 0px 2px 0px;
 }
 .x-form .text-multi textarea {
     width: 16.10em;
     height: 7.0em;
-    margin: 0px 0px 10px 0px;
+    margin: 10px 0px 0px 0px;
+}
+.x-form .boolean {
+    display: table-row;
+}
+.x-form .boolean label { 
+    display: table-cell;
+    margin: 0px 0px 00px 0px;
+    padding: 0px 0px 10px 0px;
+}
+.x-form .boolean input { 
+    display: table-cell;
+    float: left;
+    margin: 0px 10px 0px 0px;
 }
 /*******  client-display-input *******/
 .client-display-input {  
