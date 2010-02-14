@@ -263,7 +263,7 @@ GnosusUi.prototype = {
     addContactDialog: function() {
         var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+ 
                          '<div class="validate-jid">'+  
-                            '<label for="jid">jid</label><input type="text" name="jid" class="jid"/></br>'+
+                            '<label for="jid">jid</label><input type="text" name="jid" class="required"/></br>'+
                          '</div>'+
                      '</div>'; 
         $(this.item_dialog).remove();            
@@ -271,13 +271,15 @@ GnosusUi.prototype = {
         $(this.item_dialog).dialog({modal:true, resizable:false,
             buttons:{'cancel':this.cancelItemDialog.bind(this), 
                      'send':function() {
-                                var jid = $(this.item_dialog+' input.jid').val();
-                                this.cancelItemDialog(); 
-                                this.block('adding contact')
-                                GnosusXmpp.addContact(jid, null, []); 
+                                if (!this.dialogButtonIsDisabled() && this.validateRequiredFields('jid is required')) {
+                                    var jid = $(this.item_dialog+' input').val();
+                                    this.cancelItemDialog(); 
+                                    this.block('adding contact')
+                                    GnosusXmpp.addContact(jid, null, []); 
+                                }
                             }.bind(this)},
             dialogClass:'add-contact-dialog', width:380}); 
-        this.addJidValidation();                               
+        this.addJidValidation('send');                               
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -499,12 +501,14 @@ GnosusUi.prototype = {
                               this.block('canceling');
                           }.bind(this),
                 'send':function() {
-                           var jid  = $(form).attr('from'),
-                               node = $(form).find('command').eq(0).attr('node');
-                           $(client_ui.client_display_list).prepend(client_ui.buildXCommandMessage(GnosusXmpp.sendCommand(
-                               {to:jid, node:node, action:'submit', payload:GnosusXmpp.buildFormXDataPayload(client_ui.readForm())})));
-                           this.cancelItemDialog();            
-                           client_ui.block('command request pending');
+                           if (!client_ui.dialogButtonIsDisabled()) {
+                               var jid  = $(form).attr('from'),
+                                   node = $(form).find('command').eq(0).attr('node');
+                               $(client_ui.client_display_list).prepend(client_ui.buildXCommandMessage(GnosusXmpp.sendCommand(
+                                   {to:jid, node:node, action:'submit', payload:GnosusXmpp.buildFormXDataPayload(client_ui.readForm())})));
+                               this.cancelItemDialog();            
+                               client_ui.block('command request pending');
+                           }
                         }.bind(this)},
             dialogClass:'x-form', width:400, height:400
         });
@@ -596,21 +600,6 @@ GnosusUi.prototype = {
     },
         
     /*-------------------------------------------------------------------------------*/ 
-    addJidValidation: function() {
-        $(this.item_dialog).find('.validate-jid input').blur(function() {
-            var jid = $(this).val();
-            if (jid) {
-                if (!jid.match(/\@/)) { 
-                    $(this).after('<div class="dialog-error">jid is invalid</div>')                   
-                }
-            } 
-        });
-        $(this.item_dialog).find('.validate-jid input').focus(function() {
-            $(this).siblings('.dialog-error').remove();
-        });
-    },
-    
-    /*-------------------------------------------------------------------------------*/ 
     block: function(msg) {
         $.blockUI({message: msg, 
                    overlayCSS: {backgroundColor: '#000', opacity: 0.75}, 
@@ -623,6 +612,76 @@ GnosusUi.prototype = {
         $.unblockUI();
     },
     
+    /*-------------------------------------------------------------------------------
+     * validation
+     *-------------------------------------------------------------------------------*/ 
+    addJidValidation: function() {
+        var client_ui = this;
+        $(this.item_dialog).find('.validate-jid input').blur(function() {
+            var jid = $(this).val();
+            if (jid) {
+                if (!jid.match(/\@/)) { 
+                    $(this).after('<div class="dialog-error">jid is invalid</div>');
+                    client_ui.disableDialogButton('send');                   
+                }
+            } 
+        });
+        this.addRemoveErrorMessage('.validate-jid input')
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    disableDialogButton: function(button) {
+        $('.ui-dialog-buttonpane').find('button:contains('+button+')').addClass('ui-state-disabled');        
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    dialogButtonIsDisabled: function() {
+        var is_disabled = false;
+        $('.ui-dialog-buttonpane').find('button.ui-state-disabled').each(function(){
+            is_disabled = true;
+        });
+        return is_disabled;        
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    enableDialogButton: function(button) {
+        $('.ui-dialog-buttonpane').find('button:contains('+button+')').removeClass('ui-state-disabled');        
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    addRemoveErrorMessage: function(sel) {
+        var client_ui = this;
+        $(this.item_dialog).find(sel).focus(function() {
+            $(this).siblings('.dialog-error').remove();
+            if (client_ui.noDialogErrors()) {
+                client_ui.enableDialogButton('send');
+            }
+        });
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    noDialogErrors: function () {
+        var no_errors = true;
+        $(this.item_dialog).find('.dialog-error').each(function(){
+            no_errors = false;
+        });
+        return no_errors;
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    validateRequiredFields: function(msg) {
+        var is_valid = true;
+        if (this.noDialogErrors()) {
+            $(this.item_dialog).find('input.required').each(function() {
+                if (!$(this).val()) {
+                    is_valid = false;
+                    $(this).after('<div class="dialog-error">'+msg+'</div>')                   
+                } 
+            });
+        }
+        return is_valid;
+    },
+            
     /*-------------------------------------------------------------------------------
      * message displays 
      *-------------------------------------------------------------------------------*/ 
