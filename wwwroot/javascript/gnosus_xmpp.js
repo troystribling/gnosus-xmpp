@@ -192,9 +192,9 @@ Gnosus = {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var resource = null;
         if (bare_jid == Gnosus.account.jid) {
-            resource = Gnosus.findAccountResource(jid)
+            resource = Gnosus.findAccountResource(jid);
         } else {
-            resource = Gnosus.findContactResource(jid)
+            resource = Gnosus.findContactResource(jid);
         }
         if (resource) {
             resource.addCommand(node, name);
@@ -204,9 +204,9 @@ Gnosus = {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var resource = null;
         if (bare_jid == Gnosus.account.jid) {
-            resource = Gnosus.findAccountResource(jid)
+            resource = Gnosus.findAccountResource(jid);
         } else {
-            resource = Gnosus.findContactResource(jid)
+            resource = Gnosus.findContactResource(jid);
         }
         if (resource) {
             resource.initCommands();
@@ -220,7 +220,7 @@ Gnosus = {
             if (bare_jid == Gnosus.account.jid) {
                 resources = Gnosus.findAllAccountResources(jid);
             } else {
-                resources = Gnosus.findAllContactResources(jid)
+                resources = Gnosus.findAllContactResources(jid);
             }
             for (var jid in resources) {
                 if (!resources[jid].commands) {
@@ -235,7 +235,7 @@ Gnosus = {
             if (bare_jid == Gnosus.account.jid) {
                 resource = Gnosus.findAccountResource(jid);
             } else {
-                resource = Gnosus.findContactResource(jid)
+                resource = Gnosus.findContactResource(jid);
             }
             if (resource) {
                 if (resource.commands) {
@@ -251,7 +251,7 @@ Gnosus = {
         var addCommandHash = function (cmds) {
             $.each(cmds, function() {
                 if (!all_commands[this.name]) {
-                    all_commands[this.name] = []
+                    all_commands[this.name] = [];
                 }
                 all_commands[this.name].push($(this));
             });
@@ -261,7 +261,7 @@ Gnosus = {
             if (bare_jid == Gnosus.account.jid) {
                 resources = Gnosus.findAllAccountResources(jid);
             } else {
-                resources = Gnosus.findAllContactResources(jid)
+                resources = Gnosus.findAllContactResources(jid);
             }
             $.each(resources, function(j,r) {
                 addCommandHash(r.commands);
@@ -271,7 +271,7 @@ Gnosus = {
             if (bare_jid == Gnosus.account.jid) {
                 resource = Gnosus.findAccountResource(jid);
             } else {
-                resource = Gnosus.findContactResource(jid)
+                resource = Gnosus.findContactResource(jid);
             }
             addCommandHash(resource.commands);
         }
@@ -290,6 +290,50 @@ Gnosus = {
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
+    /*-------------------------------------------------------------------------------
+    subscription
+    ---------------------------------------------------------------------------------*/
+    addSubscription: function(sub) {
+        sub_model = new Subscription($(sub).attr('node'), $(sub).attr('jid'), $(sub).attr('subscription'), $(sub).attr('subid'));
+        Gnosus.account.subscriptions.push(sub_model);
+        return sub_model;
+    },
+    /*-------------------------------------------------------------------------------
+    disco
+    ---------------------------------------------------------------------------------*/
+    addService: function(jid, service, node, serv) {
+        var bare_jid = Strophe.getBareJidFromJid(jid),
+            service_model = new Service(service, node, $(serv).attr('name'), $(serv).attr('category'), $(serv).attr('type'));
+        if (bare_jid == Gnosus.account.jid) {
+            Gnosus.account.services.push(service_model);
+        } else {
+            var contact = Gnosus.findContactByJid(jid);
+            if (contact) {contact.services.push(service_model);}
+        }
+        return service_model;
+    },
+    addServiceItem: function(jid, service, parent_node, item) {
+        var bare_jid = Strophe.getBareJidFromJid(jid),
+            item_model = new ServiceItem(service, parent_node, $(item).attr('jid'), $(item).attr('node'), $(item).attr('name'));
+        if (bare_jid == Gnosus.account.jid) {
+            Gnosus.account.service_items.push(item_model);
+        } else {
+            var contact = Gnosus.findContactByJid(jid);
+            if (contact) {contact.service_items.push(item_model);}
+        }
+        return service_model;
+    },
+    addServiceFeature: function(jid, service, node, feature) {
+        var bare_jid = Strophe.getBareJidFromJid(jid),
+            feature_model = new ServiceFeature(service, node, $(feature).attr('var'));
+        if (bare_jid == Gnosus.account.jid) {
+            Gnosus.account.service_features.push(feature_model);
+        } else {
+            var contact = Gnosus.findContactByJid(jid);
+            if (contact) {contact.service_features.push(feature_model);}
+        }
+        return service_model;
+    },
 }
 
 /**********************************************************************************
@@ -301,6 +345,11 @@ function Account(service, jid, password) {
     this.resource = Strophe.getResourceFromJid(jid) || 'gnos.us';
     this.password = password;
     this.resources = {};
+    this.services = [];
+    this.service_items = [];
+    this.service_features = [];
+    this.subscriptions = [];
+    this.publications = [];
 }
 
 Account.prototype = {
@@ -347,6 +396,10 @@ function Contact(jid, name, ask, subscription, groups) {
     this.subscription = subscription || 'none';
     this.groups = groups;
     this.resources = {};
+    this.services = [];
+    this.service_items = [];
+    this.service_features = [];
+    this.publications = [];
 }
 
 Contact.prototype = {
@@ -421,6 +474,54 @@ function Command(jid, node, name) {
 }
 
 Command.prototype = {
+}
+
+/*-------------------------------------------------------------------------------*/
+function Subscription(node, service, subscription, subid) {
+  this.node = node;
+  this.service = service;
+  this.subscription = subscription;
+  this.subid = subid
+}
+
+Subscription.prototype = {    
+}
+
+/*-------------------------------------------------------------------------------*/
+function Service(jid, node, name, category, type) {
+    this.jid = jid;
+    this.name = name;
+    this.category = category;
+    this.type = type;
+    this.node = node;
+}
+
+Service.prototype = {
+    
+}
+
+/*-------------------------------------------------------------------------------*/
+function ServiceItem(service, parent_node, jid, node, name) {
+    this.parent_node = parent_node;
+    this.service = service;
+    this.node = node;
+    this.jid = jid;
+    this.name = name;
+}
+
+ServiceItem.prototype = {
+    
+}
+
+/*-------------------------------------------------------------------------------*/
+function ServiceFeature(service, node, feature_var) {
+    this.node = node;
+    this.service = service;
+    this.feature_var = feature_var;
+}
+
+ServiceFeature.prototype = {
+    
 }
 
 /**********************************************************************************
@@ -499,8 +600,8 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------
     commands
     ---------------------------------------------------------------------------------*/
-    getCommandList: function (to) {
-        var cmd_iq = $iq({to:to, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCOITEMS, node:'http://jabber.org/protocol/commands'});
+    sendGetCommandList: function (to) {
+        var cmd_iq = $iq({to:to, type: 'get'}).c('query', {xmlns: Strophe.NS.DISCO_ITEMS, node:'http://jabber.org/protocol/commands'});
         GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
             var type = $(iq).attr('type');
             var jid = $(iq).attr('from');
@@ -555,7 +656,7 @@ GnosusXmpp = {
     buildFormXDataPayload: function(form_data) {
         var xdata = $build("x", {xmlns:Strophe.NS.XDATA, type:'submit'});
         $.each(form_data, function() {
-            xdata.c('field', {type:this['type'], var:this['var']}).c('value').t(this['value']).up().up();
+            xdata.c('field', {type:this['type'], 'var':this['var']}).c('value').t(this['value']).up().up();
         });
         return xdata.nodeTree;
     },
@@ -580,7 +681,63 @@ GnosusXmpp = {
             }
         });
         return msg;
-    },            
+    },  
+    
+    /*-------------------------------------------------------------------------------
+    pubsub
+    ---------------------------------------------------------------------------------*/
+    sendGetSubscriptions: function(to) {
+        var iq = $iq({to:to, type: 'get'}).c('pubsub', {xmlns: Strophe.NS.PUBSUB}).c('subscriptions');
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            var type = $(iq).attr('type');
+            if (type == 'result') {
+                $(iq).find('subscription').each(function() {
+                    $(document).trigger('subscriptions_response', Gnosus.addSubscription(this));
+                });
+            } else {
+                $(document).trigger('subscriptions_error',  $(iq).attr('from'));
+            }
+        });
+    },
+
+    /*-------------------------------------------------------------------------------
+    disco
+    ---------------------------------------------------------------------------------*/
+    sendGetDiscoInfo: function(for_jid, to, node) {
+        var qattr = {xmlns: Strophe.NS.DISCO_INFO},
+            iq = $iq({to:to, type: 'get'}).c('query', qattr);
+        if (node) {qattr['node'] = node;}    
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            var type = $(iq).attr('type');
+            if (type == 'result') {
+                $(iq).find('identity').each(function() {
+                    Gnosus.addService(for_jid, to, node, this);
+                });
+                $(iq).find('feature').each(function() {
+                    Gnosus.addServiceFeature(for_jid, to, node, this);
+                });
+            } else {
+                $(document).trigger('disco_info_error', $(iq).attr('from'));
+            }
+        });
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    sendGetDiscoItems: function(for_jid, to, node) {
+        var qattr = {xmlns: Strophe.NS.DISCO_INFO},
+            iq = $iq({to:to, type: 'get'}).c('query', qattr);
+        if (node) {qattr['node'] = node;}    
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            var type = $(iq).attr('type');
+            if (type == 'result') {
+                $(iq).find('item').each(function() {
+                    Gnosus.addServiceItem(for_jid, to, node, this);
+                });
+            } else {
+                $(document).trigger('disco_items_error', $(iq).attr('from'));
+            }
+        });
+    },
 }
 
 /**********************************************************************************
@@ -713,35 +870,36 @@ Strophe.addConnectionPlugin('disco', {
     /*-------------------------------------------------------------------------------*/
     init: function (connection) {
         this.connection = connection;
-        Strophe.addNamespace('DISCOITEMS', 'http://jabber.org/protocol/disco#items');
-        Strophe.addNamespace('DISCOINFO', 'http://jabber.org/protocol/disco#info');
-        Strophe.addNamespace('XMPPSTANZAS', 'urn:ietf:params:xml:ns:xmpp-stanzas');
     },
  
     /*-------------------------------------------------------------------------------*/
     statusChanged: function (status) {
         if (status === Strophe.Status.CONNECTED) {
-        	this.connection.addHandler(this.onDisoItemsGet.bind(this), Strophe.NS.DISCOITEMS, 'iq', 'get'); 
-        	this.connection.addHandler(this.onDisoInfoGet.bind(this), Strophe.NS.DISCOINFO, 'iq', 'get'); 
+        	this.connection.addHandler(this.onDisoItemsGet.bind(this), Strophe.NS.DISCO_ITEMS, 'iq', 'get'); 
+        	this.connection.addHandler(this.onDisoInfoGet.bind(this), Strophe.NS.DISCO_INFO, 'iq', 'get'); 
         }
     },
  
     /*-------------------------------------------------------------------------------*/
     onDisoItemsGet: function (iq) {
-        var resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
-            .c('query', {xmlns:Strophe.NS.DISCOITEMS, node:$(iq).find('query').attr('node')}).up()
-            .c('error', {type: 'cancel'})
-            .c('service-unavailable', {xmlns: Strophe.NS.XMPPSTANZAS});
+        var qattr = {xmlns:Strophe.NS.DISCO_ITEMS};
+            resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
+                .c('query', qattr).up()
+                .c('error', {type: 'cancel'})
+                .c('service-unavailable', {xmlns: Strophe.NS.STANZAS});
+        if ($(iq).find('query').attr('node')) {qattr['node'] = $(iq).find('query').attr('node');}
         this.connection.send(resp);
         return true;
     },
 
     /*-------------------------------------------------------------------------------*/
     onDisoInfoGet: function (iq) {
-        var resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
-            .c('query', {xmlns:Strophe.NS.DISCOINFO, node:$(iq).find('query').attr('node')}).up()
-            .c('error', {type: 'cancel'})
-            .c('service-unavailable', {xmlns: Strophe.NS.XMPPSTANZAS});
+        var qattr = {xmlns:Strophe.NS.DISCO_INFO},
+            resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
+                .c('query', qattr).up()
+                .c('error', {type: 'cancel'})
+                .c('service-unavailable', {xmlns: Strophe.NS.STANZAS});
+        if ($(iq).find('query').attr('node')) {qattr['node'] = $(iq).find('query').attr('node');}
         this.connection.send(resp);
         return true;
     }
@@ -772,10 +930,28 @@ Strophe.addConnectionPlugin('commands', {
         var resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
             .c('command', {xmlns:Strophe.NS.COMMANDS, node:$(iq).find('command').attr('node'), action:'execute'}).up()
             .c('error', {type: 'modify'})
-            .c('bad-request', {xmlns: Strophe.NS.XMPPSTANZAS}).up()
+            .c('bad-request', {xmlns: Strophe.NS.STANZAS}).up()
             .c('bad-action', {xmlns: Strophe.NS.COMMANDS});
         this.connection.send(resp);
         return true;
     },
 
+});
+
+/**********************************************************************************
+pubsub
+**********************************************************************************/
+Strophe.addConnectionPlugin('pubsub', {
+
+    /*-------------------------------------------------------------------------------*/
+    init: function (connection) {
+        this.connection = connection;
+    },
+ 
+    /*-------------------------------------------------------------------------------*/
+    statusChanged: function (status) {
+        if (status === Strophe.Status.CONNECTED) {
+            Strophe.addNamespace('PUBSUB', 'http://jabber.org/protocol/pubsub');
+        }
+    },
 });

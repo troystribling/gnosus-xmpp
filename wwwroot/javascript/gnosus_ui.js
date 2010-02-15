@@ -398,7 +398,7 @@ GnosusUi.prototype = {
          contact.deleteCommands();
          this.block('retrieving command list');
          $.each(contact.resources, function(j,r) {
-             GnosusXmpp.getCommandList(r.jid);
+             GnosusXmpp.sendGetCommandList(r.jid);
          });
          $(this.client_display_content_control+' .add').click(function() {
              this.contactCommandsDialog(contact);
@@ -859,24 +859,24 @@ GnosusUi.prototype = {
     readForm: function() {
         var fields    = [];
         $(this.item_dialog).find('.jid-single input').each(function() {
-            fields.push({type:'jid-single', var:$(this).attr('name'), value:$(this).val()})
+            fields.push({type:'jid-single', 'var':$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.text-single input').each(function() {
-            fields.push({type:'text-single', var:$(this).attr('name'), value:$(this).val()})
+            fields.push({type:'text-single', 'var':$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.text-private input').each(function() {
-            fields.push({type:'text-private', var:$(this).attr('name'), value:$(this).val()})
+            fields.push({type:'text-private', 'var':$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.list-single select').each(function() {
-            fields.push({type:'list-single', var:$(this).attr('name'), value:$(this).val()})
+            fields.push({type:'list-single', 'var':$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.text-multi textarea').each(function() {
-            fields.push({type:'text-multi', var:$(this).attr('name'), value:$(this).val()})
+            fields.push({type:'text-multi', 'var':$(this).attr('name'), value:$(this).val()})
         });
         $(this.item_dialog).find('.boolean input').each(function() {
             var val = '0';
             if ($(this).attr('checked')){val = '1'}
-            fields.push({type:'boolean', var:$(this).attr('name'), value:val})
+            fields.push({type:'boolean', 'var':$(this).attr('name'), value:val})
         });
         return fields;
     }
