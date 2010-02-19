@@ -151,10 +151,10 @@ GnosusUi.prototype = {
          $(document).bind('roster_item_remove', this.items_handlers['roster_item_remove'].bind(this));
          
          /****/
-         this.items_handlers['roster_item_add_response'] = function (ev, iq) {
+         this.items_handlers['roster_item_add_result'] = function (ev, iq) {
              this.unblock();
          }
-         $(document).bind('roster_item_add_response', this.items_handlers['roster_item_add_response'].bind(this));
+         $(document).bind('roster_item_add_result', this.items_handlers['roster_item_add_result'].bind(this));
          
          /****/
          this.items_handlers['roster_item_add_error'] = function (ev, iq) {
@@ -164,10 +164,10 @@ GnosusUi.prototype = {
          $(document).bind('roster_item_add_error', this.items_handlers['roster_item_add_error'].bind(this));
          
          /****/
-         this.items_handlers['roster_remove_response'] = function (ev, iq) {
+         this.items_handlers['roster_remove_result'] = function (ev, iq) {
              this.unblock();
          }
-         $(document).bind('roster_item_remove_response', this.items_handlers['roster_remove_response'].bind(this));
+         $(document).bind('roster_item_remove_result', this.items_handlers['roster_remove_result'].bind(this));
          
          /****/
          this.items_handlers['roster_remove_error'] = function (ev, iq) {
@@ -403,13 +403,13 @@ GnosusUi.prototype = {
          $(this.client_display_content_control+' .add').click(function() {
              this.contactCommandsDialog(contact);
          }.bind(this));
-         this.display_handlers['command_list_response'] = function (ev, jid) {
+         this.display_handlers['command_list_result'] = function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
                  this.buildContentList('no-input', Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'));
              }
          }
-         $(document).bind('command_list_response', this.display_handlers['command_list_response'].bind(this));
+         $(document).bind('command_list_result', this.display_handlers['command_list_result'].bind(this));
          this.display_handlers['command_list_error'] = function (ev, jid) {
              this.unblock();
              this.errorDialog('failed to retrieve command list');
@@ -425,11 +425,11 @@ GnosusUi.prototype = {
              this.unblock();
          }
          $(document).bind('command_cancel', this.display_handlers['command_cancel'].bind(this));
-         this.display_handlers['command_response'] = function (ev, msg) {
+         this.display_handlers['command_result'] = function (ev, msg) {
              $(this.client_display_list).prepend(this.buildXCommandMessage(msg));
              this.unblock();
          }
-         $(document).bind('command_response', this.display_handlers['command_response'].bind(this));
+         $(document).bind('command_result', this.display_handlers['command_result'].bind(this));
          this.display_handlers['command_error'] = function (ev, jid) {
              this.unblock();
              this.errorDialog('command request failed');
@@ -521,6 +521,29 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
+         var contact   = Gnosus.findContactByName(contact_name),
+             client_ui = this;
+         $(this.client_display_content_control).append(toolbar);
+         contact.deleteCommands();
+         this.block('retrieving publications');
+         GnosusXmpp.sendGetDiscoInfo(contact.jid, Strophe.getDomainFromJid(contact.jid), null, 
+            function(jid){
+                this.unblock();
+            });
+        GnosusXmpp.sendGetDiscoItems(contact.jid, Strophe.getDomainFromJid(contact.jid), null, 
+           function(service){
+               this.unblock();
+           });
+         this.display_handlers['disco_info_error'] = function (ev, jid) {
+             this.unblock();
+             this.errorDialog('disco info failed');
+         }
+         $(document).bind('disco_info_error', this.display_handlers['disco_info_error'].bind(this));
+         this.display_handlers['disco_items_error'] = function (ev, jid) {
+             this.unblock();
+             this.errorDialog('disco items failed');
+         }
+         $(document).bind('disco_items_error', this.display_handlers['disco_items_error'].bind(this));
      },               
 
     /*-------------------------------------------------------------------------------*/    
