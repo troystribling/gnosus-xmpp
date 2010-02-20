@@ -521,19 +521,24 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
-         var contact   = Gnosus.findContactByName(contact_name),
-             client_ui = this;
+         var contact   = Gnosus.findContactByName(contact_name);
          $(this.client_display_content_control).append(toolbar);
          contact.deleteCommands();
          this.block('retrieving publications');
          GnosusXmpp.sendGetDiscoInfo(contact.jid, Strophe.getDomainFromJid(contact.jid), null, 
-            function(jid){
+            function(service, node, services, features){
+                $.each(services, function() {
+                    
+                });
                 this.unblock();
-            });
+            }.bind(this));
         GnosusXmpp.sendGetDiscoItems(contact.jid, Strophe.getDomainFromJid(contact.jid), null, 
-           function(service){
+           function(service, node, items){
+               $.each(items, function() {
+                   
+               });
                this.unblock();
-           });
+           }.bind(this));
          this.display_handlers['disco_info_error'] = function (ev, jid) {
              this.unblock();
              this.errorDialog('disco info failed');
