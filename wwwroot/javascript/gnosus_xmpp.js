@@ -22,7 +22,7 @@ function connect(service, jid, password) {
     conn.rawOutput = rawOutput;
 	conn.connect(jid, password, onConnect);
 	GnosusXmpp.connection = conn;
-	Gnosus.account = new Account(service, jid, password)
+	Gnosus.accounts[jid] = new Account(service, jid, password);
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -48,37 +48,27 @@ data model interface
 Gnosus = {
 
     /*-------------------------------------------------------------------------------*/
-    account: null,
-    contacts: {},
+    accounts: {},
     messages: [],
 
     /*-------------------------------------------------------------------------------
     contacts
     ---------------------------------------------------------------------------------*/
     addContact: function(item) {
-        var groups = item.find('group').map(function (g, i) {g.text();});
-        jid = item.attr('jid');
-        Gnosus.contacts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
-        return Gnosus.contacts[jid];
-    },
-    findContactByJid: function(jid) {
-        return Gnosus.contacts[jid];
-    },
-    findContactByName: function(name) {
-        var result = null;
-        for (var jid in Gnosus.contacts) {
-            if (Gnosus.contacts[jid].name == name) {
-                result = Gnosus.contacts[jid];
-                break;
-            }
-        }
-        return result;
+        var groups = item.find('group').map(function (g, i) {g.text();}),
+            jid = item.attr('jid');
+        Gnosus.accounts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
+        return Gnosus.accounts[jid];
     },
     findAllContacts: function() {
-        return Gnosus.contacts;
+        var contacts = [];
+        for (var c in Gnosus.accounts) {
+            if (Gnosus.account().jid != Gnosus.accounts[c].jid) {contacts.push(Gnosus.accounts[c]);}
+        }
+        return contacts;
     },
     updateContact: function(item) {
-        var contact = Gnosus.contacts[item.attr('jid')];
+        var contact = Gnosus.accounts[item.attr('jid')];
         if (contact) {
             contact.groups = [];
             contact.setAttributes(item);
@@ -87,73 +77,71 @@ Gnosus = {
     },
     removeContact: function(item) {
         jid = item.attr('jid');
-        var contact = Gnosus.contacts[jid];
+        var contact = Gnosus.accounts[jid];
         if (contact) {
-            delete(Gnosus.contacts[jid]);
+            delete(Gnosus.accounts[jid]);
         }
         return contact;
     },
 
     /*-------------------------------------------------------------------------------
-    contact resources
+    accounts
     ---------------------------------------------------------------------------------*/
-    addContactResource: function(presence) {
+    account: function() {
+        return Gnosus.findAccountByName('account');
+    },
+    findAccountByJid: function(jid) {
+        return Gnosus.accounts[jid];
+    },
+    findAccountByName: function(name) {
+        var result = null;
+        for (var jid in Gnosus.accounts) {
+            if (Gnosus.accounts[jid].name == name) {
+                result = Gnosus.accounts[jid];
+                break;
+            }
+        }
+        return result;
+    },
+
+    /*-------------------------------------------------------------------------------
+    resources
+    ---------------------------------------------------------------------------------*/
+    addResource: function(presence) {
         var from = $(presence).attr('from');
         var bare_jid = Strophe.getBareJidFromJid(from);
-        if (Gnosus.contacts[bare_jid]) {
+        if (Gnosus.accounts[bare_jid]) {
             resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
-            Gnosus.contacts[bare_jid].addResource(resource);
+            Gnosus.accounts[bare_jid].addResource(resource);
         }
     },
-    removeContactResource: function(presence) {
+    removeResource: function(presence) {
         var from = $(presence).attr('from');
         var bare_jid = Strophe.getBareJidFromJid(from);
-        if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].removeResource(from);
+        if (Gnosus.accounts[bare_jid]) {
+            Gnosus.accounts[bare_jid].removeResource(from);
         }
     },
-    removeContactResources: function(jid) {
+    removeResources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
-        if (Gnosus.contacts[bare_jid]) {
-            Gnosus.contacts[bare_jid].removeResources();
+        if (Gnosus.accounts[bare_jid]) {
+            Gnosus.accounts[bare_jid].removeResources();
         }
     },
-    findAllContactResources: function(jid) {
+    findAllResources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
-        return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources : null;
+        return Gnosus.accounts[bare_jid] ? Gnosus.accounts[bare_jid].resources : null;
     },
-    findContactResource: function(jid) {
+    findResource: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
-        return Gnosus.contacts[bare_jid] ? Gnosus.contacts[bare_jid].resources[jid] : null;
+        return Gnosus.accounts[bare_jid] ? Gnosus.accounts[bare_jid].resources[jid] : null;
     },
-    contactOffline: function() {
-        $.each(Gnosus.contacts, function(j,c) {
+    goOffline: function() {
+        $.each(Gnosus.accounts, function(j,c) {
             c.resources = {};
         });
     },
 
-    /*-------------------------------------------------------------------------------
-    account resources
-    ---------------------------------------------------------------------------------*/
-    addAccountResource: function(presence) {
-        var from = $(presence).attr('from');
-        resource = new Resource(from);
-        Gnosus.account.addResource(resource);
-    },
-    removeAccountResource: function(presence) {
-        var from = $(presence).attr('from');
-        Gnosus.account.removeResource(from);
-    },
-    removeAccountResources: function() {
-        Gnosus.account.removeResources();
-    },
-    findAllAccountResources: function() {
-        return Gnosus.account.resources;
-    },
-    findAccountResource: function(jid) {
-        return Gnosus.account.resources[jid];
-    },
-    
     /*-------------------------------------------------------------------------------
     chat messages
     ---------------------------------------------------------------------------------*/
@@ -163,7 +151,7 @@ Gnosus = {
         return msg_model;      
     },
     addOutgoingChatTextMessage: function(to, body) {
-        var msg_model = new Message(to, Gnosus.account.fullJid(), body, 'chat', 'text');
+        var msg_model = new Message(to, Gnosus.account().fullJid(), body, 'chat', 'text');
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
@@ -189,41 +177,20 @@ Gnosus = {
     commands
     ---------------------------------------------------------------------------------*/
     addCommand: function(jid, node, name) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        var resource = null;
-        if (bare_jid == Gnosus.account.jid) {
-            resource = Gnosus.findAccountResource(jid);
-        } else {
-            resource = Gnosus.findContactResource(jid);
-        }
-        if (resource) {
-            resource.addCommand(node, name);
-        }
+        var resource = Gnosus.findResource(jid);
+        if (resource) {resource.addCommand(node, name);}
     },
     initCommands: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid);
-        var resource = null;
-        if (bare_jid == Gnosus.account.jid) {
-            resource = Gnosus.findAccountResource(jid);
-        } else {
-            resource = Gnosus.findContactResource(jid);
-        }
-        if (resource) {
-            resource.initCommands();
-        }
+        var resource = Gnosus.findResource(jid);
+        if (resource) {resource.initCommands();}
     },
     areCommandsAvailable: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var has_commands = false;
         if (bare_jid == jid) {
-            var resources = {};
-            if (bare_jid == Gnosus.account.jid) {
-                resources = Gnosus.findAllAccountResources(jid);
-            } else {
-                resources = Gnosus.findAllContactResources(jid);
-            }
-            for (var jid in resources) {
-                if (!resources[jid].commands) {
+            var resources = Gnosus.findAllResources(jid);
+            for (var rjid in resources) {
+                if (!resources[rjid].commands) {
                     has_commands = false;
                     break;
                 } else {
@@ -231,12 +198,7 @@ Gnosus = {
                 }
             }
         } else {
-            var resource = null;
-            if (bare_jid == Gnosus.account.jid) {
-                resource = Gnosus.findAccountResource(jid);
-            } else {
-                resource = Gnosus.findContactResource(jid);
-            }
+            var resource = Gnosus.findResource(jid);
             if (resource) {
                 if (resource.commands) {
                     has_commands = true;
@@ -257,36 +219,25 @@ Gnosus = {
             });
         };
         if (bare_jid == jid) {
-            var resources = [];
-            if (bare_jid == Gnosus.account.jid) {
-                resources = Gnosus.findAllAccountResources(jid);
-            } else {
-                resources = Gnosus.findAllContactResources(jid);
-            }
-            $.each(resources, function(j,r) {
-                addCommandHash(r.commands);
+            $.each(Gnosus.findAllResources(jid), function() {
+                addCommandHash(this.commands);
             });
         } else {
-            var resource = null;
-            if (bare_jid == Gnosus.account.jid) {
-                resource = Gnosus.findAccountResource(jid);
-            } else {
-                resource = Gnosus.findContactResource(jid);
-            }
-            addCommandHash(resource.commands);
+            var resource = Gnosus.findResource(jid);
+            if (resource) {addCommandHash(resource.commands);}
         }
         return all_commands;
     },
     addCommandXDataMessage: function(iq) {
         var cmd  = $(iq).find('command').eq(0),
             data = $(iq).find('x').eq(0),
-            from = $(iq).attr('from') || Gnosus.account.fullJid();
+            from = $(iq).attr('from') || Gnosus.account().fullJid();
         var msg_model = new Message($(iq).attr('to'), from, data, 'x', 'command', $(cmd).attr('node'), $(iq).attr('id'));
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
     addCommandTextMessage: function(to, node, text, id) {
-        var msg_model = new Message(to, Gnosus.account.fullJid(), text, 'text', 'command', node, id);
+        var msg_model = new Message(to, Gnosus.account().fullJid(), text, 'text', 'command', node, id);
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
@@ -295,65 +246,51 @@ Gnosus = {
     ---------------------------------------------------------------------------------*/
     addSubscription: function(sub) {
         sub_model = new Subscription($(sub).attr('node'), $(sub).attr('jid'), $(sub).attr('subscription'), $(sub).attr('subid'));
-        Gnosus.account.subscriptions.push(sub_model);
+        Gnosus.account().subscriptions.push(sub_model);
         return sub_model;
     },
     /*-------------------------------------------------------------------------------
     disco
     ---------------------------------------------------------------------------------*/
     addService: function(jid, service, node, serv) {
-        var bare_jid = Strophe.getBareJidFromJid(jid),
-            service_model = new Service(service, node, $(serv).attr('name'), $(serv).attr('category'), $(serv).attr('type'));
-        if (bare_jid == Gnosus.account.jid) {
-            Gnosus.account.services.push(service_model);
-        } else {
-            var contact = Gnosus.findContactByJid(jid);
-            if (contact) {contact.services.push(service_model);}
-        }
+        var service_model = new Service(service, node, $(serv).attr('name'), $(serv).attr('category'), $(serv).attr('type'));
+            contact       = Gnosus.findAccountByJid(jid);
+        if (contact) {contact.services.push(service_model);}
         return service_model;
     },
     addServiceItem: function(jid, service, parent_node, item) {
-        var bare_jid = Strophe.getBareJidFromJid(jid),
-            item_model = new ServiceItem(service, parent_node, $(item).attr('jid'), $(item).attr('node'), $(item).attr('name'));
-        if (bare_jid == Gnosus.account.jid) {
-            Gnosus.account.service_items.push(item_model);
-        } else {
-            var contact = Gnosus.findContactByJid(jid);
-            if (contact) {contact.service_items.push(item_model);}
-        }
+        var item_model = new ServiceItem(service, parent_node, $(item).attr('jid'), $(item).attr('node'), $(item).attr('name'));
+            contact    = Gnosus.findAccountByJid(jid);
+        if (contact) {contact.service_items.push(item_model);}
         return item_model;
     },
     addServiceFeature: function(jid, service, node, feature) {
-        var bare_jid = Strophe.getBareJidFromJid(jid),
-            feature_model = new ServiceFeature(service, node, $(feature).attr('var'));
-        if (bare_jid == Gnosus.account.jid) {
-            Gnosus.account.service_features.push(feature_model);
-        } else {
-            var contact = Gnosus.findContactByJid(jid);
-            if (contact) {contact.service_features.push(feature_model);}
-        }
+        var feature_model = new ServiceFeature(service, node, $(feature).attr('var'));
+            contact       = Gnosus.findAccountByJid(jid);
+        if (contact) {contact.service_features.push(feature_model);}
         return feature_model;
     },
     findPubSubNodesByJid: function(jid) {
-        var bare_jid = Strophe.getBareJidFromJid(jid),
-            items = [];
-        if (bare_jid == Gnosus.account.jid) {
-            items = $.grep(Gnosus.account.service_items, function(s,i) {
-                        return s.node.match(new RegExp(GnosusXmpp.user_pubsub_root(jid), 'g'));               
+        var items   = [];
+            contact = Gnosus.findAccountByJid(jid);
+        if (contact) {
+            items = $.grep(contact.service_items, function(s) {
+                       if (s.node) {
+                           return s.node.match(new RegExp(GnosusXmpp.user_pubsub_root(jid), 'g')); 
+                        } else {
+                            return false;
+                        }              
                     });
-        } else {
-            var contact = Gnosus.findContactByJid(jid);
-            if (contact) {
-                items = $.grep(contact.service_items, function(s,i) {
-                           if (s.node) {
-                               return s.node.match(new RegExp(GnosusXmpp.user_pubsub_root(jid), 'g')); 
-                            } else {
-                                return false;
-                            }              
-                        });
-            }
         }
         return items;
+    },
+    initServiceDisco: function(jid) {
+        var contact = Gnosus.findAccountByJid(jid);
+        if (contact) {
+            contact.services = [];
+            contact.service_items = [];
+            contact.service_features = [];
+        }
     },
 }
 
@@ -363,6 +300,7 @@ models
 function Account(service, jid, password) {
     this.service = service;
     this.jid = Strophe.getBareJidFromJid(jid);
+    this.name = 'account';
     this.resource = Strophe.getResourceFromJid(jid) || 'gnos.us';
     this.password = password;
     this.resources = {};
@@ -886,7 +824,7 @@ Strophe.addConnectionPlugin('roster', {
     /*-------------------------------------------------------------------------------*/
     updateContact: function(item) {
         var jid = item.attr('jid');
-        if (!Gnosus.findContactByJid(jid)) {                
+        if (!Gnosus.findAccountByJid(jid)) {                
             $(document).trigger('roster_item_add', Gnosus.addContact(item));
         } else {
             $(document).trigger('roster_item_update', Gnosus.updateContact(item));
@@ -898,24 +836,24 @@ Strophe.addConnectionPlugin('roster', {
         var from = $(presence).attr('from'),
             jid = Strophe.getBareJidFromJid(from),
             ptype = $(presence).attr('type') || 'available',
-            contact = Gnosus.findContactByJid(jid);
+            contact = Gnosus.findAccountByJid(jid);
         if (contact && ptype != 'error') {
             if (ptype === 'unavailable') {
-                Gnosus.removeContactResource(presence);
+                Gnosus.removeResource(presence);
                 $(document).trigger("presence_unavailable", contact);
             } else if (ptype === 'subscribe') {
                 GnosusXmpp.acceptSubscriptionRequest(jid);
             } else if (ptype === 'unsubscribed') {
-                Gnosus.removeContactResources(jid);
+                Gnosus.removeResources(jid);
                 $(document).trigger("presence_unsubscribed", contact);
             } else {
-                Gnosus.addContactResource(presence);
+                Gnosus.addResource(presence);
                 $(document).trigger("presence", contact);
             }        
         } else if (ptype === 'subscribe') {
             $(document).trigger("presence_subscribe", jid);
-        } else if (jid == Gnosus.account.jid) {
-            Gnosus.addAccountResource(presence);
+        } else if (jid == Gnosus.account().jid) {
+            Gnosus.addResource(presence);
         }
         return true;
     }

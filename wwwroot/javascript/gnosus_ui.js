@@ -245,7 +245,7 @@ GnosusUi.prototype = {
             buttons:{'cancel':this.cancelItemDialog.bind(this), 
                      'delete':function() {
                          this.block('deleting contact');
-                         var contact = Gnosus.findContactByName($(this.item_dialog+' p').text());
+                         var contact = Gnosus.findAccountByName($(this.item_dialog+' p').text());
                          GnosusXmpp.removeContact(contact.jid);
                          this.cancelItemDialog();            
                      }.bind(this)}});
@@ -345,7 +345,7 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showContactsChatDisplay: function(contact_name) {
          var enter_msg = 'enter message',
-             contact = Gnosus.findContactByName(contact_name),
+             contact = Gnosus.findAccountByName(contact_name),
              send_message = '<div class ="client-display-input">'+
                                 '<textarea class="init">'+enter_msg+'</textarea>'+
                             '</div>';
@@ -359,7 +359,7 @@ GnosusUi.prototype = {
              var input = evt.keyCode;
              if (input == '13') {
                  var contact_name = client_ui.contactOpen(),
-                     contact = Gnosus.findContactByName(contact_name),
+                     contact = Gnosus.findAccountByName(contact_name),
                      msg = $(this).val().replace(/\n$/,'');
                  $(this).val('');
                  $(this).height(orig_textarea_height);
@@ -382,7 +382,7 @@ GnosusUi.prototype = {
          });
          this.display_handlers['chat'] = function (ev, msg) {
              var contact_name = client_ui.contactOpen(),
-                 contact = Gnosus.findContactByName(contact_name);
+                 contact = Gnosus.findAccountByName(contact_name);
              if (msg.from.match(new RegExp(contact.jid, 'g'))) {
                  $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
              }
@@ -393,7 +393,7 @@ GnosusUi.prototype = {
      /*-------------------------------------------------------------------------------*/    
      showContactsCommandsDisplay: function(contact_name) {
           var toolbar = '<div class="add"></div>',
-              contact = Gnosus.findContactByName(contact_name);
+              contact = Gnosus.findAccountByName(contact_name);
          $(this.client_display_content_control).append(toolbar);
          contact.deleteCommands();
          this.block('retrieving command list');
@@ -521,7 +521,7 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
-        var contact = Gnosus.findContactByName(contact_name);
+        var contact = Gnosus.findAccountByName(contact_name);
         this.block('retrieving publications');
         GnosusXmpp.sendPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
             function(){
