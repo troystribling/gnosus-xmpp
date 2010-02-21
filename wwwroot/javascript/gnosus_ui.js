@@ -320,7 +320,7 @@ GnosusUi.prototype = {
          $(this.client_display_content).empty();
          $(this.client_display_toolbar).empty();
          this.displayUnbind();
-         this.buildContentList('no-input', Gnosus.findAllMessages());
+         this.buildMessageContentList('no-input', Gnosus.findAllMessages());
          this.display_handlers['chat'] = function (ev, msg) {
              $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
          }
@@ -350,7 +350,7 @@ GnosusUi.prototype = {
                                 '<textarea class="init">'+enter_msg+'</textarea>'+
                             '</div>';
          $(this.client_display_content).append(send_message);
-         this.buildContentList('input', Gnosus.findMessagesByJidAndType(contact.jid, 'chat'));
+         this.buildMessageContentList('input', Gnosus.findMessagesByJidAndType(contact.jid, 'chat'));
          var client_ui = this,
              textarea = $(this.client_display_input+' textarea'),
              orig_textarea_height = textarea.height();
@@ -406,7 +406,7 @@ GnosusUi.prototype = {
          this.display_handlers['command_list_result'] = function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
-                 this.buildContentList('no-input', Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'));
+                 this.buildMessageContentList('no-input', Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'));
              }
          }
          $(document).bind('command_list_result', this.display_handlers['command_list_result'].bind(this));
@@ -521,34 +521,28 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
-         var contact   = Gnosus.findContactByName(contact_name);
-         $(this.client_display_content_control).append(toolbar);
-         contact.deleteCommands();
-         this.block('retrieving publications');
-         GnosusXmpp.sendGetDiscoInfo(contact.jid, Strophe.getDomainFromJid(contact.jid), null, 
-            function(service, node, services, features){
-                $.each(services, function() {
-                    
-                });
+        var contact = Gnosus.findContactByName(contact_name);
+        this.block('retrieving publications');
+        GnosusXmpp.sendPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
+            function(){
                 this.unblock();
-            }.bind(this));
-        GnosusXmpp.sendGetDiscoItems(contact.jid, Strophe.getDomainFromJid(contact.jid), null, 
-           function(service, node, items){
-               $.each(items, function() {
-                   
-               });
-               this.unblock();
-           }.bind(this));
-         this.display_handlers['disco_info_error'] = function (ev, jid) {
-             this.unblock();
-             this.errorDialog('disco info failed');
-         }
-         $(document).bind('disco_info_error', this.display_handlers['disco_info_error'].bind(this));
-         this.display_handlers['disco_items_error'] = function (ev, jid) {
-             this.unblock();
-             this.errorDialog('disco items failed');
-         }
-         $(document).bind('disco_items_error', this.display_handlers['disco_items_error'].bind(this));
+                this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid))
+            }.bind(this),
+            function(){}.bind(this));
+        this.display_handlers['disco_info_error'] = function (ev, jid, node) {
+            this.unblock();
+            var msg = 'disco info failed';
+            if (node) {msg += ' ' + node;}
+            this.errorDialog(msg);
+        }
+        $(document).bind('disco_info_error', this.display_handlers['disco_info_error'].bind(this));
+        this.display_handlers['disco_items_error'] = function (ev, jid, node) {
+            this.unblock();
+            var msg = 'disco items failed';
+            if (node) {msg += ' ' + node;}
+            this.errorDialog(msg);
+        }
+        $(document).bind('disco_items_error', this.display_handlers['disco_items_error'].bind(this));
      },               
 
     /*-------------------------------------------------------------------------------*/    
@@ -584,7 +578,7 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------
      * display utils 
      *-------------------------------------------------------------------------------*/  
-     buildContentList: function(list_type, content_list) {
+     buildMessageContentList: function(list_type, content_list) {
         var msgs = ['<ul class="client-display-list '+list_type+'">'];
         var client_ui = this;
         $.each(content_list, function () {
@@ -595,6 +589,21 @@ GnosusUi.prototype = {
         $(this.client_display_content).append(msgs.join(''));
     },   
       
+    /*-------------------------------------------------------------------------------*/ 
+     buildPubNodeContentList: function(list_type, content_list) {
+        var msgs = ['<ul class="client-display-list publication-nodes">'];
+        var client_ui = this;
+        $.each(content_list, function () {
+            var node_name = this.name || this.split('/').pop()
+            msgs.push('<li><div class="publication-node">'+
+                           '<div class="node">'+node_name+'</div>'+
+                       '</div></li>'
+            );
+        });
+        msgs.push('</ul>')
+        $(this.client_display_content).append(msgs.join(''));
+    },   
+              
     /*-------------------------------------------------------------------------------*/ 
     buildItemListItem: function (item_name, item_type, item_status) { 
         var status = item_status || '',  
