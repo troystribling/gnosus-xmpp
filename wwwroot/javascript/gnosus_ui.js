@@ -398,7 +398,7 @@ GnosusUi.prototype = {
          contact.deleteCommands();
          this.block('retrieving command list');
          $.each(contact.resources, function(j,r) {
-             GnosusXmpp.sendGetCommandList(r.jid);
+             GnosusXmpp.getCommandList(r.jid);
          });
          $(this.client_display_content_control+' .add').click(function() {
              this.contactCommandsDialog(contact);
@@ -470,7 +470,7 @@ GnosusUi.prototype = {
          $(this.item_dialog+' .command').click(function() {
              var node = $(this).parent('div').prev('h3').text()+'/'+$(this).text().replace(/ /g,'_');
              $.each(contact.resources, function(jid, r) {
-                 $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.sendCommand({to:jid, node:node})));
+                 $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.setCommand({to:jid, node:node})));
              });
              client_ui.cancelItemDialog();
              client_ui.block('command request pending');
@@ -496,7 +496,7 @@ GnosusUi.prototype = {
         $(this.item_dialog).dialog({modal:true, resizable:false, 
             buttons:{
                 'cancel':function() {
-                             $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.sendCommandCancel(form)));
+                             $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.setCommandCancel(form)));
                               this.cancelItemDialog();            
                               this.block('canceling');
                           }.bind(this),
@@ -504,7 +504,7 @@ GnosusUi.prototype = {
                            if (!client_ui.dialogButtonIsDisabled()) {
                                var jid  = $(form).attr('from'),
                                    node = $(form).find('command').eq(0).attr('node');
-                               $(client_ui.client_display_list).prepend(client_ui.buildXCommandMessage(GnosusXmpp.sendCommand(
+                               $(client_ui.client_display_list).prepend(client_ui.buildXCommandMessage(GnosusXmpp.setCommand(
                                    {to:jid, node:node, action:'submit', payload:GnosusXmpp.buildFormXDataPayload(client_ui.readForm())})));
                                this.cancelItemDialog();            
                                client_ui.block('command request pending');
@@ -523,12 +523,15 @@ GnosusUi.prototype = {
      showContactsPublicationsDisplay: function(contact_name) {
         var contact = Gnosus.findAccountByName(contact_name);
         this.block('retrieving publications');
-        GnosusXmpp.sendPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
+        GnosusXmpp.getPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
             function(){
                 this.unblock();
                 this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid))
+                $(this.client_display_content).find('.publication-node .status').click(function() {            
+                });    
             }.bind(this),
-            function(){}.bind(this));
+            function(){}.bind(this)
+        );
         this.display_handlers['disco_info_error'] = function (ev, jid, node) {
             this.unblock();
             var msg = 'disco info failed';
@@ -592,10 +595,25 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/ 
      buildPubNodeContentList: function(list_type, content_list) {
         var msgs = ['<ul class="client-display-list publication-nodes">'];
-        var client_ui = this;
         $.each(content_list, function () {
-            var node_name = this.name || this.split('/').pop()
+            var node_name  = this.name || this.split('/').pop(),
+                image      = '/images/pubsub-node-blue.png',
+                pub_status = 'publish';
+            if (list_type = 'contact') {
+                image = '/images/pubsub-node-grey.png';
+                pub_status = 'not-subscribed';
+                var sub = Gnosus.findSubscriptionByNode(node_name);
+                if (sub) {
+                    if (sub.subscription =='subscribed') {
+                        image = '/images/pubsub-node-green.png';
+                        pub_status = 'subscribed';
+                    } 
+                }
+            }
             msgs.push('<li><div class="publication-node">'+
+                           '<div class="status '+pub_status+'">'+
+                               '<img src="'+image+'"/>'+
+                           '</div>'+            
                            '<div class="node">'+node_name+'</div>'+
                        '</div></li>'
             );

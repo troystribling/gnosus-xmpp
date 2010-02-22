@@ -794,9 +794,17 @@ ul.contact-display-modes li {
 /*******  publication-node style *******/
 .publication-nodes {
 }
-.publication-node {   
+.publication-node { 
+    display: table-row;
 }
-.publication-node .status {   
+.publication-node .status { 
+    cursor: pointer;
+    display: table-cell;  
+    padding: 0px 0px 0px 0px;  
+    width: 30px;
+    height: 30px;
 }
 .publication-node .node {   
+    display: table-cell;  
+    padding: 0px 0px 0px 10px;  
 }
