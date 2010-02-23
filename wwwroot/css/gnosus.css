@@ -796,7 +796,6 @@ ul.contact-display-modes li {
 }
 .publication-node { 
     display: table-row;
-    margin: 0px 0px 10px 0px;  
 }
 .publication-node .status { 
     cursor: pointer;
