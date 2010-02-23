@@ -524,14 +524,49 @@ GnosusUi.prototype = {
         var contact = Gnosus.findAccountByName(contact_name);
         this.block('retrieving publications');
         GnosusXmpp.getPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
-            function(){
+            function() {
                 this.unblock();
-                this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid))
-                $(this.client_display_content).find('.publication-node .status').click(function() {            
+                this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid), function(node_name) {
+                    var pub_status = 'not-subscribed';
+                    var sub = Gnosus.findSubscriptionByNode(node_name);
+                    if (sub) {
+                        if (sub.subscription =='subscribed') {
+                            pub_status = 'subscribed';
+                        } 
+                    }
+                    return pub_status;
+                });
+                $(this.client_display_content).find('.publication-node .status').click(function() {     
+                    if ($(this).hasClass('not-subscribed')) {
+                        this.block('unsubscribing');
+                        $(this).removeClass('not-subscribed').addClass('subscribed')
+                    } else {
+                        this.block('subscribing');
+                        $(this).removeClass('subscribed').addClass('not-subscribed')
+                    }   
                 });    
             }.bind(this),
-            function(){}.bind(this)
+            function() {
+                this.unblock();
+            }.bind(this)
         );
+        this.display_handlers['subscribe_result'] = function (ev, subscription) {
+            this.unblock();
+            $(this.client_display_content).find('.node:contains('+subscription.node+')')
+        }
+        $(document).bind('subscribe_result', this.display_handlers['subscribe_result'].bind(this));
+        this.display_handlers['subscribe_error'] = function (ev, service, node) {
+            this.unblock();
+        }
+        $(document).bind('subscribe_error', this.display_handlers['subscribe_error'].bind(this));
+        this.display_handlers['unsubscribe_result'] = function (ev, subscription) {
+            this.unblock();
+        }
+        $(document).bind('unsubscribe_result', this.display_handlers['unsubscribe_result'].bind(this));
+        this.display_handlers['unsubscribe_error'] = function (ev, service, node) {
+            this.unblock();
+        }
+        $(document).bind('unsubscribe_error', this.display_handlers['unsubscribe_error'].bind(this));
         this.display_handlers['disco_info_error'] = function (ev, jid, node) {
             this.unblock();
             var msg = 'disco info failed';
@@ -593,26 +628,12 @@ GnosusUi.prototype = {
     },   
       
     /*-------------------------------------------------------------------------------*/ 
-     buildPubNodeContentList: function(list_type, content_list) {
+     buildPubNodeContentList: function(list_type, content_list, status) {
         var msgs = ['<ul class="client-display-list publication-nodes">'];
         $.each(content_list, function () {
-            var node_name  = this.name || this.split('/').pop(),
-                image      = '/images/pubsub-node-blue.png',
-                pub_status = 'publish';
-            if (list_type = 'contact') {
-                image = '/images/pubsub-node-grey.png';
-                pub_status = 'not-subscribed';
-                var sub = Gnosus.findSubscriptionByNode(node_name);
-                if (sub) {
-                    if (sub.subscription =='subscribed') {
-                        image = '/images/pubsub-node-green.png';
-                        pub_status = 'subscribed';
-                    } 
-                }
-            }
+            var node_name  = this.name || this.split('/').pop();
             msgs.push('<li><div class="publication-node">'+
-                           '<div class="status '+pub_status+'">'+
-                               '<img src="'+image+'"/>'+
+                           '<div class="status '+status(node_name)+'">'+
                            '</div>'+            
                            '<div class="node">'+node_name+'</div>'+
                        '</div></li>'

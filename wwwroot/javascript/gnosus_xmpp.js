@@ -23,6 +23,7 @@ function connect(service, jid, password) {
 	conn.connect(jid, password, onConnect);
 	GnosusXmpp.connection = conn;
 	Gnosus.accounts[jid] = new Account(service, jid, password);
+	Gnosus.account_jid = jid;
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -48,6 +49,7 @@ data model interface
 Gnosus = {
 
     /*-------------------------------------------------------------------------------*/
+    account_jid: null,
     accounts: {},
     messages: [],
 
@@ -88,7 +90,7 @@ Gnosus = {
     accounts
     ---------------------------------------------------------------------------------*/
     account: function() {
-        return Gnosus.findAccountByName('account');
+        return Gnosus.findAccountByName(Gnosus.account_jid);
     },
     findAccountByJid: function(jid) {
         return Gnosus.accounts[jid];
@@ -246,11 +248,14 @@ Gnosus = {
     ---------------------------------------------------------------------------------*/
     addSubscription: function(sub) {
         sub_model = new Subscription($(sub).attr('node'), $(sub).attr('jid'), $(sub).attr('subscription'), $(sub).attr('subid'));
-        Gnosus.account().subscriptions[$(sub).attr('node')].push(sub_model);
+        Gnosus.account().subscriptions[$(sub).attr('node')] = sub_model;
         return sub_model;
     },
     findSubscriptionByNode: function(node) {
         return Gnosus.account().subscriptions[node];
+    },
+    removeSubscription: function(node) {
+        delete(Gnosus.account().subscriptions[node]);
     },
     /*-------------------------------------------------------------------------------
     disco
@@ -287,6 +292,32 @@ Gnosus = {
         }
         return items;
     },
+    findServiceItemByJidAndNode: function(jid, node) {
+        var item    = null;
+            contact = Gnosus.findAccountByJid(jid);
+        if (contact) {
+            for (var s in contact.service_items) {
+                if (s.node == node) {
+                    item = s;
+                    break;
+                }              
+            }
+        }
+        return item;
+    },
+    findPubSubServiceByJid: function(jid) {
+        var service   = null;
+            contact = Gnosus.findAccountByJid(jid);
+        if (contact) {
+            for (var serv in contact.servics) {
+                if (serv.category == 'pubsub' && serv.type =='service') {
+                    service = serv;
+                    break;
+                }
+            }
+        }
+        return service;
+    },
     initServiceDisco: function(jid) {
         var acct = Gnosus.findAccountByJid(jid);
         if (acct) {
@@ -303,7 +334,7 @@ models
 function Account(service, jid, password) {
     this.service = service;
     this.jid = Strophe.getBareJidFromJid(jid);
-    this.name = 'account';
+    this.name = jid;
     this.resource = Strophe.getResourceFromJid(jid) || 'gnos.us';
     this.password = password;
     this.resources = {};
@@ -677,16 +708,55 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------
     pubsub
     ---------------------------------------------------------------------------------*/
-    getSubscriptions: function(to) {
+    getSubscriptions: function(to, result, error) {
         var iq = $iq({to:to, type: 'get'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB}).c('subscriptions');
         GnosusXmpp.connection.sendIQ(iq, function(iq) {
             var type = $(iq).attr('type');
             if (type == 'result') {
-                $(iq).find('subscription').each(function() {
-                    $(document).trigger('subscriptions_result', Gnosus.addSubscription(this));
-                });
+                var subscriptions =[];
+                $(iq).find('subscription').each(function() {subscriptions.push(Gnosus.addSubscription(this));});
+                if (result) {
+                    result(subscriptions)
+                } else {
+                    $(document).trigger('subscriptions_result', suscriptions);
+                }
             } else {
-                $(document).trigger('subscriptions_error',  $(iq).attr('from'));
+                if (error) {
+                    error($(iq).attr('from'))
+                } else {
+                    $(document).trigger('subscriptions_error',  $(iq).attr('from'));
+                }
+            }
+        });
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    setSubscribe: function(service, node) {
+        var iq = $iq({to:to, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+            .c('subscribe', {node:node, jid:Gnosus.account().jid});
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            var type = $(iq).attr('type');
+            if (type == 'result') {
+                var subscription = $(iq).find('subscription').eq(0);
+                Gnosus.addSubscription(subscription);
+                $(document).trigger('subscribe_result', subscription);
+            } else {
+                $(document).trigger('subscribe_error',  service, node);
+            }
+        });
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    setUnsubscribe: function(service, node) {
+        var iq = $iq({to:to, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+            .c('unsubscribe', {node:node, jid:Gnosus.account().jid});
+        GnosusXmpp.connection.sendIQ(iq, function(iq) {
+            var type = $(iq).attr('type');
+            if (type == 'result') {
+                Gnosus.removeSubscription(node);
+                $(document).trigger('unsubscribe_result', subscription);
+            } else {
+                $(document).trigger('unsubscribe_error',  service, node);
             }
         });
     },
@@ -771,17 +841,19 @@ GnosusXmpp = {
     },
     
     /*-------------------------------------------------------------------------------*/
-    getPubSubServiceDisco: function(for_jid, service, done, not_found) {
+    getPubSubServiceDisco: function(for_jid, service, done, node_not_found) {
         Gnosus.initServiceDisco(for_jid);
         GnosusXmpp.getDiscoItems(for_jid, service, null, function(serv, parent_node, items) {
             $.each(items, function() {
                 GnosusXmpp.getDiscoInfo(for_jid, this.jid, this.node, function(serv, parent_node, services, features) {
                     $.each(services, function() {
                         if (this.category == 'pubsub' && this.type =='service') {
-                            GnosusXmpp.getDiscoItems(for_jid, this.jid, GnosusXmpp.user_pubsub_root(for_jid), done, not_found);
+                            GnosusXmpp.getDiscoItems(for_jid, this.jid, GnosusXmpp.user_pubsub_root(for_jid), function() {
+                                GnosusXmpp.getSubscriptions(Gnosus.findPubSubServiceByJid(for_jid), done)
+                            }, node_not_found);
                         }
                     });
-                })
+                });
             });
         });
     },

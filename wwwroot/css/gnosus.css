@@ -796,6 +796,7 @@ ul.contact-display-modes li {
 }
 .publication-node { 
     display: table-row;
+    margin: 0px 0px 10px 0px;  
 }
 .publication-node .status { 
     cursor: pointer;
@@ -804,7 +805,16 @@ ul.contact-display-modes li {
     width: 30px;
     height: 30px;
 }
+.publication-node .published {
+    background-image:url('/images/pubsub-node-blue.png');
+}
+.publication-node .not-subscribed {
+    background-image:url('/images/pubsub-node-grey.png');
+}
+.publication-node .subscribed {
+    background-image:url('/images/pubsub-node-green.png');
+}
 .publication-node .node {   
     display: table-cell;  
-    padding: 0px 0px 0px 10px;  
+    padding: 0px 0px 0px 5px;  
 }
