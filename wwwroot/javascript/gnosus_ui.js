@@ -521,28 +521,32 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsPublicationsDisplay: function(contact_name) {
-        var contact = Gnosus.findAccountByName(contact_name);
+        var contact   = Gnosus.findAccountByName(contact_name),
+            client_ui = this;
         this.block('retrieving publications');
         GnosusXmpp.getPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
             function() {
                 this.unblock();
-                this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid), function(node_name) {
+                this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid), function(node) {
                     var pub_status = 'not-subscribed';
-                    var sub = Gnosus.findSubscriptionByNode(node_name);
-                    if (sub) {
-                        if (sub.subscription =='subscribed') {
-                            pub_status = 'subscribed';
-                        } 
+                    var sub = Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed');
+                    if (sub.length > 0) {
+                        pub_status = 'subscribed';
                     }
                     return pub_status;
                 });
-                $(this.client_display_content).find('.publication-node .status').click(function() {     
+                $(this.client_display_content).find('.publication-node .status').click(function() {  
+                    var node = $(this).siblings('.full-node').text();
+                    var service = Gnosus.findPubSubServiceByJid(contact.jid);
                     if ($(this).hasClass('not-subscribed')) {
-                        this.block('unsubscribing');
-                        $(this).removeClass('not-subscribed').addClass('subscribed')
+                        GnosusXmpp.setSubscribe(service.jid, node);
+                        client_ui.block('subscribing');
                     } else {
-                        this.block('subscribing');
-                        $(this).removeClass('subscribed').addClass('not-subscribed')
+                        var sub = Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed');
+                        $.each(sub, function() {
+                            GnosusXmpp.setUnsubscribe(service.jid, this.node)
+                        });
+                        client_ui.block('unsubscribing');
                     }   
                 });    
             }.bind(this),
@@ -552,19 +556,26 @@ GnosusUi.prototype = {
         );
         this.display_handlers['subscribe_result'] = function (ev, subscription) {
             this.unblock();
-            $(this.client_display_content).find('.node:contains('+subscription.node+')')
+            var item = Gnosus.findServiceItemByJidAndNode(contact.jid, subscription.node)
+            $(this.client_display_content).find('.node:contains('+item.name+')').siblings('.status')
+                .removeClass('not-subscribed').addClass('subscribed')
         }
         $(document).bind('subscribe_result', this.display_handlers['subscribe_result'].bind(this));
         this.display_handlers['subscribe_error'] = function (ev, service, node) {
             this.unblock();
+            this.errorDialog('error subscribing to '+node+' on service '+service);
         }
         $(document).bind('subscribe_error', this.display_handlers['subscribe_error'].bind(this));
         this.display_handlers['unsubscribe_result'] = function (ev, subscription) {
             this.unblock();
+            var item = Gnosus.findServiceItemByJidAndNode(contact.jid, subscription.node)
+            $(this.client_display_content).find('.node:contains('+item.name+')').siblings('.status')
+                .removeClass('subscribed').addClass('not-subscribed')
         }
         $(document).bind('unsubscribe_result', this.display_handlers['unsubscribe_result'].bind(this));
         this.display_handlers['unsubscribe_error'] = function (ev, service, node) {
             this.unblock();
+            this.errorDialog('error unsubscribing from '+node+' on service '+service);
         }
         $(document).bind('unsubscribe_error', this.display_handlers['unsubscribe_error'].bind(this));
         this.display_handlers['disco_info_error'] = function (ev, jid, node) {
@@ -631,11 +642,10 @@ GnosusUi.prototype = {
      buildPubNodeContentList: function(list_type, content_list, status) {
         var msgs = ['<ul class="client-display-list publication-nodes">'];
         $.each(content_list, function () {
-            var node_name  = this.name || this.split('/').pop();
             msgs.push('<li><div class="publication-node">'+
-                           '<div class="status '+status(node_name)+'">'+
-                           '</div>'+            
-                           '<div class="node">'+node_name+'</div>'+
+                           '<div class="status '+status(this.node)+'"></div>'+ 
+                           '<div class="full-node">'+this.node+'</div>'+          
+                           '<div class="node">'+this.name+'</div>'+
                        '</div></li>'
             );
         });

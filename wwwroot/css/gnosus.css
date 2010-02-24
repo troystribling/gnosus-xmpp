@@ -817,3 +817,6 @@ ul.contact-display-modes li {
     display: table-cell;  
     padding: 0px 0px 0px 5px;  
 }
+.publication-node .full-node {   
+    display: none;  
+}

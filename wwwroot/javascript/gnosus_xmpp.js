@@ -248,13 +248,22 @@ Gnosus = {
     ---------------------------------------------------------------------------------*/
     addSubscription: function(sub) {
         sub_model = new Subscription($(sub).attr('node'), $(sub).attr('jid'), $(sub).attr('subscription'), $(sub).attr('subid'));
-        Gnosus.account().subscriptions[$(sub).attr('node')] = sub_model;
+        Gnosus.account().subscriptions.push(sub_model);
         return sub_model;
     },
-    findSubscriptionByNode: function(node) {
+    findSubscriptionsByNodeAndSubscription: function(node, sub) {
+        return $.grep(Gnosus.account().subscriptions, function(s) {
+            return s.node == node && s.subscription == sub;
+        });
         return Gnosus.account().subscriptions[node];
     },
-    removeSubscription: function(node) {
+    findSubscriptionById: function(id) {
+        return $.grep(Gnosus.account().subscriptions, function(s) {
+            return s.node == node;
+        });
+        return Gnosus.account().subscriptions[node];
+    },
+    removeSubscriptionById: function(node) {
         delete(Gnosus.account().subscriptions[node]);
     },
     /*-------------------------------------------------------------------------------
@@ -293,12 +302,12 @@ Gnosus = {
         return items;
     },
     findServiceItemByJidAndNode: function(jid, node) {
-        var item    = null;
+        var item    = null,
             contact = Gnosus.findAccountByJid(jid);
         if (contact) {
             for (var s in contact.service_items) {
-                if (s.node == node) {
-                    item = s;
+                if (contact.service_items[s].node == node) {
+                    item = contact.services[s];
                     break;
                 }              
             }
@@ -306,12 +315,12 @@ Gnosus = {
         return item;
     },
     findPubSubServiceByJid: function(jid) {
-        var service   = null;
+        var service   = null,
             contact = Gnosus.findAccountByJid(jid);
         if (contact) {
-            for (var serv in contact.servics) {
-                if (serv.category == 'pubsub' && serv.type =='service') {
-                    service = serv;
+            for (var s in contact.services) {
+                if (contact.services[s].category == 'pubsub' && contact.services[s].type =='service') {
+                    service = contact.services[s];
                     break;
                 }
             }
@@ -341,7 +350,7 @@ function Account(service, jid, password) {
     this.services = [];
     this.service_items = [];
     this.service_features = [];
-    this.subscriptions = {};
+    this.subscriptions = [];
     this.publications = {};
 }
 
@@ -499,7 +508,7 @@ function ServiceItem(service, parent_node, jid, node, name) {
     this.service = service;
     this.node = node;
     this.jid = jid;
-    this.name = name;
+    this.name = name || node;    
 }
 
 ServiceItem.prototype = {
@@ -732,7 +741,7 @@ GnosusXmpp = {
 
     /*-------------------------------------------------------------------------------*/
     setSubscribe: function(service, node) {
-        var iq = $iq({to:to, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+        var iq = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
             .c('subscribe', {node:node, jid:Gnosus.account().jid});
         GnosusXmpp.connection.sendIQ(iq, function(iq) {
             var type = $(iq).attr('type');
@@ -748,7 +757,7 @@ GnosusXmpp = {
 
     /*-------------------------------------------------------------------------------*/
     setUnsubscribe: function(service, node) {
-        var iq = $iq({to:to, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+        var iq = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
             .c('unsubscribe', {node:node, jid:Gnosus.account().jid});
         GnosusXmpp.connection.sendIQ(iq, function(iq) {
             var type = $(iq).attr('type');
@@ -849,7 +858,7 @@ GnosusXmpp = {
                     $.each(services, function() {
                         if (this.category == 'pubsub' && this.type =='service') {
                             GnosusXmpp.getDiscoItems(for_jid, this.jid, GnosusXmpp.user_pubsub_root(for_jid), function() {
-                                GnosusXmpp.getSubscriptions(Gnosus.findPubSubServiceByJid(for_jid), done)
+                                GnosusXmpp.getSubscriptions(Gnosus.findPubSubServiceByJid(for_jid).jid, done)
                             }, node_not_found);
                         }
                     });
