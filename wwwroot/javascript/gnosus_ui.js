@@ -542,9 +542,9 @@ GnosusUi.prototype = {
                         GnosusXmpp.setSubscribe(service.jid, node);
                         client_ui.block('subscribing');
                     } else {
-                        var sub = Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed');
-                        $.each(sub, function() {
-                            GnosusXmpp.setUnsubscribe(service.jid, this.node)
+                        var subs = Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed');
+                        $.each(subs, function() {
+                            GnosusXmpp.setUnsubscribe(service.jid, this.node, this.subid)
                         });
                         client_ui.block('unsubscribing');
                     }   
@@ -563,32 +563,32 @@ GnosusUi.prototype = {
         $(document).bind('subscribe_result', this.display_handlers['subscribe_result'].bind(this));
         this.display_handlers['subscribe_error'] = function (ev, service, node) {
             this.unblock();
-            this.errorDialog('error subscribing to '+node+' on service '+service);
+            this.errorDialog('error subscribing to <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
         }
         $(document).bind('subscribe_error', this.display_handlers['subscribe_error'].bind(this));
-        this.display_handlers['unsubscribe_result'] = function (ev, subscription) {
+        this.display_handlers['unsubscribe_result'] = function (ev, service, node, subid) {
             this.unblock();
-            var item = Gnosus.findServiceItemByJidAndNode(contact.jid, subscription.node)
+            var item = Gnosus.findServiceItemByJidAndNode(contact.jid, node)
             $(this.client_display_content).find('.node:contains('+item.name+')').siblings('.status')
                 .removeClass('subscribed').addClass('not-subscribed')
         }
         $(document).bind('unsubscribe_result', this.display_handlers['unsubscribe_result'].bind(this));
         this.display_handlers['unsubscribe_error'] = function (ev, service, node) {
             this.unblock();
-            this.errorDialog('error unsubscribing from '+node+' on service '+service);
+            this.errorDialog('error unsubscribing from <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
         }
         $(document).bind('unsubscribe_error', this.display_handlers['unsubscribe_error'].bind(this));
         this.display_handlers['disco_info_error'] = function (ev, jid, node) {
             this.unblock();
             var msg = 'disco info failed';
-            if (node) {msg += ' ' + node;}
+            if (node) {msg += ' for node <strong>' + node+'</strong>';}
             this.errorDialog(msg);
         }
         $(document).bind('disco_info_error', this.display_handlers['disco_info_error'].bind(this));
         this.display_handlers['disco_items_error'] = function (ev, jid, node) {
             this.unblock();
             var msg = 'disco items failed';
-            if (node) {msg += ' ' + node;}
+            if (node) {msg += ' for node <strong>' + node+'</strong>';}
             this.errorDialog(msg);
         }
         $(document).bind('disco_items_error', this.display_handlers['disco_items_error'].bind(this));

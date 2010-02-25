@@ -263,8 +263,12 @@ Gnosus = {
         });
         return Gnosus.account().subscriptions[node];
     },
-    removeSubscriptionById: function(node) {
-        delete(Gnosus.account().subscriptions[node]);
+    removeSubscription: function(node, subid) {
+        if (subid) {
+            Gnosus.account().removeSubscriptionBySubid(subid);
+        } else {
+            Gnosus.account().removeSubscriptionsByNode(node);
+        }
     },
     /*-------------------------------------------------------------------------------
     disco
@@ -365,7 +369,28 @@ Account.prototype = {
         $.each(this.resources, function(j,r) {
             r.deleteCommands();
         });
-    }    
+    },
+    removeSubscriptionBySubid: function(subid) {
+        var delete_indx = null;
+        for(var i in Gnosus.account().subscriptions) {
+            if (Gnosus.account().subscriptions[i] == subid) {
+                delete_index = i;
+                break;
+            }
+        }
+        if (delete_indx) {this.subscriptions.splice(delete_indx, 1);}
+    },
+    removeSubscriptionsByNode: function(node) {
+        var delete_indxs = [];
+        $.each(Gnosus.account().subscriptions, function(i,sub) {
+            if (sub.node == node) {
+                delete_indexs.push(i);
+            }
+        });
+        $.each(delete_indxs, function(i,sub) {
+            this.subscriptions.splice(i, 1);
+        });
+    }   
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -556,29 +581,29 @@ GnosusXmpp = {
                 iq.c("group").t(this).up();
             });
         }
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 GnosusXmpp.subscriptionRequest(jid);
                 $(document).trigger('roster_item_add_result', iq);
-            } else {
+            },
+            function(iq) {
                 $(document).trigger('roster_item_add_error', iq);
             }
-        });
+        );
     },
     
     /*-------------------------------------------------------------------------------*/
     removeContact: function (jid) {
         var iq = $iq({type: 'set'}).c('query', {xmlns: Strophe.NS.ROSTER}).c('item', {jid: jid, subscription: 'remove'});
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 GnosusXmpp.connection.send($pres({to: jid, type: "unsubscribe"}));
                 $(document).trigger('roster_item_remove_result', iq);
-            } else {
+            },
+            function(iq) {
                 $(document).trigger('roster_item_remove_error', iq);
             }
-        });
+        );
     },
   
     /*-------------------------------------------------------------------------------*/
@@ -616,19 +641,19 @@ GnosusXmpp = {
     ---------------------------------------------------------------------------------*/
     getCommandList: function (to) {
         var cmd_iq = $iq({to:to, type:'get'}).c('query', {xmlns:Strophe.NS.DISCO_ITEMS, node:'http://jabber.org/protocol/commands'});
-        GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
-            var type = $(iq).attr('type');
-            var jid = $(iq).attr('from');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(cmd_iq, 
+            function(iq) {
+                var jid = $(iq).attr('from');
                 Gnosus.initCommands(jid);
                 $(iq).find('item').each(function () {
                     Gnosus.addCommand(jid, $(this).attr('node'), $(this).attr('name'));
                 });
                 $(document).trigger('command_list_result', jid);
-            } else {
+            },
+            function(iq) {
                 $(document).trigger('command_list_error', jid);
             }
-        });
+        );
     },  
     
     /*-------------------------------------------------------------------------------*/
@@ -664,11 +689,10 @@ GnosusXmpp = {
         } else {
             msg = Gnosus.addCommandTextMessage(args['to'], args['node'], 'command request');
         }
-        GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
-            var type = $(iq).attr('type'),
-                jid  = $(iq).attr('from');
-            if (type == 'result') {
-                var x   = $(iq).find('x').eq(0),
+        GnosusXmpp.connection.sendIQ(cmd_iq, 
+            function(iq) {
+                var jid  = $(iq).attr('from'),
+                    x   = $(iq).find('x').eq(0),
                     x_type = 'result';
                 if (x) {x_type = $(x).attr('type')}
                 if (x_type == 'form') {
@@ -676,10 +700,11 @@ GnosusXmpp = {
                 } else {
                     $(document).trigger('command_result', Gnosus.addCommandXDataMessage(iq));
                 }
-            } else {
+            },
+            function(iq) {
                 $(document).trigger('command_error', jid);
             }
-        });
+        );
         return msg;
     },
      
@@ -702,15 +727,14 @@ GnosusXmpp = {
             cmd_attr['sessionid'] = $(command).attr('sessionid');
         }  
         var cmd_iq = $iq({to:to, type: 'set'}).c('command', cmd_attr);         
-        GnosusXmpp.connection.sendIQ(cmd_iq, function(iq) {
-            var type = $(iq).attr('type'),
-                jid  = $(iq).attr('from');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(cmd_iq, 
+            function(iq) {
                 $(document).trigger('command_cancel', Gnosus.addCommandTextMessage(to, $(command).attr('node'), 'canceled'), $(req).attr('id'));
-            } else {
+            },
+            function(iq) {
                 $(document).trigger('command_error', jid);
             }
-        });
+        );
         return msg;
     },  
     
@@ -719,9 +743,8 @@ GnosusXmpp = {
     ---------------------------------------------------------------------------------*/
     getSubscriptions: function(to, result, error) {
         var iq = $iq({to:to, type: 'get'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB}).c('subscriptions');
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 var subscriptions =[];
                 $(iq).find('subscription').each(function() {subscriptions.push(Gnosus.addSubscription(this));});
                 if (result) {
@@ -729,45 +752,48 @@ GnosusXmpp = {
                 } else {
                     $(document).trigger('subscriptions_result', suscriptions);
                 }
-            } else {
+            },
+            function(iq) {
                 if (error) {
                     error($(iq).attr('from'))
                 } else {
                     $(document).trigger('subscriptions_error',  $(iq).attr('from'));
                 }
             }
-        });
+        );
     },
 
     /*-------------------------------------------------------------------------------*/
     setSubscribe: function(service, node) {
         var iq = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
             .c('subscribe', {node:node, jid:Gnosus.account().jid});
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 var subscription = $(iq).find('subscription').eq(0);
                 Gnosus.addSubscription(subscription);
                 $(document).trigger('subscribe_result', subscription);
-            } else {
-                $(document).trigger('subscribe_error',  service, node);
+            },
+            function(iq) {
+                $(document).trigger('subscribe_error',  [service, node]);
             }
-        });
+        );
     },
 
     /*-------------------------------------------------------------------------------*/
-    setUnsubscribe: function(service, node) {
-        var iq = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
-            .c('unsubscribe', {node:node, jid:Gnosus.account().jid});
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
-                Gnosus.removeSubscription(node);
-                $(document).trigger('unsubscribe_result', subscription);
-            } else {
-                $(document).trigger('unsubscribe_error',  service, node);
+    setUnsubscribe: function(service, node, subId) {
+        var iq     = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB}),
+            usattr =  {node:node, jid:Gnosus.account().jid};
+        if (subId) {usattr['subId'] = subId;}
+        iq.c('unsubscribe', usattr);
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
+                Gnosus.removeSubscription(node, subId);
+                $(document).trigger('unsubscribe_result', [service, node, subId]);
+            },
+            function(iq) {
+                $(document).trigger('unsubscribe_error', [service, node]);
             }
-        });
+        );
     },
 
     /*-------------------------------------------------------------------------------*/
@@ -775,16 +801,16 @@ GnosusXmpp = {
         var iq = $iq({to:to, type: 'set'})
             .c('pubsub', {xmlns:Strophe.NS.PUBSUB})
             .c('create', {node:node}).up().c('configure');
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 $(iq).find('subscription').each(function() {
                     $(document).trigger('create_pubsub_node_result', Gnosus.addSubscription(this));
                 });
-            } else {
+            },
+            function(iq) {
                 $(document).trigger('create_pubsub_node_error',  $(iq).attr('from'));
             }
-        });
+        );
     },
 
     /*-------------------------------------------------------------------------------
@@ -795,9 +821,8 @@ GnosusXmpp = {
             iq = $iq({to:to, type: 'get'});
         if (node) {qattr['node'] = node;} 
         iq.c('query', qattr);  
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 var services = [];
                     features = []
                 $(iq).find('identity').each(function() {
@@ -809,16 +834,17 @@ GnosusXmpp = {
                 if (result) {
                     result($(iq).attr('from'), node, services, features);
                 } else {
-                    $(document).trigger('disco_info_result', $(iq).attr('from'), node, services, features);
+                    $(document).trigger('disco_info_result', [$(iq).attr('from'), node, services, features]);
                 }
-            } else {
+            },
+            function(iq) {
                 if (error) {
                     error($(iq).attr('from'), node);
                 } else {
-                    $(document).trigger('disco_info_error', $(iq).attr('from'), node);
+                    $(document).trigger('disco_info_error', [$(iq).attr('from'), node]);
                 }
             }
-        });
+        );
     },
 
     /*-------------------------------------------------------------------------------*/
@@ -827,9 +853,8 @@ GnosusXmpp = {
             iq = $iq({to:to, type: 'get'});
         if (node) {qattr['node'] = node;}    
         iq.c('query', qattr);  
-        GnosusXmpp.connection.sendIQ(iq, function(iq) {
-            var type = $(iq).attr('type');
-            if (type == 'result') {
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
                 var items = [];
                 $(iq).find('item').each(function() {
                     items.push(Gnosus.addServiceItem(for_jid, to, node, this));
@@ -837,16 +862,17 @@ GnosusXmpp = {
                 if (result) {
                     result($(iq).attr('from'), node, items);
                 } else {
-                    $(document).trigger('disco_items_result', $(iq).attr('from'), node, items);
+                    $(document).trigger('disco_items_result', [$(iq).attr('from'), node, items]);
                 }
-            } else {
+            },
+            function(iq) {
                 if (error) {
                     error($(iq).attr('from'), node);
                 } else {
-                    $(document).trigger('disco_items_error', $(iq).attr('from'), node);
+                    $(document).trigger('disco_items_error', [$(iq).attr('from'), node]);
                 }
             }
-        });
+        );
     },
     
     /*-------------------------------------------------------------------------------*/
@@ -903,17 +929,17 @@ Strophe.addConnectionPlugin('roster', {
             this.connection.addHandler(this.onRosterSet.bind(this), Strophe.NS.ROSTER, 'iq', 'set');
             this.connection.addHandler(this.onPresence.bind(this), null, 'presence');
             var roster_iq = $iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER});
-            this.connection.sendIQ(roster_iq, function(iq) {
-                var type = $(iq).attr('type');
-                if (type == 'result') {
+            this.connection.sendIQ(roster_iq, 
+                function(iq) {
                     $(iq).find('item').each(function () {
                         Gnosus.addContact($(this));
                     });
                     $(document).trigger('roster_init_result');
-                } else {
+                },
+                function(iq) {
                     $(document).trigger('roster_init_error');
                 }
-            });
+            );
             GnosusXmpp.initialPresence();
         } else if (status === Strophe.Status.DISCONNECTED) {
             Gnosus.contactOffline();
