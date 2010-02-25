@@ -22,8 +22,8 @@ function connect(service, jid, password) {
     conn.rawOutput = rawOutput;
 	conn.connect(jid, password, onConnect);
 	GnosusXmpp.connection = conn;
-	Gnosus.accounts[jid] = new Account(service, jid, password);
-	Gnosus.account_jid = jid;
+	Gnosus.accounts[Strophe.getBareJidFromJid(jid)] = new Account(service, jid, password);
+	Gnosus.account_jid = Strophe.getBareJidFromJid(jid);
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -246,8 +246,11 @@ Gnosus = {
     /*-------------------------------------------------------------------------------
     subscription
     ---------------------------------------------------------------------------------*/
-    addSubscription: function(sub) {
-        sub_model = new Subscription($(sub).attr('node'), $(sub).attr('jid'), $(sub).attr('subscription'), $(sub).attr('subid'));
+    addSubscription: function(sub, serv) {
+        return Gnosus.addSubscribed(sub, serv, $(sub).attr('node'));
+    },
+    addSubscribed: function(sub, serv, node) {
+        sub_model = new Subscription(node, serv, $(sub).attr('subscription'), $(sub).attr('subid'));
         Gnosus.account().subscriptions.push(sub_model);
         return sub_model;
     },
@@ -263,12 +266,8 @@ Gnosus = {
         });
         return Gnosus.account().subscriptions[node];
     },
-    removeSubscription: function(node, subid) {
-        if (subid) {
-            Gnosus.account().removeSubscriptionBySubid(subid);
-        } else {
-            Gnosus.account().removeSubscriptionsByNode(node);
-        }
+    removeSubscription: function(subid) {
+        return Gnosus.account().removeSubscription(subid);
     },
     /*-------------------------------------------------------------------------------
     disco
@@ -311,7 +310,7 @@ Gnosus = {
         if (contact) {
             for (var s in contact.service_items) {
                 if (contact.service_items[s].node == node) {
-                    item = contact.services[s];
+                    item = contact.service_items[s];
                     break;
                 }              
             }
@@ -347,7 +346,7 @@ models
 function Account(service, jid, password) {
     this.service = service;
     this.jid = Strophe.getBareJidFromJid(jid);
-    this.name = jid;
+    this.name = this.jid;
     this.resource = Strophe.getResourceFromJid(jid) || 'gnos.us';
     this.password = password;
     this.resources = {};
@@ -370,27 +369,19 @@ Account.prototype = {
             r.deleteCommands();
         });
     },
-    removeSubscriptionBySubid: function(subid) {
-        var delete_indx = null;
+    removeSubscription: function(subid) {
+        var delete_indx = null,
+            sub         = null;
         for(var i in Gnosus.account().subscriptions) {
-            if (Gnosus.account().subscriptions[i] == subid) {
-                delete_index = i;
+            var test_sub = Gnosus.account().subscriptions[i];
+            if (Gnosus.account().subscriptions[i].subid == subid) {
+                delete_indx = i;
                 break;
             }
         }
-        if (delete_indx) {this.subscriptions.splice(delete_indx, 1);}
+        if (delete_indx) {sub = this.subscriptions.splice(delete_indx, 1);}
+        return sub;
     },
-    removeSubscriptionsByNode: function(node) {
-        var delete_indxs = [];
-        $.each(Gnosus.account().subscriptions, function(i,sub) {
-            if (sub.node == node) {
-                delete_indexs.push(i);
-            }
-        });
-        $.each(delete_indxs, function(i,sub) {
-            this.subscriptions.splice(i, 1);
-        });
-    }   
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -504,9 +495,9 @@ Command.prototype = {
 }
 
 /*-------------------------------------------------------------------------------*/
-function Subscription(node, service, subscription, subid) {
+function Subscription(node, serv, subscription, subid) {
   this.node = node;
-  this.service = service;
+  this.service = serv;
   this.subscription = subscription;
   this.subid = subid
 }
@@ -746,7 +737,7 @@ GnosusXmpp = {
         GnosusXmpp.connection.sendIQ(iq, 
             function(iq) {
                 var subscriptions =[];
-                $(iq).find('subscription').each(function() {subscriptions.push(Gnosus.addSubscription(this));});
+                $(iq).find('subscription').each(function() {subscriptions.push(Gnosus.addSubscription(this, to));});
                 if (result) {
                     result(subscriptions)
                 } else {
@@ -770,8 +761,7 @@ GnosusXmpp = {
         GnosusXmpp.connection.sendIQ(iq, 
             function(iq) {
                 var subscription = $(iq).find('subscription').eq(0);
-                Gnosus.addSubscription(subscription);
-                $(document).trigger('subscribe_result', subscription);
+                $(document).trigger('subscribe_result', Gnosus.addSubscribed(subscription, service, node));
             },
             function(iq) {
                 $(document).trigger('subscribe_error',  [service, node]);
@@ -780,15 +770,12 @@ GnosusXmpp = {
     },
 
     /*-------------------------------------------------------------------------------*/
-    setUnsubscribe: function(service, node, subId) {
-        var iq     = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB}),
-            usattr =  {node:node, jid:Gnosus.account().jid};
-        if (subId) {usattr['subId'] = subId;}
-        iq.c('unsubscribe', usattr);
+    setUnsubscribe: function(service, node, subid) {
+        var iq  = $iq({to:service, type: 'set'}).c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+            .c('unsubscribe', {node:node, jid:Gnosus.account().jid, subid:subid});
         GnosusXmpp.connection.sendIQ(iq, 
             function(iq) {
-                Gnosus.removeSubscription(node, subId);
-                $(document).trigger('unsubscribe_result', [service, node, subId]);
+                $(document).trigger('unsubscribe_result', Gnosus.removeSubscription(subid));
             },
             function(iq) {
                 $(document).trigger('unsubscribe_error', [service, node]);

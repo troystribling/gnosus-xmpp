@@ -566,9 +566,9 @@ GnosusUi.prototype = {
             this.errorDialog('error subscribing to <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
         }
         $(document).bind('subscribe_error', this.display_handlers['subscribe_error'].bind(this));
-        this.display_handlers['unsubscribe_result'] = function (ev, service, node, subid) {
+        this.display_handlers['unsubscribe_result'] = function (ev, subscription) {
             this.unblock();
-            var item = Gnosus.findServiceItemByJidAndNode(contact.jid, node)
+            var item = Gnosus.findServiceItemByJidAndNode(contact.jid, subscription.node)
             $(this.client_display_content).find('.node:contains('+item.name+')').siblings('.status')
                 .removeClass('subscribed').addClass('not-subscribed')
         }
