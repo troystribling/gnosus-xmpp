@@ -145,7 +145,7 @@ Gnosus = {
     },
 
     /*-------------------------------------------------------------------------------
-    chat messages
+    messages
     ---------------------------------------------------------------------------------*/
     addIncomingChatTextMessage: function(msg) {
         var msg_model = new Message($(msg).attr('to'), $(msg).attr('from'), $(msg).find('body').text(), 'chat', 'text');
@@ -157,6 +157,29 @@ Gnosus = {
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
+    addHeadlineMessages: function(msg) {
+        var items = $(msg).find('items').eq(0),
+            item  = $(msg).find('item'),
+            node  = $(items).attr('node'),
+            from  = GnosusXmpp.userPubsubRootToJid(node),
+            msgs  = [];
+            $(item).each(function() {
+                var msg_model = null,
+                    id        = $(this).attr('id'),
+                    xdata     = $(this).find('x').eq(0),
+                    entry     = $(this).find('entry');
+                if (xdata.attr('xmlns') == Strophe.NS.XDATA) {
+                    msg_model = new Message(Gnosus.account().jid, from, xdata, 'headline', 'x', node, null, id);
+                } else if (entry.attr('xmlns') == Strophe.NS.ENTRY) {
+                    msg_model = new Message(Gnosus.account().jid, from, entry.find('title').text(), 'headline', 'entry', node, null, id);
+                }
+                if (msg_model) { 
+                    Gnosus.messages.unshift(msg_model);
+                    msgs.unshift(msg_model); 
+                }
+            })    
+        return msgs;
+    },
     findAllMessages: function() {
         return Gnosus.messages;
     },
@@ -167,6 +190,9 @@ Gnosus = {
                       });   
         return result;         
     },
+    findMessagesByNode: function(node) {
+        return $.grep(Gnosus.messages, function(m) {return (m.node == node)});         
+    },
     findMessagesByJidAndContentType: function(jid, content_type) {
         var jid_rexp = new RegExp(jid, 'g');
         var result = $.grep(Gnosus.messages, function(m) {
@@ -174,7 +200,6 @@ Gnosus = {
                       });   
         return result;         
     },
-    
     /*-------------------------------------------------------------------------------
     commands
     ---------------------------------------------------------------------------------*/
@@ -346,32 +371,6 @@ Gnosus = {
             acct.service_items = [];
             acct.service_features = [];
         }
-    },
-    /*-------------------------------------------------------------------------------
-    events
-    ---------------------------------------------------------------------------------*/
-    addHeadlineMessages: function(msg) {
-        var items = $(msg).find('items').eq(0),
-            item  = $(msg).find('item'),
-            node  = $(items).attr('node'),
-            from  = GnosusXmpp.userPubsubRootToJid(node),
-            msgs  = [];
-            $(item).each(function() {
-                var msg_model = null,
-                    id        = $(this).attr('id'),
-                    xdata     = $(this).find('x'),
-                    entry     = $(this).find('title').text();
-                if (xdata) {
-                    msg_model = new  Message(Gnosus.account().jid, from, xdata, 'x', 'headline', node, id);
-                } else if (entry) {
-                    msg_model = new  Message(Gnosus.account().jid, from, entry, 'entry', 'headline', node, id);
-                }
-                if (msg_model) { 
-                    Gnosus.messages.unshift(msg_model);
-                    msgs.unshift(msg_model); 
-                }
-            })    
-        return msgs;
     },
 }
 
@@ -602,7 +601,7 @@ GnosusXmpp = {
     /*-------------------------------------------------------------------------------*/
     userPubsubRootToJid: function(node) {
         var node_comps = node.split('/');
-        return node_comps[2]+'@'+node_comps[1];
+        return node_comps[3]+'@'+node_comps[2];
     },
 
     /*-------------------------------------------------------------------------------
@@ -1060,7 +1059,7 @@ Strophe.addConnectionPlugin('messages', {
         if (type == "chat" && body) {
     	    $(document).trigger('chat', Gnosus.addIncomingChatTextMessage(msg));            
 	    } else if (type =='headline') {
-	        $(document).trigger('headline', Gnosus.addHeadlineMessages(msg))
+	        $(document).trigger('headline', [Gnosus.addHeadlineMessages(msg)])
 	    }
         return true;
     }
@@ -1145,6 +1144,7 @@ Strophe.addConnectionPlugin('pubsub', {
     statusChanged: function (status) {
         if (status === Strophe.Status.CONNECTED) {
             Strophe.addNamespace('PUBSUB', 'http://jabber.org/protocol/pubsub');
+            Strophe.addNamespace('ENTRY', 'http://www.w3.org/2005/Atom');
         }
     },
 });

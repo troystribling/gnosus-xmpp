@@ -19,7 +19,7 @@ function GnosusUi(num) {
     this.client_display_input           = this.client+' .client-display-input';
     this.item_dialog                    = '#item-dialog-'+num;
     this.showItems('contacts');
-    this.showDisplay('AllMessages');
+    this.history('contacts');
     this.block('connecting')
 }
 
@@ -83,7 +83,7 @@ GnosusUi.prototype = {
      showItems: function (item_type) {
          this.showItemsToolbar('contacts', false);
          this.itemsUnbind();
-         this['addEvents'+this.capitalize(item_type)]();
+         this['show'+this.capitalize(item_type)+'Items']();
      },
 
      /*-------------------------------------------------------------------------------*/    
@@ -103,17 +103,18 @@ GnosusUi.prototype = {
          $(this.client_items_history).click(function() {            
              var item_type = client_ui.itemTypeSelected();
              $(client_ui.client_items_content+' ul li').removeClass('open');
-             client_ui['history'+client_ui.capitalize(item_type)]();
+             client_ui.history(item_type);
          });
          var type_choices = this.item_type_choices;
          $(this.client_item_type_selected).click(function() {
-             $(this).text(type_choices[$(this).text()]);
+             var next_item = type_choices[$(this).text()];
+             $(this).text(nextItem);
+             client_ui.showItems(next_item)
          });
      }, 
 
      /*-------------------------------------------------------------------------------*/  
-     addEventsContacts: function() {  
-
+     showContactsItems: function() {  
          /*---- roster messages ----*/
          this.items_handlers['roster_init_result'] = function (ev, roster) {
              $(this.client_items_content).empty();
@@ -204,6 +205,18 @@ GnosusUi.prototype = {
          $(document).bind('presence_unsubscribed', this.items_handlers['presence_unsubscribed'].bind(this));
      },
 
+     /*-------------------------------------------------------------------------------*/  
+     showResourcesItems: function() { 
+     }, 
+
+     /*-------------------------------------------------------------------------------*/  
+     showSubscriptionsItems: function() { 
+     }, 
+
+     /*-------------------------------------------------------------------------------*/  
+     showPublicationsItems: function() { 
+     }, 
+
      /*-------------------------------------------------------------------------------*/    
      errorDialog: function(msg) {
          var dialog = '<div id="'+this.toId(this.item_dialog)+'" title="error" class="ui-widget">'+ 
@@ -217,9 +230,30 @@ GnosusUi.prototype = {
              buttons:{'ok':this.cancelItemDialog.bind(this)}});
      },
 
+   /*-------------------------------------------------------------------------------  
+    * history
+    *-------------------------------------------------------------------------------*/    
+    history: function(item_type) {
+        this.displayUnbind();
+        $(this.client_display_content).empty();
+        $(this.client_display_toolbar).empty();
+        this['history'+this.camelize(item_type)]();
+    },               
+
     /*-------------------------------------------------------------------------------*/    
     historyContacts: function() {
-        this.showAllMessagesDisplay();
+        this.buildMessageContentList('no-input', Gnosus.findAllMessages());
+        this.display_handlers['chat'] = function (ev, msg) {
+            $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
+        }
+        $(document).bind('chat', this.display_handlers['chat'].bind(this));
+        this.display_handlers['headline'] = function (ev, msgs) {
+            var client_ui = this;
+            $.each(msgs, function() {
+                $(client_ui.client_display_list).prepend(client_ui['build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message'](this));
+            });
+        }
+        $(document).bind('headline', this.display_handlers['headline'].bind(this));
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -309,25 +343,8 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------  
-     * messages
+     * contacts display
      *-------------------------------------------------------------------------------*/    
-     showDisplay: function(item_type) {
-         this['show'+this.capitalize(item_type)+'Display']();
-     },               
-
-     /*-------------------------------------------------------------------------------*/    
-     showAllMessagesDisplay: function() {
-         $(this.client_display_content).empty();
-         $(this.client_display_toolbar).empty();
-         this.displayUnbind();
-         this.buildMessageContentList('no-input', Gnosus.findAllMessages());
-         this.display_handlers['chat'] = function (ev, msg) {
-             $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
-         }
-         $(document).bind('chat', this.display_handlers['chat'].bind(this));
-     },               
-
-     /*-------------------------------------------------------------------------------*/    
      showContactsDisplay: function(contact_name) {
          this.showContactsToolbar();
          this.showContactsContentDisplay(contact_name);
@@ -631,7 +648,6 @@ GnosusUi.prototype = {
         var msgs = ['<ul class="client-display-list '+list_type+'">'];
         var client_ui = this;
         $.each(content_list, function () {
-            var msg = 'build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message';
             msgs.push(client_ui['build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message'](this));
         });
         msgs.push('</ul>')
@@ -781,9 +797,27 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     buildChatTextMessage: function(msg) {
-        return '<li><div class="chat-text-message">'+
+        return '<li><div class="text-message">'+
                    this.messageInfo(msg)+
                    '<div class="text">'+msg.text+'</div>'+
+               '</div></li>';
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    buildHeadlineXMessage: function(msg) {
+        return '<li><div class="x-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="node">'+msg.node+'</div>'+
+                   this.buildXDataBody(msg.text)+
+               '</div></li>';
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    buildHeadlineEntryMessage: function(msg) {
+        return '<li><div class="text-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="node">'+msg.node+'</div>'+
+                   '<div class="entry">'+msg.text+'</div>'+
                '</div></li>';
     },
 
