@@ -976,10 +976,16 @@ Strophe.addConnectionPlugin('roster', {
                     $(iq).find('item').each(function () {
                         Gnosus.addContact($(this));
                     });
-                    $(document).trigger('roster_init_result');
-                },
+                    GnosusXmpp.getPubSubServiceDisco(Gnosus.account().jid, Strophe.getDomainFromJid(Gnosus.account().jid), 
+                        function() {
+                            $(document).trigger('session_init_result');
+                        }.bind(this),
+                        function() {
+                            $(document).trigger('session_init_error');
+                        }.bind(this)
+                    )},
                 function(iq) {
-                    $(document).trigger('roster_init_error');
+                    $(document).trigger('session_init_error');
                 }
             );
             GnosusXmpp.initialPresence();

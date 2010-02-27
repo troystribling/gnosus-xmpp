@@ -81,13 +81,14 @@ GnosusUi.prototype = {
      * items
      *-------------------------------------------------------------------------------*/    
      showItems: function (item_type) {
-         this.showItemsToolbar('contacts', false);
+         this.showItemsToolbar(item_type);
+         $(this.client_items_content).empty();
          this.itemsUnbind();
          this['show'+this.capitalize(item_type)+'Items']();
      },
 
      /*-------------------------------------------------------------------------------*/    
-     showItemsToolbar: function(item_type, add_item) {
+     showItemsToolbar: function(item_type) {
          $(this.client_items_toolbar).empty();
          var toolbar = '<div class="client-items-history"/>' +        
                        '<div class="client-item-type-selector">'+ 
@@ -108,26 +109,32 @@ GnosusUi.prototype = {
          var type_choices = this.item_type_choices;
          $(this.client_item_type_selected).click(function() {
              var next_item = type_choices[$(this).text()];
-             $(this).text(nextItem);
-             client_ui.showItems(next_item)
+             $(this).text(next_item);
+             client_ui.showItems(next_item);
+             client_ui.history(next_item);
          });
      }, 
 
      /*-------------------------------------------------------------------------------*/  
      showContactsItems: function() {  
+         var client_ui = this,
+             build_list = function() {
+                 client_ui.buildListItems(Gnosus.findAllContacts(), 'contact', function(i){return i.name;}, function(i){return i.show();});
+             }
+         build_list();
          /*---- roster messages ----*/
-         this.items_handlers['roster_init_result'] = function (ev, roster) {
-             this.buildListItems(Gnosus.findAllContacts(), 'contact', function(i){return i.name;}, function(i){return i.show();})
+         this.items_handlers['session_init_result'] = function (ev, roster) {
+             build_list();
              this.unblock();             
          }
-         $(document).bind('roster_init_result', this.items_handlers['roster_init_result'].bind(this));
+         $(document).bind('session_init_result', this.items_handlers['session_init_result'].bind(this));
 
          /****/
-         this.items_handlers['roster_init_error'] = function (ev, roster) {
+         this.items_handlers['session_init_error'] = function (ev, roster) {
              this.unblock();             
-             this.errorDialog('roster init failed');
+             this.errorDialog('session initialization failed');
          }
-         $(document).bind('roster_init_error', this.items_handlers['roster_init_error'].bind(this));
+         $(document).bind('session_init_error', this.items_handlers['session_init_error'].bind(this));
          
          /****/
          this.items_handlers['roster_item_add'] = function (ev, contact) {
@@ -157,17 +164,17 @@ GnosusUi.prototype = {
          $(document).bind('roster_item_add_error', this.items_handlers['roster_item_add_error'].bind(this));
          
          /****/
-         this.items_handlers['roster_remove_result'] = function (ev, iq) {
+         this.items_handlers['roster_item_remove_result'] = function (ev, iq) {
              this.unblock();
          }
-         $(document).bind('roster_item_remove_result', this.items_handlers['roster_remove_result'].bind(this));
+         $(document).bind('roster_item_remove_result', this.items_handlers['roster_item_remove_result'].bind(this));
          
          /****/
-         this.items_handlers['roster_remove_error'] = function (ev, iq) {
+         this.items_handlers['roster_item_remove_error'] = function (ev, iq) {
              this.unblock();
              this.errorDialog('failed to remove <strong>'+$(iq).attr('from')+'</strong>');
          }
-         $(document).bind('roster_item_remove_error', this.items_handlers['roster_remove_error'].bind(this));
+         $(document).bind('roster_item_remove_error', this.items_handlers['roster_item_remove_error'].bind(this));
          
          /*---- presence messages ----*/
          this.items_handlers['presence'] = function (ev, contact) {
@@ -203,7 +210,16 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/  
      showSubscriptionsItems: function() { 
-         this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', function(i){return Gnosus.subNodeFromNode(i.node);})
+         this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', function(i){return GnosusXmpp.subNodeFromNode(i.node);})
+         this.items_handlers['subcription_result'] = function (ev, iq) {
+             this.unblock();
+         }
+         $(document).bind('subcription_result', this.items_handlers['subcription_result'].bind(this));
+         this.items_handlers['subscription_error'] = function (ev, service, node) {
+             this.unblock();
+             this.errorDialog('failed to subscribe to node <strong>'+node+'</strong> on service <strong>'+service+'</service>');
+         }
+         $(document).bind('subscription_error', this.items_handlers['subscription_error'].bind(this));
      }, 
 
      /*-------------------------------------------------------------------------------*/  
@@ -663,7 +679,6 @@ GnosusUi.prototype = {
               
     /*-------------------------------------------------------------------------------*/ 
     buildListItems: function(items, item_type, item_name, item_status) {
-        $(this.client_items_content).empty();
         var list_items = '<ul>';
         var client_ui = this;
         $.each(items, function () {
