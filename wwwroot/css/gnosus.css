@@ -473,7 +473,10 @@ tr.data-edit-select {
     color: #CCC;
     background-color: #000;
 } 
-.client-items-content .contacts {
+.client-items-content .contact {
+    padding: 5px 10px 5px 10px;
+}
+.client-items-content .subscription {
     padding: 5px 10px 5px 10px;
 }
 .client-items-content .controls {

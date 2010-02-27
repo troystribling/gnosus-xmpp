@@ -279,18 +279,6 @@ Gnosus = {
         Gnosus.account().subscriptions.push(sub_model);
         return sub_model;
     },
-    findSubscriptionsByNodeAndSubscription: function(node, sub) {
-        return $.grep(Gnosus.account().subscriptions, function(s) {
-            return s.node == node && s.subscription == sub;
-        });
-        return Gnosus.account().subscriptions[node];
-    },
-    findSubscriptionById: function(id) {
-        return $.grep(Gnosus.account().subscriptions, function(s) {
-            return s.node == node;
-        });
-        return Gnosus.account().subscriptions[node];
-    },
     removeSubscription: function(subid) {
         return Gnosus.account().removeSubscription(subid);
     },
@@ -302,6 +290,25 @@ Gnosus = {
             Gnosus.account().removeSubscription(this.subid);
         });       
         return subs;
+    },
+    findAllSubscriptions: function() {
+        return Gnosus.account().subscriptions;
+    },
+    findSubscriptionsByNodeAndSubscription: function(node, sub) {
+        return $.grep(Gnosus.account().subscriptions, function(s) {
+            return s.node == node && s.subscription == sub;
+        });
+    },
+    findSubscriptionBySubid: function(subid) {
+        var sub = null;
+        for (var s in Gnosus.account().subscriptions) {
+            var chk = Gnosus.account().subscriptions[s]
+            if (chk.subid == subid) {
+                sub = chk;
+                break;
+            }
+        }
+        return sub;
     },
     /*-------------------------------------------------------------------------------
     disco
@@ -602,6 +609,11 @@ GnosusXmpp = {
     userPubsubRootToJid: function(node) {
         var node_comps = node.split('/');
         return node_comps[3]+'@'+node_comps[2];
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    subNodeFromNode: function(node) {
+        return node.split('/').pop();
     },
 
     /*-------------------------------------------------------------------------------

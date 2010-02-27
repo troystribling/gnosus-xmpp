@@ -117,15 +117,7 @@ GnosusUi.prototype = {
      showContactsItems: function() {  
          /*---- roster messages ----*/
          this.items_handlers['roster_init_result'] = function (ev, roster) {
-             $(this.client_items_content).empty();
-             var items = '<ul>';
-             var client_ui = this;
-             $.each(Gnosus.findAllContacts(), function () {
-                 items += client_ui.buildItemListItem(this.name, 'contacts', this.show());
-             });
-             items += '</ul>';
-             $(this.client_items_content).append(items);
-             this.addItemListEvents($(this.client_items_content+' ul li'));
+             this.buildListItems(Gnosus.findAllContacts(), 'contact', function(i){return i.name;}, function(i){return i.show();})
              this.unblock();             
          }
          $(document).bind('roster_init_result', this.items_handlers['roster_init_result'].bind(this));
@@ -139,7 +131,7 @@ GnosusUi.prototype = {
          
          /****/
          this.items_handlers['roster_item_add'] = function (ev, contact) {
-             var items = this.buildItemListItem(contact.name, 'contacts', contact.show());
+             var items = this.buildItemListItem(contact.name, 'contact', contact.show());
              $(this.client_items_content+' ul').append(items);
              this.addItemListEvents($(this.client_items_content+' ul li:last'));             
          }
@@ -211,6 +203,7 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/  
      showSubscriptionsItems: function() { 
+         this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', function(i){return Gnosus.subNodeFromNode(i.node);})
      }, 
 
      /*-------------------------------------------------------------------------------*/  
@@ -559,8 +552,7 @@ GnosusUi.prototype = {
                         GnosusXmpp.setSubscribe(service.jid, node);
                         client_ui.block('subscribing');
                     } else {
-                        var subs = Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed');
-                        $.each(subs, function() {
+                        $.each(Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed'), function() {
                             GnosusXmpp.setUnsubscribe(service.jid, this.node, this.subid)
                         });
                         client_ui.block('unsubscribing');
@@ -670,11 +662,27 @@ GnosusUi.prototype = {
     },   
               
     /*-------------------------------------------------------------------------------*/ 
-    buildItemListItem: function (item_name, item_type, item_status) { 
+    buildListItems: function(items, item_type, item_name, item_status) {
+        $(this.client_items_content).empty();
+        var list_items = '<ul>';
+        var client_ui = this;
+        $.each(items, function () {
+            var status = '';
+            var iname = item_name(this);
+            if (item_status) {status = item_status(this)}
+            list_items += client_ui.buildItemListItem(item_name(this), item_type, status);
+        });
+        list_items += '</ul>';
+        $(this.client_items_content).append(list_items);
+        this.addItemListEvents($(this.client_items_content+' ul li'));
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    buildItemListItem: function (item, item_type, item_status) { 
         var status = item_status || '',  
             item = '<li>' +
                        '<div class="'+item_type+' item '+status+'">'+ 
-                           item_name+
+                           item+
                        '</div>'+
                        '<div style="display: none" class="controls">'+
                            '<img src="/images/data-delete.png"/>'+
