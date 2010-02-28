@@ -450,6 +450,10 @@ tr.data-edit-select {
     font-size: 0.85em;
     margin: 0;
 } 
+.client-items-content .selected {
+    color: #000;
+    background-color: #DDD;
+} 
 .client-items-content .online {
     color: #000;
 }
@@ -478,6 +482,16 @@ tr.data-edit-select {
 }
 .client-items-content .subscription {
     padding: 5px 10px 5px 10px;
+}
+.client-items-content .subscription .jid {
+    color: #CCC;
+    font-size: .75em;
+}
+.client-items-content .selected .subscription .jid {
+    color: #FFF;
+    font-size: .75em;
+}
+.client-items-content .subscription .node {
 }
 .client-items-content .controls {
     position: absolute;
