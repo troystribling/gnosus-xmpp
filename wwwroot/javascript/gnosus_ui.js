@@ -140,7 +140,7 @@ GnosusUi.prototype = {
          
          /**** received roster message ****/
          this.items_handlers['roster_item_add'] = function (ev, contact) {
-             var items = this.buildItemListItem(contact.name, 'contact', contact.show());
+             var items = this.buildItemListItems(contact.name, 'contact', contact.show());
              $(this.client_items_content+' ul').append(items);
              this.addItemListEvents($(this.client_items_content+' ul li:last'));             
          }
@@ -225,7 +225,13 @@ GnosusUi.prototype = {
                        '<div class="node">'+
                            GnosusXmpp.subNodeFromNode(i.node)+
                        '</div>';      
-            });
+            }, null,
+            function(i) {
+                var node = $(i).find('.node').text(),
+                    jid  = $(i).find('.jid').text();
+                return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
+            }
+         );
          this.items_handlers['subcription_result'] = function (ev, iq) {
              this.unblock();
          }
@@ -253,7 +259,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historyContacts: function() {
-        this.buildMessageContentList('no-input', Gnosus.findAllMessages());
+        this.buildMessageContentList(Gnosus.findAllMessages(), 'no-input');
         this.display_handlers['chat'] = function (ev, msg) {
             $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
         }
@@ -273,6 +279,14 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historySubscriptions: function() {
+        this.buildMessageContentList(Gnosus.findAllSubscribedMessages(), 'no-input');
+        this.display_handlers['headline'] = function (ev, msgs) {
+            var client_ui = this;
+            $.each(msgs, function() {
+                $(client_ui.client_display_list).prepend(client_ui['build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message'](this));
+            });
+        }
+        $(document).bind('headline', this.display_handlers['headline'].bind(this));
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -384,6 +398,18 @@ GnosusUi.prototype = {
      * subscriptions display
      *-------------------------------------------------------------------------------*/    
      showSubscriptionsDisplay: function(node) {
+         $(this.client_display_content).empty();
+         this.buildMessageContentList(Gnosus.findMessagesByNode(node), 'no-input');
+         this.display_handlers['headline'] = function (ev, msgs) {
+             var client_ui = this,
+                 reg_exp = new RegExp(node, 'g');
+             $.each(msgs, function() {
+                 if (this.node.match(reg_exp)) {
+                     $(client_ui.client_display_list).prepend(client_ui['build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message'](this));
+                 }
+             });
+         }
+         $(document).bind('headline', this.display_handlers['headline'].bind(this));         
      },               
 
     /*-------------------------------------------------------------------------------  
@@ -411,7 +437,7 @@ GnosusUi.prototype = {
                                 '<textarea class="init">'+enter_msg+'</textarea>'+
                             '</div>';
          $(this.client_display_content).append(send_message);
-         this.buildMessageContentList('input', Gnosus.findMessagesByJidAndType(contact.jid, 'chat'));
+         this.buildMessageContentList(Gnosus.findMessagesByJidAndType(contact.jid, 'chat'), 'input');
          var client_ui = this,
              textarea = $(this.client_display_input+' textarea'),
              orig_textarea_height = textarea.height();
@@ -467,7 +493,7 @@ GnosusUi.prototype = {
          this.display_handlers['command_list_result'] = function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
-                 this.buildMessageContentList('no-input', Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'));
+                 this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'), 'no-input');
              }
          }
          $(document).bind('command_list_result', this.display_handlers['command_list_result'].bind(this));
@@ -677,17 +703,17 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------  
      * resource display
      *-------------------------------------------------------------------------------*/    
-    showResourceDisplay: function() {
+    showResourcesDisplay: function() {
     }, 
 
     /*-------------------------------------------------------------------------------*/    
-    showResourceToolbar: function() {
+    showResourcesToolbar: function() {
     }, 
 
     /*-------------------------------------------------------------------------------
      * display utils 
      *-------------------------------------------------------------------------------*/  
-     buildMessageContentList: function(list_type, content_list) {
+     buildMessageContentList: function(content_list, list_type) {
         var msgs = ['<ul class="client-display-list '+list_type+'">'];
         var client_ui = this;
         $.each(content_list, function () {
@@ -713,7 +739,7 @@ GnosusUi.prototype = {
     },   
               
     /*-------------------------------------------------------------------------------*/ 
-    buildListItems: function(items, item_type, item_name, item_status) {
+    buildListItems: function(items, item_type, item_name, item_status, get_item_name) {
         var list_items = '<ul>';
         var client_ui = this;
         $.each(items, function () {
@@ -724,7 +750,7 @@ GnosusUi.prototype = {
         });
         list_items += '</ul>';
         $(this.client_items_content).append(list_items);
-        this.addItemListEvents($(this.client_items_content+' ul li'));
+        this.addItemListEvents($(this.client_items_content+' ul li'), get_item_name);
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -742,7 +768,7 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    addItemListEvents: function(select_item) {
+    addItemListEvents: function(select_item, get_item_name) {
         var client_ui = this;
         select_item.hover(
             function() {$(this).addClass('selected').find('.controls').show();},
@@ -752,7 +778,13 @@ GnosusUi.prototype = {
             var item_type = client_ui.itemTypeSelected();
             $(this).parents('li').siblings('.open').removeClass('open');
             $(this).parents('li').addClass('open')
-            client_ui['show'+client_ui.capitalize(item_type)+'Display']($(this).text());
+            var item_name = '';
+            if (get_item_name) {
+                item_name = get_item_name(this);
+            } else {
+                item_name = $(this).text();
+            }
+            client_ui['show'+client_ui.capitalize(item_type)+'Display'](item_name);
         }); 
         select_item.find('img').click(function() {            
             var item_type = client_ui.itemTypeSelected();
@@ -881,7 +913,7 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------
-     * x data displays 
+     * x data 
      *-------------------------------------------------------------------------------*/ 
     buildTextCommandMessage: function(msg) {
         return '<li><div class="command-request-message">'+

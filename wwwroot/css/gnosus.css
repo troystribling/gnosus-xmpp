@@ -450,9 +450,14 @@ tr.data-edit-select {
     font-size: 0.85em;
     margin: 0;
 } 
+/*  item states */
 .client-items-content .selected {
     color: #000;
     background-color: #DDD;
+} 
+.client-items-content .open {
+    color: #CCC;
+    background-color: #000;
 } 
 .client-items-content .online {
     color: #000;
@@ -477,6 +482,7 @@ tr.data-edit-select {
     color: #CCC;
     background-color: #000;
 } 
+/*  item types */
 .client-items-content .contact {
     padding: 5px 10px 5px 10px;
 }
@@ -493,10 +499,11 @@ tr.data-edit-select {
 }
 .client-items-content .subscription .node {
 }
+/*  item controls */
 .client-items-content .controls {
     position: absolute;
     right: 10px;
-    top: 5px;
+    bottom: 0px;
     padding: 0px;
     z-index: 1;
     display: none;
