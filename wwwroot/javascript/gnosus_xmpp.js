@@ -59,7 +59,9 @@ Gnosus = {
     addContact: function(item) {
         var groups = item.find('group').map(function (g, i) {g.text();}),
             jid = item.attr('jid');
-        Gnosus.accounts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
+        if (!Gnosus.accounts[jid]) {   
+            Gnosus.accounts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
+        }
         return Gnosus.accounts[jid];
     },
     findAllContacts: function() {
@@ -70,17 +72,18 @@ Gnosus = {
         return contacts;
     },
     updateContact: function(item) {
-        var contact = Gnosus.accounts[item.attr('jid')];
-        if (contact) {
+        var jid = item.attr('jid'),
+            contact = Gnosus.accounts[jid];
+        if (contact && jid != Gnosus.account().jid) {
             contact.groups = [];
             contact.setAttributes(item);
         }
         return contact;
     },
     removeContact: function(item) {
-        jid = item.attr('jid');
-        var contact = Gnosus.accounts[jid];
-        if (contact) {
+        var jid = item.attr('jid'),
+            contact = Gnosus.accounts[jid];
+        if (contact && jid != Gnosus.account().jid) {
             delete(Gnosus.accounts[jid]);
         }
         return contact;
@@ -408,6 +411,9 @@ Account.prototype = {
     addResource: function(resource) {
         this.resources[resource.jid] = resource;
     },
+    removeResource: function(jid) {
+        delete(this.resources[jid]);
+    },
     deleteCommands: function() {
         $.each(this.resources, function(j,r) {
             r.deleteCommands();
@@ -629,10 +635,10 @@ GnosusXmpp = {
         GnosusXmpp.connection.sendIQ(iq, 
             function(iq) {
                 GnosusXmpp.subscriptionRequest(jid);
-                $(document).trigger('roster_item_add_result', iq);
+                $(document).trigger('roster_item_add_result', jid);
             },
             function(iq) {
-                $(document).trigger('roster_item_add_error', iq);
+                $(document).trigger('roster_item_add_error', jid);
             }
         );
     },
@@ -643,10 +649,10 @@ GnosusXmpp = {
         GnosusXmpp.connection.sendIQ(iq, 
             function(iq) {
                 GnosusXmpp.connection.send($pres({to: jid, type: "unsubscribe"}));
-                $(document).trigger('roster_item_remove_result', iq);
+                $(document).trigger('roster_item_remove_result', jid);
             },
             function(iq) {
-                $(document).trigger('roster_item_remove_error', iq);
+                $(document).trigger('roster_item_remove_error', jid);
             }
         );
     },
@@ -983,7 +989,8 @@ Strophe.addConnectionPlugin('roster', {
                         function() {
                             $(document).trigger('session_init_error');
                         }.bind(this)
-                    )},
+                    )
+                },
                 function(iq) {
                     $(document).trigger('session_init_error');
                 }

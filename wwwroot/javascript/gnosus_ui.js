@@ -121,7 +121,9 @@ GnosusUi.prototype = {
              build_list = function() {
                  client_ui.buildListItems(Gnosus.findAllContacts(), 'contact', function(i){return i.name;}, function(i){return i.show();});
              }
-         build_list();
+        if (Gnosus.findAllContacts().length > 0) {     
+            build_list();
+        }
          /*---- roster messages ----*/
          this.items_handlers['session_init_result'] = function (ev, roster) {
              build_list();
@@ -136,7 +138,7 @@ GnosusUi.prototype = {
          }
          $(document).bind('session_init_error', this.items_handlers['session_init_error'].bind(this));
          
-         /****/
+         /**** received roster message ****/
          this.items_handlers['roster_item_add'] = function (ev, contact) {
              var items = this.buildItemListItem(contact.name, 'contact', contact.show());
              $(this.client_items_content+' ul').append(items);
@@ -149,30 +151,35 @@ GnosusUi.prototype = {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').remove();
          }
          $(document).bind('roster_item_remove', this.items_handlers['roster_item_remove'].bind(this));
-         
+
          /****/
-         this.items_handlers['roster_item_add_result'] = function (ev, iq) {
+         this.items_handlers['roster_item_update'] = function (ev, contact) {
+         }
+         $(document).bind('roster_item_update', this.items_handlers['roster_item_update'].bind(this));
+         
+         /**** roster request response ****/
+         this.items_handlers['roster_item_add_result'] = function (ev, jid) {
              this.unblock();
          }
          $(document).bind('roster_item_add_result', this.items_handlers['roster_item_add_result'].bind(this));
          
          /****/
-         this.items_handlers['roster_item_add_error'] = function (ev, iq) {
+         this.items_handlers['roster_item_add_error'] = function (ev, jid) {
              this.unblock();
-             this.errorDialog('failed to add <strong>'+$(iq).attr('from')+'</strong>');
+             this.errorDialog('failed to add <strong>'+jid+'</strong>');
          }
          $(document).bind('roster_item_add_error', this.items_handlers['roster_item_add_error'].bind(this));
          
          /****/
-         this.items_handlers['roster_item_remove_result'] = function (ev, iq) {
+         this.items_handlers['roster_item_remove_result'] = function (ev, jid) {
              this.unblock();
          }
          $(document).bind('roster_item_remove_result', this.items_handlers['roster_item_remove_result'].bind(this));
          
          /****/
-         this.items_handlers['roster_item_remove_error'] = function (ev, iq) {
+         this.items_handlers['roster_item_remove_error'] = function (ev, jid) {
              this.unblock();
-             this.errorDialog('failed to remove <strong>'+$(iq).attr('from')+'</strong>');
+             this.errorDialog('failed to remove <strong>'+jid+'</strong>');
          }
          $(document).bind('roster_item_remove_error', this.items_handlers['roster_item_remove_error'].bind(this));
          
