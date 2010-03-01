@@ -456,7 +456,7 @@ tr.data-edit-select {
     background-color: #DDD;
 } 
 .client-items-content .open {
-    color: #CCC;
+    color: #FFF;
     background-color: #000;
 } 
 .client-items-content .online {
@@ -495,7 +495,9 @@ tr.data-edit-select {
 }
 .client-items-content .selected .subscription .jid {
     color: #FFF;
-    font-size: .75em;
+}
+.client-items-content .open .subscription .jid {
+    color: #444;
 }
 .client-items-content .subscription .node {
 }
