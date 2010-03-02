@@ -777,6 +777,20 @@ ul.contact-display-modes li {
 .add-contact-dialog input {
     width: 14.0em;
 }
+/*******  add subscription dialog style  *******/
+.add-subscription-dialog label {
+    width: 2.0em;
+}
+.add-subscription-dialog input {
+    width: 13.1em;
+}
+/*******  add publication dialog style  *******/
+.add-publication-dialog label {
+    width: 1.1em;
+}
+.add-publication-dialog input {
+    width: 14.0em;
+}
 /*******  jquery-ui *******/
 .ui-widget-header {
     font-weight: normal;

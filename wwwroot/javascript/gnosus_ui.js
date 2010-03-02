@@ -125,90 +125,59 @@ GnosusUi.prototype = {
             build_list();
         }
          /*---- roster messages ----*/
-         this.items_handlers['session_init_result'] = function (ev, roster) {
+         this.bindItemsHandler('session_init_result', function (ev, roster) {
              build_list();
              this.unblock();             
-         }
-         $(document).bind('session_init_result', this.items_handlers['session_init_result'].bind(this));
-
-         /****/
-         this.items_handlers['session_init_error'] = function (ev, roster) {
+         });
+         this.bindItemsHandler('session_init_error', function (ev, roster) {
              this.unblock();             
              this.errorDialog('session initialization failed');
-         }
-         $(document).bind('session_init_error', this.items_handlers['session_init_error'].bind(this));
+         });
          
          /**** received roster message ****/
-         this.items_handlers['roster_item_add'] = function (ev, contact) {
+         this.bindItemsHandler('roster_item_add', function (ev, contact) {
              var items = this.buildItemListItems(contact.name, 'contact', contact.show());
              $(this.client_items_content+' ul').append(items);
              this.addItemListEvents($(this.client_items_content+' ul li:last'));             
-         }
-         $(document).bind('roster_item_add', this.items_handlers['roster_item_add'].bind(this));
-         
-         /****/
-         this.items_handlers['roster_item_remove'] = function (ev, contact) {
+         });
+         this.bindItemsHandler('roster_item_remove', function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').parent().remove();
-         }
-         $(document).bind('roster_item_remove', this.items_handlers['roster_item_remove'].bind(this));
-
-         /****/
-         this.items_handlers['roster_item_update'] = function (ev, contact) {
-         }
-         $(document).bind('roster_item_update', this.items_handlers['roster_item_update'].bind(this));
+         });
+         this.bindItemsHandler('roster_item_update', function (ev, contact) {
+         });
          
          /**** roster request response ****/
-         this.items_handlers['roster_item_add_result'] = function (ev, jid) {
+         this.bindItemsHandler('roster_item_add_result', function (ev, jid) {
              this.unblock();
-         }
-         $(document).bind('roster_item_add_result', this.items_handlers['roster_item_add_result'].bind(this));
-         
-         /****/
-         this.items_handlers['roster_item_add_error'] = function (ev, jid) {
+         });
+         this.bindItemsHandler('roster_item_add_error', function (ev, jid) {
              this.unblock();
              this.errorDialog('failed to add <strong>'+jid+'</strong>');
-         }
-         $(document).bind('roster_item_add_error', this.items_handlers['roster_item_add_error'].bind(this));
-         
-         /****/
-         this.items_handlers['roster_item_remove_result'] = function (ev, jid) {
+         });
+         this.bindItemsHandler('roster_item_remove_result', function (ev, jid) {
              this.unblock();
-         }
-         $(document).bind('roster_item_remove_result', this.items_handlers['roster_item_remove_result'].bind(this));
-         
-         /****/
-         this.items_handlers['roster_item_remove_error'] = function (ev, jid) {
+         });
+         this.bindItemsHandler('roster_item_remove_error', function (ev, jid) {
              this.unblock();
              this.errorDialog('failed to remove <strong>'+jid+'</strong>');
-         }
-         $(document).bind('roster_item_remove_error', this.items_handlers['roster_item_remove_error'].bind(this));
+         });
          
          /*---- presence messages ----*/
-         this.items_handlers['presence'] = function (ev, contact) {
+         this.bindItemsHandler('presence', function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
                 .removeClass('online').removeClass('offline').addClass(contact.show());
-         }
-         $(document).bind('presence', this.items_handlers['presence'].bind(this));
-         
-         /****/
-         this.items_handlers['presence_unavailable'] = function (ev, contact) {
+         });
+         this.bindItemsHandler('presence_unavailable', function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
                 .removeClass('online').removeClass('offline').addClass(contact.show());
-         }
-         $(document).bind('presence_unavailable', this.items_handlers['presence_unavailable'].bind(this));
-         
-         /****/
-         this.items_handlers['presence_subscribe'] = function (ev, jid) {
+         });
+         this.bindItemsHandler('presence_subscribe', function (ev, jid) {
              this.subscriptionRequestDialog(jid);
-         }
-         $(document).bind('presence_subscribe', this.items_handlers['presence_subscribe'].bind(this));
-         
-         /****/
-         this.items_handlers['presence_unsubscribed'] = function (ev, contact) {
+         });
+         this.bindItemsHandler('presence_unsubscribed', function (ev, contact) {
              $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
                 .removeClass('online').removeClass('offline').addClass(contact.show());
-         }
-         $(document).bind('presence_unsubscribed', this.items_handlers['presence_unsubscribed'].bind(this));
+         });
      },
 
      /*-------------------------------------------------------------------------------*/  
@@ -217,47 +186,45 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/  
      showSubscriptionsItems: function() { 
-         this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', 
-            function(i) {
-                return '<div class="jid">'+
-                           GnosusXmpp.userPubsubRootToJid(i.node)+
-                       '</div>'+
-                       '<div class="node">'+
-                           GnosusXmpp.subNodeFromNode(i.node)+
-                       '</div>';      
-            }, null,
-            function(i) {
-                var node = $(i).find('.node').text(),
-                    jid  = $(i).find('.jid').text();
-                return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
-            },
-            function(i) {
-                var node = $(i).parents('li').eq(0).find('.node').text(),
-                    jid  = $(i).parents('li').eq(0).find('.jid').text();
-                return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
-            }
-         );
-         this.items_handlers['subcription_result'] = function (ev, sub) {
-             this.unblock();
+         var sub_item = function(i) {
+             return '<div class="jid">'+
+                        GnosusXmpp.userPubsubRootToJid(i.node)+
+                    '</div>'+
+                    '<div class="node">'+
+                        GnosusXmpp.subNodeFromNode(i.node)+
+                    '</div>';      
          }
-         $(document).bind('subcription_result', this.items_handlers['subcription_result'].bind(this));
-         this.items_handlers['subscription_error'] = function (ev, service, node) {
+         var open_item_name = function(i) {
+             var node = $(i).find('.node').text(),
+                 jid  = $(i).find('.jid').text();
+             return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
+         }
+         var delete_item_name = function(i) {
+             var node = $(i).parents('li').eq(0).find('.node').text(),
+                 jid  = $(i).parents('li').eq(0).find('.jid').text();
+             return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
+         }
+         this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', sub_item, null, open_item_name, delete_item_name);    
+         this.bindItemsHandler('subscribe_result', function (ev, sub) {
+             this.unblock();
+             var items = this.buildItemListItems(sub_item(sub), 'subscription');
+             $(this.client_items_content+' ul').append(items);
+             this.addItemListEvents($(this.client_items_content+' ul li:last'), open_item_name, delete_item_name);             
+         });
+         this.bindItemsHandler('subscribe_error', function (ev, service, node) {
              this.unblock();
              this.errorDialog('failed to subscribe to node <strong>'+node+'</strong> on service <strong>'+service+'</service>');
-         }
-         $(document).bind('subscription_error', this.items_handlers['subscription_error'].bind(this));
-         this.items_handlers['unsubscribe_result'] = function (ev, sub) {
+         });
+         this.bindItemsHandler('unsubscribe_result', function (ev, sub) {
              this.unblock();
              var jid  = GnosusXmpp.userPubsubRootToJid(sub.node),
                  node = GnosusXmpp.subNodeFromNode(sub.node);
              $(this.client_items_content+' ul li').find('.jid:contains('+jid+')').siblings('.node:contains('+node+')').eq(0).parent().remove();
-         }
-         $(document).bind('unsubscribe_result', this.items_handlers['unsubscribe_result'].bind(this));
-         this.items_handlers['unsubscribe_error'] = function (ev, service, node) {
+         });
+         this.bindItemsHandler('unsubscribe_error', function (ev, service, node) {
              this.unblock();
              this.errorDialog('failed to unsubscribe to node <strong>'+node+'</strong> on service <strong>'+service+'</service>');
-         }
-         $(document).bind('unsubscribe_error', this.items_handlers['unsubscribe_error'].bind(this));
+         });
      }, 
 
      /*-------------------------------------------------------------------------------*/  
@@ -277,17 +244,15 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     historyContacts: function() {
         this.buildMessageContentList(Gnosus.findAllMessages(), 'no-input');
-        this.display_handlers['chat'] = function (ev, msg) {
+        this.bindDisplayHandler('chat', function (ev, msg) {
             $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
-        }
-        $(document).bind('chat', this.display_handlers['chat'].bind(this));
-        this.display_handlers['headline'] = function (ev, msgs) {
+        });
+        this.bindDisplayHandler('headline', function (ev, msgs) {
             var client_ui = this;
             $.each(msgs, function() {
                 client_ui.prependMessage(this);                
             });
-        }
-        $(document).bind('headline', this.display_handlers['headline'].bind(this));
+        });
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -297,13 +262,12 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     historySubscriptions: function() {
         this.buildMessageContentList(Gnosus.findAllSubscribedMessages(), 'no-input');
-        this.display_handlers['headline'] = function (ev, msgs) {
+        this.bindDisplayHandler('headline', function (ev, msgs) {
             var client_ui = this;
             $.each(msgs, function() {
                 client_ui.prependMessage(this);
             });
-        }
-        $(document).bind('headline', this.display_handlers['headline'].bind(this));
+        });
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -385,12 +349,33 @@ GnosusUi.prototype = {
                          '<label for="node">node</label><input type="text" name="node" class="required"/></br>'+
                      '</div>'; 
         var client_ui = this;             
-        this.addItemDialog(dialog, 'add-contact-dialog', function() {
+        this.addItemDialog(dialog, 'add-subscription-dialog', function() {
             if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields('jid is required')) {
-                var jid = $(client_ui.item_dialog+" input[name='jid']").val();
-                var node = $(client_ui.item_dialog+" input[name='node']").val();
+                var jid       = $(client_ui.item_dialog+" input[name='jid']").val(),
+                    node      = $(client_ui.item_dialog+" input[name='node']").val(),
+                    full_node = GnosusXmpp.userPubsubRoot(jid)+'/'+node,
+                    service   = Gnosus.findPubSubServiceByJid(jid);
                 client_ui.cancelItemDialog(); 
                 client_ui.block('adding subscription')
+                if (service) {
+                    GnosusXmpp.setSubscribe(service.jid, full_node);
+                } else {
+                    GnosusXmpp.getPubSubServiceDisco(jid, Strophe.getDomainFromJid(jid), 
+                        function() {
+                            service = Gnosus.findPubSubServiceByJid(jid);
+                            if (service) {                            
+                                GnosusXmpp.setSubscribe(service.jid, full_node);
+                            } else {
+                                this.unblock();
+                                this.errorDialog('failed to subscribe to node <strong>'+full_node+'</strong> on service <strong>'+service+'</service>');
+                            }
+                        }.bind(this),
+                        function() {
+                            this.unblock();
+                            this.errorDialog('failed to subscribe to node <strong>'+full_node+'</strong> on service <strong>'+service+'</service>');
+                        }.bind(this)
+                    );
+                }
             }
         });            
     },
@@ -458,7 +443,7 @@ GnosusUi.prototype = {
          $(this.client_display_content).empty();
          this.displayUnbind();
          this.buildMessageContentList(Gnosus.findMessagesByNode(node), 'no-input');
-         this.display_handlers['headline'] = function (ev, msgs) {
+         this.bindDisplayHandler('headline', function (ev, msgs) {
              var client_ui = this,
                  reg_exp = new RegExp(node, 'g');
              $.each(msgs, function() {
@@ -466,8 +451,7 @@ GnosusUi.prototype = {
                      client_ui.prependMessage(this);
                  }
              });
-         }
-         $(document).bind('headline', this.display_handlers['headline'].bind(this));         
+         });         
      },               
 
     /*-------------------------------------------------------------------------------  
@@ -525,14 +509,13 @@ GnosusUi.prototype = {
                  $(this).val('');
              }
          });
-         this.display_handlers['chat'] = function (ev, msg) {
+         this.bindDisplayHandler('chat', function (ev, msg) {
              var contact_name = client_ui.contactOpen(),
                  contact = Gnosus.findAccountByName(contact_name);
              if (msg.from.match(new RegExp(contact.jid, 'g'))) {
                  $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
              }
-         }
-         $(document).bind('chat', this.display_handlers['chat'].bind(this));
+         });
      },               
 
      /*-------------------------------------------------------------------------------*/    
@@ -548,38 +531,32 @@ GnosusUi.prototype = {
          $(this.client_display_content_control+' .add').click(function() {
              this.contactCommandsDialog(contact);
          }.bind(this));
-         this.display_handlers['command_list_result'] = function (ev, jid) {
+         this.bindDisplayHandler('command_list_result', function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
                  this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'), 'no-input');
              }
-         }
-         $(document).bind('command_list_result', this.display_handlers['command_list_result'].bind(this));
-         this.display_handlers['command_list_error'] = function (ev, jid) {
+         });
+         this.bindDisplayHandler('command_list_error', function (ev, jid) {
              this.unblock();
              this.errorDialog('failed to retrieve command list');
-         }
-         $(document).bind('command_list_error', this.display_handlers['command_list_error'].bind(this));
-         this.display_handlers['command_form'] = function (ev, iq) {
+         });
+         this.bindDisplayHandler('command_form', function (ev, iq) {
              this.unblock();
              this.formDialog(iq);
-         }
-         $(document).bind('command_form', this.display_handlers['command_form'].bind(this));
-         this.display_handlers['command_cancel'] = function (ev, msg) {
+         });
+         this.bindDisplayHandler('command_cancel', function (ev, msg) {
              $(this.client_display_list).prepend(this.buildTextCommandMessage(msg));
              this.unblock();
-         }
-         $(document).bind('command_cancel', this.display_handlers['command_cancel'].bind(this));
-         this.display_handlers['command_result'] = function (ev, msg) {
+         });
+         this.bindDisplayHandler('command_result', function (ev, msg) {
              $(this.client_display_list).prepend(this.buildXCommandMessage(msg));
              this.unblock();
-         }
-         $(document).bind('command_result', this.display_handlers['command_result'].bind(this));
-         this.display_handlers['command_error'] = function (ev, jid) {
+         });
+         this.bindDisplayHandler('command_error', function (ev, jid) {
              this.unblock();
              this.errorDialog('command request failed');
-         }
-         $(document).bind('command_error', this.display_handlers['command_error'].bind(this));
+         });
      },               
 
      /*-------------------------------------------------------------------------------*/    
@@ -698,44 +675,38 @@ GnosusUi.prototype = {
                 this.unblock();
             }.bind(this)
         );
-        this.display_handlers['subscribe_result'] = function (ev, subscription) {
+        this.bindDisplayHandler('subscribe_result', function (ev, subscription) {
             this.unblock();
             var item = Gnosus.findServiceItemByJidAndNode(contact.jid, subscription.node)
             $(this.client_display_content).find('.node:contains('+item.name+')').siblings('.status')
                 .removeClass('not-subscribed').addClass('subscribed')
-        }
-        $(document).bind('subscribe_result', this.display_handlers['subscribe_result'].bind(this));
-        this.display_handlers['subscribe_error'] = function (ev, service, node) {
+        });
+        this.bindDisplayHandler('subscribe_error', function (ev, service, node) {
             this.unblock();
             this.errorDialog('error subscribing to <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
-        }
-        $(document).bind('subscribe_error', this.display_handlers['subscribe_error'].bind(this));
-        this.display_handlers['unsubscribe_result'] = function (ev, subscription) {
+        });
+        this.bindDisplayHandler('unsubscribe_result', function (ev, subscription) {
             this.unblock();
             var item = Gnosus.findServiceItemByJidAndNode(contact.jid, subscription.node)
             $(this.client_display_content).find('.node:contains('+item.name+')').siblings('.status')
                 .removeClass('subscribed').addClass('not-subscribed')
-        }
-        $(document).bind('unsubscribe_result', this.display_handlers['unsubscribe_result'].bind(this));
-        this.display_handlers['unsubscribe_error'] = function (ev, service, node) {
+        });
+        this.bindDisplayHandler('unsubscribe_error', function (ev, service, node) {
             this.unblock();
             this.errorDialog('error unsubscribing from <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
-        }
-        $(document).bind('unsubscribe_error', this.display_handlers['unsubscribe_error'].bind(this));
-        this.display_handlers['disco_info_error'] = function (ev, jid, node) {
+        });
+        this.bindDisplayHandler('disco_info_error', function (ev, jid, node) {
             this.unblock();
             var msg = 'disco info failed';
             if (node) {msg += ' for node <strong>' + node+'</strong>';}
             this.errorDialog(msg);
-        }
-        $(document).bind('disco_info_error', this.display_handlers['disco_info_error'].bind(this));
-        this.display_handlers['disco_items_error'] = function (ev, jid, node) {
+        });
+        this.bindDisplayHandler('disco_items_error', function (ev, jid, node) {
             this.unblock();
             var msg = 'disco items failed';
             if (node) {msg += ' for node <strong>' + node+'</strong>';}
             this.errorDialog(msg);
-        }
-        $(document).bind('disco_items_error', this.display_handlers['disco_items_error'].bind(this));
+        });
      },               
 
     /*-------------------------------------------------------------------------------*/    
@@ -774,6 +745,18 @@ GnosusUi.prototype = {
      prependMessage: function(msg) {
          $(this.client_display_list).prepend(this['build'+this.camelize(msg.type)+this.camelize(msg.content_type)+'Message'](msg));
      },     
+
+     /*-------------------------------------------------------------------------------*/ 
+     bindItemsHandler: function(trigger, handler) {
+         this.items_handlers[trigger] = handler;
+         $(document).bind(trigger, this.items_handlers[trigger].bind(this));
+     },
+
+     /*-------------------------------------------------------------------------------*/ 
+     bindDisplayHandler: function(trigger, handler) {
+         this.display_handlers[trigger] = handler;
+         $(document).bind(trigger, this.display_handlers[trigger].bind(this));
+     },
 
      /*-------------------------------------------------------------------------------*/ 
      buildMessageContentList: function(content_list, list_type) {
