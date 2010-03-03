@@ -160,6 +160,11 @@ Gnosus = {
         Gnosus.messages.unshift(msg_model);  
         return msg_model;      
     },
+    addOutgoingEntryMessage: function(node, entry) {
+        var msg_model = new Message(Gnosus.findPubSubServiceByJid(Gnosus.account().jid), Gnosus.account().fullJid(), entry, 'headline', 'entry', node);
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
+    },
     addHeadlineMessages: function(msg) {
         var items = $(msg).find('items').eq(0),
             item  = $(msg).find('item'),
@@ -344,13 +349,14 @@ Gnosus = {
         if (contact) {contact.service_features.push(feature_model);}
         return feature_model;
     },
-    findPubSubNodesByJid: function(jid) {
+    findPubNodesByJid: function(jid) {
         var items   = [],
             contact = Gnosus.findAccountByJid(jid);
         if (contact) {
+            var parent_node = GnosusXmpp.userPubsubRoot(jid);
             items = $.grep(contact.service_items, function(s) {
                        if (s.node) {
-                           return s.node.match(new RegExp(GnosusXmpp.userPubsubRoot(jid), 'g')); 
+                           return s.parent_node == parent_node; 
                         } else {
                             return false;
                         }              
@@ -622,6 +628,11 @@ GnosusXmpp = {
     },
 
     /*-------------------------------------------------------------------------------*/
+    userPubsubNode: function(jid, node) {
+        return GnosusXmpp.userPubsubRoot(jid)+'/'+node;
+    },
+
+    /*-------------------------------------------------------------------------------*/
     userPubsubRootToJid: function(node) {
         var node_comps = node.split('/');
         return node_comps[3]+'@'+node_comps[2];
@@ -854,7 +865,7 @@ GnosusXmpp = {
     },
 
     /*-------------------------------------------------------------------------------*/
-    createPubSubNode: function(for_jid, to, node) {
+    setCreatePubSubNode: function(for_jid, to, node) {
         var iq = $iq({to:to, type: 'set'})
             .c('pubsub', {xmlns:Strophe.NS.PUBSUB})
             .c('create', {node:node}).up().c('configure');
@@ -870,6 +881,24 @@ GnosusXmpp = {
         );
     },
 
+    /*-------------------------------------------------------------------------------*/
+    setPubEntry: function (node, entry) {
+        var to = Gnosus.findPubSubServiceByJid(Gnosus.account().jid);
+            iq = $iq({to:to, type: 'set'})
+                .c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+                .c('publish', {node:node}).c('item').c('entry', {xmlns:Strophe.NS.ENTRY})
+                .c('title').t(entry);
+        GnosusXmpp.connection.sendIQ(iq, 
+            function() {
+                $(document).trigger('pub_entry_result');
+            },
+            function(iq) {
+                $(document).trigger('pub_entry_error',  node);
+            }
+        );
+        return Gnosus.addOutgoingEntryMessage(node, entry);
+    }, 
+    
     /*-------------------------------------------------------------------------------
     disco
     ---------------------------------------------------------------------------------*/

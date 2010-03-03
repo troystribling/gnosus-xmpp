@@ -44,6 +44,18 @@ GnosusUi.prototype = {
         });
     },
 
+    /*-------------------------------------------------------------------------------*/ 
+    bindItemsHandler: function(trigger, handler) {
+        this.items_handlers[trigger] = handler;
+        $(document).bind(trigger, this.items_handlers[trigger].bind(this));
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    bindDisplayHandler: function(trigger, handler) {
+        this.display_handlers[trigger] = handler;
+        $(document).bind(trigger, this.display_handlers[trigger].bind(this));
+    },
+
     /*-------------------------------------------------------------------------------*/    
     capitalize: function(str) {return str.charAt(0).toUpperCase()+str.substr(1);},
 
@@ -197,12 +209,12 @@ GnosusUi.prototype = {
          var open_item_name = function(i) {
              var node = $(i).find('.node').text(),
                  jid  = $(i).find('.jid').text();
-             return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
+             return GnosusXmpp.userPubsubNode(jid, node);    
          }
          var delete_item_name = function(i) {
              var node = $(i).parents('li').eq(0).find('.node').text(),
                  jid  = $(i).parents('li').eq(0).find('.jid').text();
-             return GnosusXmpp.userPubsubRoot(jid)+'/'+node;    
+             return GnosusXmpp.userPubsubNode(jid, node);    
          }
          this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', sub_item, null, open_item_name, delete_item_name);    
          this.bindItemsHandler('subscribe_result', function (ev, sub) {
@@ -229,6 +241,7 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/  
      showPublicationsItems: function() { 
+         this.buildListItems(Gnosus.findPubNodesByJid(Gnosus.account().jid), 'publication', function(i){return GnosusXmpp.subNodeFromNode(i.node);});    
      }, 
 
    /*-------------------------------------------------------------------------------  
@@ -257,6 +270,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historyResources: function() {
+        this.buildMessageContentList(Gnosus.findAllPublishedMessages(), 'no-input');
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -353,7 +367,7 @@ GnosusUi.prototype = {
             if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields('jid is required')) {
                 var jid       = $(client_ui.item_dialog+" input[name='jid']").val(),
                     node      = $(client_ui.item_dialog+" input[name='node']").val(),
-                    full_node = GnosusXmpp.userPubsubRoot(jid)+'/'+node,
+                    full_node = GnosusXmpp.userPubsubNode(jid, node),
                     service   = Gnosus.findPubSubServiceByJid(jid);
                 client_ui.cancelItemDialog(); 
                 client_ui.block('adding subscription')
@@ -437,22 +451,33 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------  
-     * subscriptions display
+     * publications display
      *-------------------------------------------------------------------------------*/    
-     showSubscriptionsDisplay: function(node) {
+     showPublicationsDisplay: function(node) {
          $(this.client_display_content).empty();
          this.displayUnbind();
-         this.buildMessageContentList(Gnosus.findMessagesByNode(node), 'no-input');
-         this.bindDisplayHandler('headline', function (ev, msgs) {
-             var client_ui = this,
-                 reg_exp = new RegExp(node, 'g');
-             $.each(msgs, function() {
-                 if (this.node.match(reg_exp)) {
-                     client_ui.prependMessage(this);
-                 }
-             });
-         });         
+         this.buildEnterMessage();
+         this.buildMessageContentList(Gnosus.findMessagesByNode(GnosusXmpp.userPubsubNode(Gnosus.account().jid, node), 'input'));
      },               
+
+     /*-------------------------------------------------------------------------------  
+      * subscriptions display
+      *-------------------------------------------------------------------------------*/    
+      showSubscriptionsDisplay: function(node) {
+          $(this.client_display_content).empty();
+          this.displayUnbind();
+          this.buildMessageContentList(Gnosus.findMessagesByNode(node), 'no-input');
+          this.bindDisplayHandler('headline', function (ev, msgs) {
+              var client_ui = this,
+                  reg_exp = new RegExp(node, 'g');
+              $.each(msgs, function() {
+                  if (this.node.match(reg_exp)) {
+                      client_ui.prependMessage(this);
+                  }
+              });
+          });         
+      },               
+
 
     /*-------------------------------------------------------------------------------  
      * contacts display
@@ -473,42 +498,17 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsChatDisplay: function(contact_name) {
-         var enter_msg = 'enter message',
-             contact = Gnosus.findAccountByName(contact_name),
-             send_message = '<div class ="client-display-input">'+
-                                '<textarea class="init">'+enter_msg+'</textarea>'+
-                            '</div>';
-         $(this.client_display_content).append(send_message);
-         this.buildMessageContentList(Gnosus.findMessagesByJidAndType(contact.jid, 'chat'), 'input');
-         var client_ui = this,
-             textarea = $(this.client_display_input+' textarea'),
-             orig_textarea_height = textarea.height();
-         textarea.autoResize();
-         textarea.keyup(function(evt) {
-             var input = evt.keyCode;
-             if (input == '13') {
-                 var contact_name = client_ui.contactOpen(),
-                     contact = Gnosus.findAccountByName(contact_name),
-                     msg = $(this).val().replace(/\n$/,'');
-                 $(this).val('');
-                 $(this).height(orig_textarea_height);
-                 $(this).css('overflow','hidden');
-                 $(client_ui.client_display_list).prepend(client_ui.buildChatTextMessage(GnosusXmpp.chatTextMessage(contact.jid, msg)));
+        var client_ui= this;
+            contact = Gnosus.findAccountByName(contact_name);
+        this.buildEnterMessage(
+            function(in_msg) {
+                var contact_name = client_ui.contactOpen(),
+                    contact = Gnosus.findAccountByName(contact_name),
+                    msg = $(in_msg).val().replace(/\n$/,'');
+                $(client_ui.client_display_list).prepend(client_ui.buildChatTextMessage(GnosusXmpp.chatTextMessage(contact.jid, msg)));
             }
-         });
-         textarea.blur(function() {
-             if ($(this).val() == '') {
-                 $(this).val(enter_msg);
-                 $(this).addClass('init');
-                 $(this).height(orig_textarea_height);
-             }
-         });
-         textarea.focus(function() {
-             if ($(this).hasClass('init')) {
-                 $(this).removeClass('init');
-                 $(this).val('');
-             }
-         });
+         );
+         this.buildMessageContentList(Gnosus.findMessagesByJidAndType(contact.jid, 'chat'), 'input');
          this.bindDisplayHandler('chat', function (ev, msg) {
              var contact_name = client_ui.contactOpen(),
                  contact = Gnosus.findAccountByName(contact_name);
@@ -649,7 +649,7 @@ GnosusUi.prototype = {
         GnosusXmpp.getPubSubServiceDisco(contact.jid, Strophe.getDomainFromJid(contact.jid), 
             function() {
                 this.unblock();
-                this.buildPubNodeContentList('contact', Gnosus.findPubSubNodesByJid(contact.jid), function(node) {
+                this.buildPubNodeContentList(Gnosus.findPubNodesByJid(contact.jid), function(node) {
                     var pub_status = 'not-subscribed';
                     var sub = Gnosus.findSubscriptionsByNodeAndSubscription(node, 'subscribed');
                     if (sub.length > 0) {
@@ -747,15 +747,37 @@ GnosusUi.prototype = {
      },     
 
      /*-------------------------------------------------------------------------------*/ 
-     bindItemsHandler: function(trigger, handler) {
-         this.items_handlers[trigger] = handler;
-         $(document).bind(trigger, this.items_handlers[trigger].bind(this));
-     },
-
-     /*-------------------------------------------------------------------------------*/ 
-     bindDisplayHandler: function(trigger, handler) {
-         this.display_handlers[trigger] = handler;
-         $(document).bind(trigger, this.display_handlers[trigger].bind(this));
+     buildEnterMessage: function(send_msg) {
+         var enter_msg = 'enter message',
+             send_message = '<div class ="client-display-input">'+
+                                '<textarea class="init">'+enter_msg+'</textarea>'+
+                            '</div>';
+         $(this.client_display_content).append(send_message);
+         var textarea = $(this.client_display_input+' textarea'),
+             orig_textarea_height = textarea.height();
+         textarea.autoResize();
+         textarea.keyup(function(evt) {
+             var input = evt.keyCode;
+             if (input == '13') {
+                 send_msg(this);
+                 $(this).val('');
+                 $(this).height(orig_textarea_height);
+                 $(this).css('overflow','hidden');
+            }
+         });
+         textarea.blur(function() {
+             if ($(this).val() == '') {
+                 $(this).val(enter_msg);
+                 $(this).addClass('init');
+                 $(this).height(orig_textarea_height);
+             }
+         });
+         textarea.focus(function() {
+             if ($(this).hasClass('init')) {
+                 $(this).removeClass('init');
+                 $(this).val('');
+             }
+         });
      },
 
      /*-------------------------------------------------------------------------------*/ 
@@ -770,7 +792,7 @@ GnosusUi.prototype = {
     },   
       
     /*-------------------------------------------------------------------------------*/ 
-     buildPubNodeContentList: function(list_type, content_list, status) {
+     buildPubNodeContentList: function(content_list, status) {
         var msgs = ['<ul class="client-display-list publication-nodes">'];
         $.each(content_list, function () {
             msgs.push('<li><div class="publication-node">'+
