@@ -270,7 +270,6 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historyResources: function() {
-        this.buildMessageContentList(Gnosus.findAllPublishedMessages(), 'no-input');
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -286,6 +285,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historyPublications: function() {
+        this.buildMessageContentList(Gnosus.findAllPublishedMessages(), 'no-input');
     },
 
     /*-------------------------------------------------------------------------------  
@@ -319,6 +319,13 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     deletePublicationDialog: function(item) {
+        var client_ui = this,
+            dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete publication?">'+ 
+                        '<p>'+item+'</p>'+
+                     '</div>'; 
+        this.deleteItemDialog(dialog, function() {
+            client_ui.block('deleting publication');
+        });
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -345,7 +352,7 @@ GnosusUi.prototype = {
                      '</div>'; 
         var client_ui = this;             
         this.addItemDialog(dialog, 'add-contact-dialog', function() {
-            if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields('jid is required')) {
+            if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields()) {
                 var jid = $(client_ui.item_dialog+' input').val();
                 client_ui.cancelItemDialog(); 
                 client_ui.block('adding contact')
@@ -364,7 +371,7 @@ GnosusUi.prototype = {
                      '</div>'; 
         var client_ui = this;             
         this.addItemDialog(dialog, 'add-subscription-dialog', function() {
-            if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields('jid is required')) {
+            if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields()) {
                 var jid       = $(client_ui.item_dialog+" input[name='jid']").val(),
                     node      = $(client_ui.item_dialog+" input[name='node']").val(),
                     full_node = GnosusXmpp.userPubsubNode(jid, node),
@@ -396,6 +403,18 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     addPublicationDialog: function() {
+        var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+ 
+                         '<label for="node">node</label><input type="text" name="node" class="required"/></br>'+
+                     '</div>'; 
+        var client_ui = this;             
+        this.addItemDialog(dialog, 'add-publication-dialog', function() {
+            if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields()) {
+                var node = $(client_ui.item_dialog+' input').val();
+                client_ui.cancelItemDialog(); 
+                client_ui.block('adding publication')
+                GnosusXmpp.setCreatePubSubNode(node); 
+            }
+        });            
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -454,10 +473,25 @@ GnosusUi.prototype = {
      * publications display
      *-------------------------------------------------------------------------------*/    
      showPublicationsDisplay: function(node) {
+         var client_ui= this;
          $(this.client_display_content).empty();
          this.displayUnbind();
-         this.buildEnterMessage();
+         this.buildEnterMessage(
+             function(msg_input) {
+                 var msg = $(msg_input).val().replace(/\n$/,'');
+                 GnosusXmpp.setPublishEntry(node, msg);
+                 client_ui.block('publishing');
+             }
+         );
          this.buildMessageContentList(Gnosus.findMessagesByNode(GnosusXmpp.userPubsubNode(Gnosus.account().jid, node), 'input'));
+         this.bindDisplayHandler('publish_entry_result', function (ev, msg) {
+             this.unblock();
+             $(this.client_display_list).prepend(this.buildHeadlineEntryMessage(msg));
+         });
+         this.bindDisplayHandler('publish_entry_error', function (ev, node) {
+             this.unblock();
+             this.errorDialog('failed to publish to <strong>'+node+'</strong>');
+         });
      },               
 
      /*-------------------------------------------------------------------------------  
@@ -498,13 +532,13 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsChatDisplay: function(contact_name) {
-        var client_ui= this;
+        var client_ui= this,
             contact = Gnosus.findAccountByName(contact_name);
         this.buildEnterMessage(
-            function(in_msg) {
+            function(msg_input) {
                 var contact_name = client_ui.contactOpen(),
                     contact = Gnosus.findAccountByName(contact_name),
-                    msg = $(in_msg).val().replace(/\n$/,'');
+                    msg = $(msg_input).val().replace(/\n$/,'');
                 $(client_ui.client_display_list).prepend(client_ui.buildChatTextMessage(GnosusXmpp.chatTextMessage(contact.jid, msg)));
             }
          );
@@ -683,7 +717,7 @@ GnosusUi.prototype = {
         });
         this.bindDisplayHandler('subscribe_error', function (ev, service, node) {
             this.unblock();
-            this.errorDialog('error subscribing to <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
+            this.errorDialog('error subscribing to <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong> on service <strong>'+service+'</strong>');
         });
         this.bindDisplayHandler('unsubscribe_result', function (ev, subscription) {
             this.unblock();
@@ -693,7 +727,7 @@ GnosusUi.prototype = {
         });
         this.bindDisplayHandler('unsubscribe_error', function (ev, service, node) {
             this.unblock();
-            this.errorDialog('error unsubscribing from <strong>'+node+'</strong> on service <strong>'+service+'</strong>');
+            this.errorDialog('error unsubscribing from <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong> on service <strong>'+service+'</strong>');
         });
         this.bindDisplayHandler('disco_info_error', function (ev, jid, node) {
             this.unblock();
@@ -936,13 +970,13 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    validateRequiredFields: function(msg) {
+    validateRequiredFields: function() {
         var is_valid = true;
         if (this.noDialogErrors()) {
             $(this.item_dialog).find('input.required').each(function() {
                 if (!$(this).val()) {
                     is_valid = false;
-                    $(this).after('<div class="dialog-error">'+msg+'</div>')                   
+                    $(this).after('<div class="dialog-error">'+$(this).attr('name')+' required</div>')                   
                 } 
             });
         }
@@ -972,7 +1006,7 @@ GnosusUi.prototype = {
     buildHeadlineXMessage: function(msg) {
         return '<li><div class="x-message">'+
                    this.messageInfo(msg)+
-                   '<div class="node">'+msg.node+'</div>'+
+                   '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
                    this.buildXDataBody(msg.text)+
                '</div></li>';
     },
@@ -981,7 +1015,7 @@ GnosusUi.prototype = {
     buildHeadlineEntryMessage: function(msg) {
         return '<li><div class="text-message">'+
                    this.messageInfo(msg)+
-                   '<div class="node">'+msg.node+'</div>'+
+                   '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
                    '<div class="entry">'+msg.text+'</div>'+
                '</div></li>';
     },

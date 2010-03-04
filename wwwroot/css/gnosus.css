@@ -789,10 +789,10 @@ ul.contact-display-modes li {
 }
 /*******  add publication dialog style  *******/
 .add-publication-dialog label {
-    width: 1.1em;
+    width: 2.0em;
 }
 .add-publication-dialog input {
-    width: 14.0em;
+    width: 13.1em;
 }
 /*******  jquery-ui *******/
 .ui-widget-header {
