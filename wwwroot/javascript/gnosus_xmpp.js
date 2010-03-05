@@ -297,6 +297,12 @@ Gnosus = {
         Gnosus.account().subscriptions.push(sub_model);
         return sub_model;
     },
+    addPubSubNode: function(jid, service, parent_node, node) {
+        var item_model = new ServiceItem(service, parent_node, service, node),
+            acct       = Gnosus.findAccountByJid(jid);
+        if (acct) {acct.service_items.push(item_model);}
+        return item_model;
+    },
     removeSubscription: function(subid) {
         return Gnosus.account().removeSubscription(subid);
     },
@@ -308,6 +314,18 @@ Gnosus = {
             Gnosus.account().removeSubscription(this.subid);
         });       
         return subs;
+    },
+    removePubSubNode: function(jid, node) {
+        var acct = Gnosus.findAccountByJid(jid),
+            item = null
+        for(var i in acct.service_items) {
+            if (acct.service_items[i].node == node) {
+                delete_indx = i;
+                break;
+            }
+        }
+        if (delete_indx !=null) {item = acct.service_items.splice(delete_indx, 1);}
+        return item;
     },
     findAllSubscriptions: function() {
         return Gnosus.account().subscriptions;
@@ -333,28 +351,28 @@ Gnosus = {
     ---------------------------------------------------------------------------------*/
     addService: function(jid, service, node, serv) {
         var service_model = new Service(service, node, $(serv).attr('name'), $(serv).attr('category'), $(serv).attr('type')),
-            contact       = Gnosus.findAccountByJid(jid);
-        if (contact) {contact.services.push(service_model);}
+            acct          = Gnosus.findAccountByJid(jid);
+        if (acct) {acct.services.push(service_model);}
         return service_model;
     },
     addServiceItem: function(jid, service, parent_node, item) {
         var item_model = new ServiceItem(service, parent_node, $(item).attr('jid'), $(item).attr('node'), $(item).attr('name')),
-            contact    = Gnosus.findAccountByJid(jid);
-        if (contact) {contact.service_items.push(item_model);}
+            acct       = Gnosus.findAccountByJid(jid);
+        if (acct) {acct.service_items.push(item_model);}
         return item_model;
     },
     addServiceFeature: function(jid, service, node, feature) {
         var feature_model = new ServiceFeature(service, node, $(feature).attr('var')),
-            contact       = Gnosus.findAccountByJid(jid);
-        if (contact) {contact.service_features.push(feature_model);}
+            acct          = Gnosus.findAccountByJid(jid);
+        if (acct) {acct.service_features.push(feature_model);}
         return feature_model;
     },
     findPubNodesByJid: function(jid) {
-        var items   = [],
-            contact = Gnosus.findAccountByJid(jid);
-        if (contact) {
+        var items = [],
+            acct  = Gnosus.findAccountByJid(jid);
+        if (acct) {
             var parent_node = GnosusXmpp.userPubsubRoot(jid);
-            items = $.grep(contact.service_items, function(s) {
+            items = $.grep(acct.service_items, function(s) {
                        if (s.node) {
                            return s.parent_node == parent_node; 
                         } else {
@@ -365,12 +383,12 @@ Gnosus = {
         return items;
     },
     findServiceItemByJidAndNode: function(jid, node) {
-        var item    = null,
-            contact = Gnosus.findAccountByJid(jid);
-        if (contact) {
-            for (var s in contact.service_items) {
-                if (contact.service_items[s].node == node) {
-                    item = contact.service_items[s];
+        var item  = null,
+            acct  = Gnosus.findAccountByJid(jid);
+        if (acct) {
+            for (var s in acct.service_items) {
+                if (acct.service_items[s].node == node) {
+                    item = acct.service_items[s];
                     break;
                 }              
             }
@@ -378,12 +396,12 @@ Gnosus = {
         return item;
     },
     findPubSubServiceByJid: function(jid) {
-        var service   = null,
-            contact = Gnosus.findAccountByJid(jid);
-        if (contact) {
-            for (var s in contact.services) {
-                if (contact.services[s].category == 'pubsub' && contact.services[s].type =='service') {
-                    service = contact.services[s];
+        var service = null,
+            acct    = Gnosus.findAccountByJid(jid);
+        if (acct) {
+            for (var s in acct.services) {
+                if (acct.services[s].category == 'pubsub' && acct.services[s].type =='service') {
+                    service = acct.services[s];
                     break;
                 }
             }
@@ -437,14 +455,15 @@ Account.prototype = {
     },
     removeSubscription: function(subid) {
         var delete_indx = null,
-            sub         = null;
-        for(var i in Gnosus.account().subscriptions) {
-            if (Gnosus.account().subscriptions[i].subid == subid) {
+            sub         = null,
+            subs        = Gnosus.account().subscriptions;
+        for(var i in subs) {
+            if (subs[i].subid == subid) {
                 delete_indx = i;
                 break;
             }
         }
-        if (delete_indx) {sub = this.subscriptions.splice(delete_indx, 1);}
+        if (delete_indx !=null) {sub = subs.splice(delete_indx, 1);}
         return sub;
     },
 }
@@ -560,9 +579,9 @@ Command.prototype = {
 }
 
 /*-------------------------------------------------------------------------------*/
-function Subscription(node, serv, subscription, subid) {
+function Subscription(node, service, subscription, subid) {
   this.node = node;
-  this.service = serv;
+  this.service = service;
   this.subscription = subscription;
   this.subid = subid
 }
@@ -866,19 +885,37 @@ GnosusXmpp = {
 
     /*-------------------------------------------------------------------------------*/
     setCreatePubSubNode: function(node) {
-        var full_node = GnosusXmpp.userPubsubNode(Gnosus.account().jid, node),
-            serv      = Gnosus.findPubSubServiceByJid(Gnosus.account().jid),
+        var jid       = Gnosus.account().jid;
+            full_node = GnosusXmpp.userPubsubNode(jid, node),
+            serv      = Gnosus.findPubSubServiceByJid(jid),
             iq        = $iq({to:serv.jid, type: 'set'})
                             .c('pubsub', {xmlns:Strophe.NS.PUBSUB})
                             .c('create', {node:full_node}).up().c('configure');
         GnosusXmpp.connection.sendIQ(iq, 
             function(iq) {
-                $(iq).find('subscription').each(function() {
-                    $(document).trigger('create_pubsub_node_result');
-                });
+                $(document).trigger('create_pubsub_node_result', 
+                    Gnosus.addPubSubNode(jid, serv, GnosusXmpp.userPubsubRoot(Gnosus.account().jid), full_node));
             },
             function(iq) {
                 $(document).trigger('create_pubsub_node_error',  full_node);
+            }
+        );
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    setDeletePubSubNode: function(node) {
+        var jid       = Gnosus.account().jid;
+            full_node = GnosusXmpp.userPubsubNode(jid, node),
+            serv      = Gnosus.findPubSubServiceByJid(jid),
+            iq        = $iq({to:serv.jid, type: 'set'})
+                            .c('pubsub', {xmlns:Strophe.NS.PUBSUB_OWNER})
+                            .c('delete', {node:full_node});
+        GnosusXmpp.connection.sendIQ(iq, 
+            function(iq) {
+                $(document).trigger('delete_pubsub_node_result', Gnosus.removePubSubNode(jid, full_node));
+            },
+            function(iq) {
+                $(document).trigger('delete_pubsub_node_error',  full_node);
             }
         );
     },
@@ -1214,6 +1251,7 @@ Strophe.addConnectionPlugin('pubsub', {
     statusChanged: function (status) {
         if (status === Strophe.Status.CONNECTED) {
             Strophe.addNamespace('PUBSUB', 'http://jabber.org/protocol/pubsub');
+            Strophe.addNamespace('PUBSUB_OWNER', 'http://jabber.org/protocol/pubsub#owner');
             Strophe.addNamespace('ENTRY', 'http://www.w3.org/2005/Atom');
         }
     },

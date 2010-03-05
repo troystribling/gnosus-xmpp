@@ -218,14 +218,14 @@ GnosusUi.prototype = {
          }
          this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', sub_item, null, open_item_name, delete_item_name);    
          this.bindItemsHandler('subscribe_result', function (ev, sub) {
+             var item = this.buildItemListItems(sub_item(sub), 'subscription');
              this.unblock();
-             var items = this.buildItemListItems(sub_item(sub), 'subscription');
-             $(this.client_items_content+' ul').append(items);
+             $(this.client_items_content+' ul').append(item);
              this.addItemListEvents($(this.client_items_content+' ul li:last'), open_item_name, delete_item_name);             
          });
          this.bindItemsHandler('subscribe_error', function (ev, service, node) {
              this.unblock();
-             this.errorDialog('failed to subscribe to node <strong>'+node+'</strong> on service <strong>'+service+'</service>');
+             this.errorDialog('failed to subscribe to <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong> on service <strong>'+service+'</strong>');
          });
          this.bindItemsHandler('unsubscribe_result', function (ev, sub) {
              this.unblock();
@@ -235,13 +235,31 @@ GnosusUi.prototype = {
          });
          this.bindItemsHandler('unsubscribe_error', function (ev, service, node) {
              this.unblock();
-             this.errorDialog('failed to unsubscribe to node <strong>'+node+'</strong> on service <strong>'+service+'</service>');
+             this.errorDialog('failed to unsubscribe to <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong> on service <strong>'+service+'</strong>');
          });
      }, 
 
      /*-------------------------------------------------------------------------------*/  
      showPublicationsItems: function() { 
          this.buildListItems(Gnosus.findPubNodesByJid(Gnosus.account().jid), 'publication', function(i){return GnosusXmpp.subNodeFromNode(i.node);});    
+         this.bindItemsHandler('create_pubsub_node_result', function (ev, pub) {
+             var item = this.buildItemListItems(GnosusXmpp.subNodeFromNode(pub.node), 'publication');
+             this.unblock();
+             $(this.client_items_content+' ul').append(item);
+             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+         });
+         this.bindItemsHandler('create_pubsub_node_error', function (ev, node) {
+             this.unblock();
+             this.errorDialog('failed create publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
+         });
+         this.bindItemsHandler('delete_pubsub_node_result', function (ev, pub) {
+             this.unblock();
+             $(this.client_items_content+' ul li').find('.item:contains('+GnosusXmpp.subNodeFromNode(pub.node)+')').parent().remove();
+         });
+         this.bindItemsHandler('delete_pubsub_node_error', function (ev, node) {
+             this.unblock();
+             this.errorDialog('failed delete publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
+         });
      }, 
 
    /*-------------------------------------------------------------------------------  
@@ -325,6 +343,7 @@ GnosusUi.prototype = {
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting publication');
+            GnosusXmpp.setDeletePubSubNode(item);
         });
     },
 
@@ -388,12 +407,12 @@ GnosusUi.prototype = {
                                 GnosusXmpp.setSubscribe(service.jid, full_node);
                             } else {
                                 this.unblock();
-                                this.errorDialog('failed to subscribe to node <strong>'+full_node+'</strong> on service <strong>'+service+'</service>');
+                                this.errorDialog('failed to subscribe to <strong>'+node+'</strong> on service <strong>'+service+'</service>');
                             }
                         }.bind(this),
                         function() {
                             this.unblock();
-                            this.errorDialog('failed to subscribe to node <strong>'+full_node+'</strong> on service <strong>'+service+'</service>');
+                            this.errorDialog('failed to subscribe to <strong>'+node+'</strong> on service <strong>'+service+'</service>');
                         }.bind(this)
                     );
                 }
