@@ -113,19 +113,23 @@ Gnosus = {
     resources
     ---------------------------------------------------------------------------------*/
     addResource: function(presence) {
-        var from = $(presence).attr('from');
-        var bare_jid = Strophe.getBareJidFromJid(from);
+        var from     = $(presence).attr('from'),
+            resource = null,
+            bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.accounts[bare_jid]) {
-            var resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
+            resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
             Gnosus.accounts[bare_jid].addResource(resource);
         }
+        return resource;
     },
     removeResource: function(presence) {
-        var from = $(presence).attr('from');
-        var bare_jid = Strophe.getBareJidFromJid(from);
+        var from     = $(presence).attr('from'),
+            resource = null,
+            bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.accounts[bare_jid]) {
-            Gnosus.accounts[bare_jid].removeResource(from);
+            resource = Gnosus.accounts[bare_jid].removeResource(from);
         }
+        return resource;
     },
     removeResources: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
@@ -133,7 +137,7 @@ Gnosus = {
             Gnosus.accounts[bare_jid].removeResources();
         }
     },
-    findAllResources: function(jid) {
+    findAllResourcesByJid: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.accounts[bare_jid] ? Gnosus.accounts[bare_jid].resources : null;
     },
@@ -233,7 +237,7 @@ Gnosus = {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var has_commands = false;
         if (bare_jid == jid) {
-            var resources = Gnosus.findAllResources(jid);
+            var resources = Gnosus.findAllResourcesByJid(jid);
             for (var rjid in resources) {
                 if (!resources[rjid].commands) {
                     has_commands = false;
@@ -264,7 +268,7 @@ Gnosus = {
             });
         };
         if (bare_jid == jid) {
-            $.each(Gnosus.findAllResources(jid), function() {
+            $.each(Gnosus.findAllResourcesByJid(jid), function() {
                 addCommandHash(this.commands);
             });
         } else {
@@ -446,7 +450,9 @@ Account.prototype = {
         this.resources[resource.jid] = resource;
     },
     removeResource: function(jid) {
+        var resource = this.resources[jid];
         delete(this.resources[jid]);
+        return resource;
     },
     deleteCommands: function() {
         $.each(this.resources, function(j,r) {
@@ -526,7 +532,9 @@ Contact.prototype = {
         this.groups = item.find('group').map(function (g, i) {g.text();});
     },
     removeResource: function(jid) {
+        var resource = this.resources[jid];
         delete(this.resources[jid]);
+        return resource;
     },
     removeResources: function() {
         this.resources = {};
@@ -1119,19 +1127,17 @@ Strophe.addConnectionPlugin('roster', {
         var from = $(presence).attr('from'),
             jid = Strophe.getBareJidFromJid(from),
             ptype = $(presence).attr('type') || 'available',
-            contact = Gnosus.findAccountByJid(jid);
-        if (contact && ptype != 'error') {
+            acct = Gnosus.findAccountByJid(jid);
+        if (acct && ptype != 'error') {
             if (ptype === 'unavailable') {
-                Gnosus.removeResource(presence);
-                $(document).trigger("presence_unavailable", contact);
+                $(document).trigger("presence_unavailable", [acct, Gnosus.removeResource(presence)]);
             } else if (ptype === 'subscribe') {
                 GnosusXmpp.acceptSubscriptionRequest(jid);
             } else if (ptype === 'unsubscribed') {
                 Gnosus.removeResources(jid);
-                $(document).trigger("presence_unsubscribed", contact);
+                $(document).trigger("presence_unsubscribed", acct);
             } else {
-                Gnosus.addResource(presence);
-                $(document).trigger("presence", contact);
+                $(document).trigger("presence", [acct, Gnosus.addResource(presence)]);
             }        
         } else if (ptype === 'subscribe') {
             $(document).trigger("presence_subscribe", jid);

@@ -148,8 +148,8 @@ GnosusUi.prototype = {
          
          /**** received roster message ****/
          this.bindItemsHandler('roster_item_add', function (ev, contact) {
-             var items = this.buildItemListItems(contact.name, 'contact', contact.show());
-             $(this.client_items_content+' ul').append(items);
+             var item = this.buildItemListItems(contact.name, 'contact', contact.show());
+             $(this.client_items_content+' ul').append(item);
              this.addItemListEvents($(this.client_items_content+' ul li:last'));             
          });
          this.bindItemsHandler('roster_item_remove', function (ev, contact) {
@@ -175,25 +175,39 @@ GnosusUi.prototype = {
          });
          
          /*---- presence messages ----*/
-         this.bindItemsHandler('presence', function (ev, contact) {
-             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
-                .removeClass('online').removeClass('offline').addClass(contact.show());
+         this.bindItemsHandler('presence', function (ev, acct) {
+             $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
+                .removeClass('online').removeClass('offline').addClass(acct.show());
          });
-         this.bindItemsHandler('presence_unavailable', function (ev, contact) {
-             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
-                .removeClass('online').removeClass('offline').addClass(contact.show());
+         this.bindItemsHandler('presence_unavailable', function (ev, acct) {
+             $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
+                .removeClass('online').removeClass('offline').addClass(acct.show());
          });
          this.bindItemsHandler('presence_subscribe', function (ev, jid) {
              this.subscriptionRequestDialog(jid);
          });
-         this.bindItemsHandler('presence_unsubscribed', function (ev, contact) {
-             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')')
-                .removeClass('online').removeClass('offline').addClass(contact.show());
+         this.bindItemsHandler('presence_unsubscribed', function (ev, acct) {
+             $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
+                .removeClass('online').removeClass('offline').addClass(acct.show());
          });
      },
 
      /*-------------------------------------------------------------------------------*/  
      showResourcesItems: function() { 
+         this.buildListItems(Gnosus.findAllResourcesByJid(Gnosus.account().jid), 'resource', 
+            function(i){return Strophe.getResourceFromJid(i.jid);}, null, null, null, true);    
+         this.bindItemsHandler('presence', function (ev, acct, resource) {
+             var res = $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')');
+             if (res.length == 0) {
+                 var item = this.buildItemListItems(Strophe.getResourceFromJid(resource.jid), 'resource', null, true);
+                 $(this.client_items_content+' ul').append(item);
+                 this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+            }
+         });
+         this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
+             var res = Strophe.getResourceFromJid(resource.jid);
+             $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
+         });
      }, 
 
      /*-------------------------------------------------------------------------------*/  
@@ -325,7 +339,7 @@ GnosusUi.prototype = {
     deleteSubscriptionDialog: function(item) {
         var client_ui = this,
             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete subscription?">'+ 
-                        '<p>'+item+'</p>'+
+                        '<p>'+GnosusXmpp.subNodeFromNode(item)+'</p>'+
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting subscription');
@@ -339,7 +353,7 @@ GnosusUi.prototype = {
     deletePublicationDialog: function(item) {
         var client_ui = this,
             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete publication?">'+ 
-                        '<p>'+item+'</p>'+
+                        '<p>'+GnosusXmpp.subNodeFromNode(item)+'</p>'+
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting publication');
@@ -860,36 +874,38 @@ GnosusUi.prototype = {
     },   
               
     /*-------------------------------------------------------------------------------*/ 
-    buildListItems: function(items, item_type, item_name, item_status, open_item_name, delete_item_name) {
+    buildListItems: function(items, item_type, item_name, item_status, open_item_name, delete_item_name, no_controls) {
         var list_items = '<ul>';
         var client_ui = this;
         $.each(items, function () {
             var status = '';
             var iname = item_name(this);
             if (item_status) {status = item_status(this)}
-            list_items += client_ui.buildItemListItems(item_name(this), item_type, status);
+            list_items += client_ui.buildItemListItems(item_name(this), item_type, status, no_controls);
         });
         list_items += '</ul>';
         $(this.client_items_content).append(list_items);
-        this.addItemListEvents($(this.client_items_content+' ul li'), open_item_name, delete_item_name);
+        this.addItemListEvents($(this.client_items_content+' ul li'), open_item_name, delete_item_name, no_controls);
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    buildItemListItems: function (item, item_type, item_status) { 
+    buildItemListItems: function (item, item_type, item_status, no_controls) { 
         var status = item_status || '',  
             item = '<li>' +
                        '<div class="'+item_type+' item '+status+'">'+ 
                            item+
-                       '</div>'+
-                       '<div style="display: none" class="controls">'+
-                           '<img src="/images/data-delete.png"/>'+
-                       '</div>'+
-                   '</li>';
+                       '</div>'
+                       if (!no_controls) {
+                           item += '<div style="display: none" class="controls">'+
+                                       '<img src="/images/data-delete.png"/>'+
+                                   '</div>';
+                       }
+                   item += '</li>';
         return item;
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    addItemListEvents: function(select_item, open_item_name, delete_item_name) {
+    addItemListEvents: function(select_item, open_item_name, delete_item_name, no_controls) {
         var client_ui = this;
         select_item.hover(
             function() {$(this).addClass('selected').find('.controls').show();},
@@ -907,16 +923,18 @@ GnosusUi.prototype = {
             }
             client_ui['show'+client_ui.capitalize(item_type)+'Display'](item_name);
         }); 
-        select_item.find('img').click(function() {            
-            var item_name = '';
-            if (delete_item_name) {
-                item_name = delete_item_name(this);
-            } else {
-                item_name = $(this).parents('li').eq(0).find('.item').text();
-            }
-            var item_type = client_ui.itemTypeSelected();
-            client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))+'Dialog'](item_name);
-        }); 
+        if (!no_controls) {
+            select_item.find('img').click(function() {            
+                var item_name = '';
+                if (delete_item_name) {
+                    item_name = delete_item_name(this);
+                } else {
+                    item_name = $(this).parents('li').eq(0).find('.item').text();
+                }
+                var item_type = client_ui.itemTypeSelected();
+                client_ui['delete'+client_ui.capitalize(client_ui.singular(item_type))+'Dialog'](item_name);
+            }); 
+        }
     },
         
     /*-------------------------------------------------------------------------------*/ 

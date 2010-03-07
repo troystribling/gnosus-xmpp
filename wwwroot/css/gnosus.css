@@ -504,6 +504,9 @@ tr.data-edit-select {
 .client-items-content .publication {
     padding: 5px 10px 5px 10px;
 }
+.client-items-content .resource {
+    padding: 5px 10px 5px 10px;
+}
 /*  item controls */
 .client-items-content .controls {
     position: absolute;
