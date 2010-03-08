@@ -15,7 +15,7 @@ function GnosusUi(num) {
     this.client_display_list            = this.client+' .client-display-list';
     this.client_display_toolbar         = this.client+' .client-display-toolbar';
     this.client_display_content_control = this.client+' .client-display-toolbar div.control';
-    this.contact_display_modes          = this.client+' .contact-display-modes';
+    this.client_display_modes           = this.client+' .client-display-modes';
     this.client_display_input           = this.client+' .client-display-input';
     this.item_dialog                    = '#item-dialog-'+num;
     this.showItems('contacts');
@@ -75,13 +75,13 @@ GnosusUi.prototype = {
     toId: function(str) {return str.replace('#','');},
 
     /*-------------------------------------------------------------------------------*/    
-    contactOpen: function () {
+    clientItemOpen: function () {
         return $(this.client_items_content+' ul li.open').children('.item').text();
     },
 
     /*-------------------------------------------------------------------------------*/    
-    contactDisplayMode: function () {
-        return $(this.contact_display_modes+' li.selected').text();
+    clientDisplayMode: function () {
+        return $(this.client_display_modes+' li.selected').text();
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -516,7 +516,7 @@ GnosusUi.prototype = {
                  client_ui.block('publishing');
              }
          );
-         this.buildMessageContentList(Gnosus.findMessagesByNode(GnosusXmpp.userPubsubNode(Gnosus.account().jid, node), 'input'));
+         this.buildMessageContentList(Gnosus.findMessagesByNode(GnosusXmpp.userPubsubNode(Gnosus.account().jid, node)), 'input');
          this.bindDisplayHandler('publish_entry_result', function (ev, msg) {
              this.unblock();
              $(this.client_display_list).prepend(this.buildHeadlineEntryMessage(msg));
@@ -556,11 +556,7 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsContentDisplay: function(contact_name) {
-         $(this.client_display_content_control).empty();
-         $(this.client_display_content).empty();
-         this.displayUnbind();
-         var display_type = this.contactDisplayMode();
-         this['showContacts'+this.capitalize(display_type)+'Display'](contact_name);
+         this.buildItemContentDisplay('contacts', contact_name)
      },               
 
      /*-------------------------------------------------------------------------------*/    
@@ -569,16 +565,13 @@ GnosusUi.prototype = {
             contact = Gnosus.findAccountByName(contact_name);
         this.buildEnterMessage(
             function(msg_input) {
-                var contact_name = client_ui.contactOpen(),
-                    contact = Gnosus.findAccountByName(contact_name),
-                    msg = $(msg_input).val().replace(/\n$/,'');
+                var msg = $(msg_input).val().replace(/\n$/,'');
                 $(client_ui.client_display_list).prepend(client_ui.buildChatTextMessage(GnosusXmpp.chatTextMessage(contact.jid, msg)));
             }
          );
          this.buildMessageContentList(Gnosus.findMessagesByJidAndType(contact.jid, 'chat'), 'input');
          this.bindDisplayHandler('chat', function (ev, msg) {
-             var contact_name = client_ui.contactOpen(),
-                 contact = Gnosus.findAccountByName(contact_name);
+             var contact = Gnosus.findAccountByName(contact_name);
              if (msg.from.match(new RegExp(contact.jid, 'g'))) {
                  $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
              }
@@ -778,32 +771,43 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     showContactsToolbar: function() {
-        $(this.client_display_toolbar).empty();
-        var toolbar = '<ul class="contact-display-modes">'+
-                          '<li class="selected">chat</li>'+
-                          '<li>commands</li>'+
-                          '<li>resources</li>'+
-                          '<li>publications</li>'+
-                      '</ul>' +
-                      '<div class="control"></div>';
-        $(this.client_display_toolbar).append(toolbar);
-        var client_ui = this;
-        $(this.contact_display_modes+' li').click(function() {
-            var contact_name = client_ui.contactOpen()
-            $(this).siblings('li.selected').removeClass('selected');
-            $(this).addClass('selected');
-            client_ui.showContactsContentDisplay(contact_name);
-        });
+        this.buildDisplayToolbar(['chat','commands','resources','publications'], 'chat')
     }, 
 
     /*-------------------------------------------------------------------------------  
      * resource display
      *-------------------------------------------------------------------------------*/    
-    showResourcesDisplay: function() {
+    showResourcesDisplay: function(resource) {
+        this.showResourcesToolbar();
+        this.showResourcesContentDisplay(resource);
     }, 
 
     /*-------------------------------------------------------------------------------*/    
+    showResourcesContentDisplay: function(resource) {
+        this.buildItemContentDisplay('resources', resource)
+    },               
+
+    /*-------------------------------------------------------------------------------*/    
+    showResourcesChatDisplay: function(resource) {
+       var client_ui= this,
+           jid = Gnosus.account().jid+'/'+resource;       
+       this.buildEnterMessage(
+           function(msg_input) {
+               var msg = $(msg_input).val().replace(/\n$/,'');
+               $(client_ui.client_display_list).prepend(client_ui.buildChatTextMessage(GnosusXmpp.chatTextMessage(jid, msg)));
+           }
+        );
+        this.buildMessageContentList(Gnosus.findMessagesByJidAndType(jid, 'chat'), 'input');
+        this.bindDisplayHandler('chat', function (ev, msg) {
+            if (msg.from.match(new RegExp(jid, 'g'))) {
+                $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
+            }
+        });
+    },               
+
+    /*-------------------------------------------------------------------------------*/    
     showResourcesToolbar: function() {
+        this.buildDisplayToolbar(['chat','commands'], 'chat')
     }, 
 
     /*-------------------------------------------------------------------------------
@@ -936,6 +940,37 @@ GnosusUi.prototype = {
             }); 
         }
     },
+        
+    /*-------------------------------------------------------------------------------*/    
+    buildDisplayToolbar: function(items, select_item) {
+        $(this.client_display_toolbar).empty();
+        var toolbar = '<ul class="client-display-modes">';
+        $.each(items, function() {
+            if (select_item == this) {
+                toolbar += '<li class="selected">'+this+'</li>';
+            } else {
+                toolbar += '<li>'+this+'</li>';
+            }
+        })
+        toolbar += '</ul><div class="control"></div>';
+        $(this.client_display_toolbar).append(toolbar);
+        var client_ui = this;
+        $(this.client_display_modes+' li').click(function() {
+            var contact_name = client_ui.clientItemOpen()
+            $(this).siblings('li.selected').removeClass('selected');
+            $(this).addClass('selected');
+            client_ui.showContactsContentDisplay(contact_name);
+        });
+    }, 
+        
+    /*-------------------------------------------------------------------------------*/    
+    buildItemContentDisplay: function(item_type, item) {
+        $(this.client_display_content_control).empty();
+        $(this.client_display_content).empty();
+        this.displayUnbind();
+        var display_type = this.clientDisplayMode();
+        this['show'+this.capitalize(item_type)+this.capitalize(display_type)+'Display'](item);
+    },               
         
     /*-------------------------------------------------------------------------------*/ 
     block: function(msg) {

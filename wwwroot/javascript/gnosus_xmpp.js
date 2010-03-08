@@ -20,10 +20,11 @@ function connect(service, jid, password) {
     var conn = new Strophe.Connection(service);
     conn.rawInput = rawInput;
     conn.rawOutput = rawOutput;
-	conn.connect(jid, password, onConnect);
-	GnosusXmpp.connection = conn;
 	Gnosus.accounts[Strophe.getBareJidFromJid(jid)] = new Account(service, jid, password);
 	Gnosus.account_jid = Strophe.getBareJidFromJid(jid);
+	Gnosus.account_resource = Strophe.getResourceFromJid(jid);
+	GnosusXmpp.connection = conn;
+	conn.connect(jid, password, onConnect);
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -50,6 +51,7 @@ Gnosus = {
 
     /*-------------------------------------------------------------------------------*/
     account_jid: null,
+    account_resource: null,
     accounts: {},
     messages: [],
 
@@ -447,7 +449,9 @@ Account.prototype = {
         return this.jid+'/'+this.resource;
     },
     addResource: function(resource) {
-        this.resources[resource.jid] = resource;
+        if (Strophe.getResourceFromJid(resource.jid) != Gnosus.account_resource) {
+            this.resources[resource.jid] = resource;
+        }
     },
     removeResource: function(jid) {
         var resource = this.resources[jid];

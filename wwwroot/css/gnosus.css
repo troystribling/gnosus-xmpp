@@ -752,19 +752,19 @@ ul.client-display-list li {
     margin: 0px;
     padding: 5px 0px 0px 0px;
 }
-ul.contact-display-modes {
+ul.client-display-modes {
     list-style-type: none;
     padding: 0px;
     margin: 0px 10px 0px 10px;
 }
-ul.contact-display-modes li {
+ul.client-display-modes li {
     display: inline;
     font-size: 0.85em;
     cursor: pointer;
     padding: 0px 10px 0px 10px;
     margin: 10px 0px 0px 0px;
 }
-.contact-display-modes .selected {
+.client-display-modes .selected {
     color: #DDD;
     background-color: #000;
 }
