@@ -143,7 +143,7 @@ Gnosus = {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.accounts[bare_jid] ? Gnosus.accounts[bare_jid].resources : null;
     },
-    findResource: function(jid) {
+    findResourceByJid: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         return Gnosus.accounts[bare_jid] ? Gnosus.accounts[bare_jid].resources[jid] : null;
     },
@@ -224,15 +224,21 @@ Gnosus = {
                         return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.content_type == content_type)
                });   
     },
+    findMessagesByAccount: function() {
+        var jid_rexp = new RegExp(Gnosus.account().jid, 'g');
+        return $.grep(Gnosus.messages, function(m) {
+                        return ((m.from.match(jid_rexp) && m.to.match(jid_rexp)))
+               });   
+    },
     /*-------------------------------------------------------------------------------
     commands
     ---------------------------------------------------------------------------------*/
     addCommand: function(jid, node, name) {
-        var resource = Gnosus.findResource(jid);
+        var resource = Gnosus.findResourceByJid(jid);
         if (resource) {resource.addCommand(node, name);}
     },
     initCommands: function(jid) {
-        var resource = Gnosus.findResource(jid);
+        var resource = Gnosus.findResourceByJid(jid);
         if (resource) {resource.initCommands();}
     },
     areCommandsAvailable: function(jid) {
@@ -249,7 +255,7 @@ Gnosus = {
                 }
             }
         } else {
-            var resource = Gnosus.findResource(jid);
+            var resource = Gnosus.findResourceByJid(jid);
             if (resource) {
                 if (resource.commands) {
                     has_commands = true;
@@ -274,7 +280,7 @@ Gnosus = {
                 addCommandHash(this.commands);
             });
         } else {
-            var resource = Gnosus.findResource(jid);
+            var resource = Gnosus.findResourceByJid(jid);
             if (resource) {addCommandHash(resource.commands);}
         }
         return all_commands;
