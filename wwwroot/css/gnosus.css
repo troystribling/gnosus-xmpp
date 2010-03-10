@@ -14,6 +14,9 @@ body {
 img {
     border-style: none;
 }
+.data {   
+    display: none;  
+}
 /******* display areas *******/
 #navigation-wrapper {
     color: #000;
@@ -870,7 +873,4 @@ ul.client-display-modes li {
 .publication-node .node {   
     display: table-cell;  
     padding: 0px 0px 0px 5px;  
-}
-.publication-node .full-node {   
-    display: none;  
 }

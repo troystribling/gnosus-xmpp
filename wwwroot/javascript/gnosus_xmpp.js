@@ -200,19 +200,19 @@ Gnosus = {
     findMessagesByJidAndType: function(jid, type) {
         var jid_rexp = new RegExp(jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
-                        return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == type)
+                   return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == type)
                });   
     },
     findAllSubscribedMessages: function() {
         var jid_rexp = new RegExp(Gnosus.account().jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
-                        return ((!m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == 'headline')
+                   return ((!m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == 'headline')
                });   
     },
     findAllPublishedMessages: function() {
         var jid_rexp = new RegExp(Gnosus.account().jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
-                        return (m.from.match(jid_rexp) && m.type == 'headline')
+                   return (m.from.match(jid_rexp) && m.type == 'headline')
                });   
     },
     findMessagesByNode: function(node) {
@@ -221,13 +221,13 @@ Gnosus = {
     findMessagesByJidAndContentType: function(jid, content_type) {
         var jid_rexp = new RegExp(jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
-                        return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.content_type == content_type)
+                   return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.content_type == content_type)
                });   
     },
     findMessagesByAccount: function() {
         var jid_rexp = new RegExp(Gnosus.account().jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
-                        return ((m.from.match(jid_rexp) && m.to.match(jid_rexp)))
+                   return ((m.from.match(jid_rexp) && m.to.match(jid_rexp)))
                });   
     },
     /*-------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ Gnosus = {
         }
         return has_commands;
     },
-    findAllCommands: function(jid) {
+    findAllCommandsByJid: function(jid) {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var all_commands = {};
         var addCommandHash = function (cmds) {
@@ -284,6 +284,18 @@ Gnosus = {
             if (resource) {addCommandHash(resource.commands);}
         }
         return all_commands;
+    },
+    findCommandByJidAndName: function(jid, name) {
+        var resource = Gnosus.findResourceByJid(jid),
+            cmd      = null;
+        for (var i in resource.commands) {
+            var test_cmd = resource.commands[i];
+            if (test_cmd.name == name) {
+                cmd = test_cmd;
+                break;                
+            }
+        }
+        return cmd;
     },
     addCommandXDataMessage: function(iq) {
         var cmd  = $(iq).find('command').eq(0),
@@ -811,7 +823,7 @@ GnosusXmpp = {
                 }
             },
             function(iq) {
-                $(document).trigger('command_error', jid);
+                $(document).trigger('command_error', [$(iq).attr('from'), cmd  = $(iq).find('command').eq(0).attr('node')]);
             }
         );
         return msg;

@@ -87,18 +87,18 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    clientResourceContact: function (contact_jid) {
-        if (contact_jid) {
-            $(this.client).append(
-                '<div class="client-item-resource-contact" style="display:none">'+
-                    contact_jid+
-                '</div>'
-            );
-        } else {
-            var jid = $(this.client_item_resource_contact).text();
-            $(this.client_item_resource_contact).remove();
-            return jid;            
-        }
+    clientResourceContact: function () {
+        return $(this.client_item_resource_contact).text();            
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    addClientResourceContact: function (contact_jid) {
+        $(this.client_item_resource_contact).remove();
+        $(this.client).append(
+            '<div class="client-item-resource-contact data">'+
+                contact_jid+
+            '</div>'
+        );
     },
 
     /*-------------------------------------------------------------------------------*/    
@@ -213,8 +213,7 @@ GnosusUi.prototype = {
      },
 
      /*-------------------------------------------------------------------------------*/  
-     showResourcesItems: function() { 
-         
+     showResourcesItems: function() {          
          this.buildListItems(Gnosus.findAllResourcesByJid(Gnosus.account().jid), 'resource', 
             function(i){return Strophe.getResourceFromJid(i.jid);}, null, null, null, true);    
          this.bindItemsHandler('presence', function (ev, acct, resource) {
@@ -646,7 +645,7 @@ GnosusUi.prototype = {
                     return pub_status;
                 });
                 $(this.client_display_content).find('.publication-node .status').click(function() {  
-                    var node = $(this).siblings('.full-node').text();
+                    var node = $(this).siblings('.data').text();
                     var service = Gnosus.findPubSubServiceByJid(contact.jid);
                     if ($(this).hasClass('not-subscribed')) {
                         GnosusXmpp.setSubscribe(service.jid, node);
@@ -706,7 +705,7 @@ GnosusUi.prototype = {
      * resource display
      *-------------------------------------------------------------------------------*/    
     showResourcesDisplay: function(resource) {
-        this.clientResourceContact(Gnosus.account().jid)
+        this.addClientResourceContact(Gnosus.account().jid)
         this.showResourcesToolbar();
         this.showResourcesContentDisplay(resource);
     }, 
@@ -747,7 +746,9 @@ GnosusUi.prototype = {
             GnosusXmpp.getCommandList(r.jid);
         });
         $(this.client_display_content_control+' .add').click(function() {
-            this.commandsDialog(full_jid, [Gnosus.findResourceByJid(full_jid)]);
+            var resources = {};
+            resources[full_jid] = Gnosus.findResourceByJid(full_jid);
+            this.commandsDialog(full_jid, resources);
         }.bind(this));
         this.bindDisplayHandler('command_list_result', function (ev, jid) {
             this.unblock();
@@ -765,7 +766,7 @@ GnosusUi.prototype = {
      * command forms 
      *-------------------------------------------------------------------------------*/  
     commandsDialog: function(jid, resources) {
-        var commands  = Gnosus.findAllCommands(jid),
+        var commands  = Gnosus.findAllCommandsByJid(jid),
             dialog    = '<div id="'+this.toId(this.item_dialog)+'" title="commands">'+'<div class="commands">',
             cats      = {},
             client_ui = this;
@@ -794,9 +795,12 @@ GnosusUi.prototype = {
             dialogClass:'command-dialog', width:400, height:400}); 
         $(this.item_dialog+' .commands').accordion({collapsible: true});                
         $(this.item_dialog+' .command').click(function() {
-            var node = $(this).parent('div').prev('h3').text()+'/'+$(this).text().replace(/ /g,'_');
-            $.each(resources, function(jid, r) {
-                $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.setCommand({to:jid, node:node})));
+            var name = $(this).text(),
+                cat  = $(this).parent('div').prev('h3').text();
+            if (cat != 'ungrouped') {name = cat + '/' + name;}   
+            $.each(resources, function(rjid, r) {
+                var cmd  = Gnosus.findCommandByJidAndName(rjid, name);
+                $(client_ui.client_display_list).prepend(client_ui.buildTextCommandMessage(GnosusXmpp.setCommand({to:rjid, node:cmd.node})));
             });
             client_ui.cancelItemDialog();
             client_ui.block('command request pending');
@@ -859,9 +863,9 @@ GnosusUi.prototype = {
             $(this.client_display_list).prepend(this.buildXCommandMessage(msg));
             this.unblock();
         });
-        this.bindDisplayHandler('command_error', function (ev, jid) {
+        this.bindDisplayHandler('command_error', function (ev, jid, node) {
             this.unblock();
-            this.errorDialog('command request failed');
+            this.errorDialog('command request failed for jid <strong>'+jid+'</strong> and node <strong>'+node+'</strong>');
         });
     },
 
@@ -923,7 +927,7 @@ GnosusUi.prototype = {
         $.each(content_list, function () {
             msgs.push('<li><div class="publication-node">'+
                            '<div class="status '+status(this.node)+'"></div>'+ 
-                           '<div class="full-node">'+this.node+'</div>'+          
+                           '<div class="data">'+this.node+'</div>'+          
                            '<div class="node">'+this.name+'</div>'+
                        '</div></li>'
             );
@@ -1011,10 +1015,10 @@ GnosusUi.prototype = {
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
         $(this.client_display_modes+' li').click(function() {
-            var contact_name = client_ui.clientItemOpen()
+            var item_name = client_ui.clientItemOpen()
             $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
-            client_ui['show'+client_ui.capitalize(item_type)+'ContentDisplay'](contact_name);
+            client_ui['show'+client_ui.capitalize(item_type)+'ContentDisplay'](item_name);
         });
     }, 
         
