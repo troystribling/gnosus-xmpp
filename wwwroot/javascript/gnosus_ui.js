@@ -308,7 +308,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historyContacts: function() {
-        this.buildMessageContentList(Gnosus.findAllMessages(), 'no-input');
+        this.buildMessageContentList(Gnosus.findAllContactMessages(), 'no-input');
         this.bindDisplayHandler('chat', function (ev, msg) {
             $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
         });
@@ -322,7 +322,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     historyResources: function() {
-        this.buildMessageContentList(Gnosus.findMessagesByAccount(), 'no-input');
+        this.buildMessageContentList(Gnosus.findAllAccountMessages(), 'no-input');
         this.bindDisplayHandler('chat', function (ev, msg) {
             $(this.client_display_list).prepend(this.buildChatTextMessage(msg));
         });
@@ -608,6 +608,7 @@ GnosusUi.prototype = {
               contact = Gnosus.findAccountByName(contact_name);
          $(this.client_display_content_control).append(toolbar);
          contact.deleteCommands();
+         this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'), 'no-input');
          this.block('retrieving command list');
          $.each(contact.resources, function(j,r) {
              GnosusXmpp.getCommandList(r.jid);
@@ -618,7 +619,6 @@ GnosusUi.prototype = {
          this.bindDisplayHandler('command_list_result', function (ev, jid) {
              if (Gnosus.areCommandsAvailable(contact.jid)) {
                  this.unblock();
-                 this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'), 'no-input');
              }
          });
          this.addCommandEvents();
@@ -741,6 +741,7 @@ GnosusUi.prototype = {
              acct     = Gnosus.findAccountByJid(acct_jid);
         $(this.client_display_content_control).append(toolbar);
         acct.deleteCommands();
+        this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(full_jid, 'command'), 'no-input');
         this.block('retrieving command list');
         $.each(acct.resources, function(j,r) {
             GnosusXmpp.getCommandList(r.jid);
@@ -752,7 +753,6 @@ GnosusUi.prototype = {
         }.bind(this));
         this.bindDisplayHandler('command_list_result', function (ev, jid) {
             this.unblock();
-            this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(jid, 'command'), 'no-input');
         });
         this.addCommandEvents();
     },               
@@ -860,7 +860,13 @@ GnosusUi.prototype = {
             this.unblock();
         });
         this.bindDisplayHandler('command_result', function (ev, msg) {
-            $(this.client_display_list).prepend(this.buildXCommandMessage(msg));
+            var display_message;
+            if (msg.type == 'x') {
+                display_message = this.buildXCommandMessage(msg);
+            } else if (msg.typs = 'text') {
+                display_message = this.buildTextCommandMessage(msg);
+            }
+            $(this.client_display_list).prepend(display_message);
             this.unblock();
         });
         this.bindDisplayHandler('command_error', function (ev, jid, node) {

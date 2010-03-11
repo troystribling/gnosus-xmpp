@@ -17,12 +17,12 @@ function rawOutput(data) {
 connection
 **********************************************************************************/
 function connect(service, jid, password) {
-    var conn = new Strophe.Connection(service);
-    conn.rawInput = rawInput;
-    conn.rawOutput = rawOutput;
 	Gnosus.accounts[Strophe.getBareJidFromJid(jid)] = new Account(service, jid, password);
 	Gnosus.account_jid = Strophe.getBareJidFromJid(jid);
 	Gnosus.account_resource = Strophe.getResourceFromJid(jid);
+    var conn = new Strophe.Connection(service);
+    conn.rawInput = rawInput;
+    conn.rawOutput = rawOutput;
 	GnosusXmpp.connection = conn;
 	conn.connect(jid, password, onConnect);
 }
@@ -194,13 +194,34 @@ Gnosus = {
             })    
         return msgs;
     },
-    findAllMessages: function() {
-        return Gnosus.messages;
+    addCommandXDataMessage: function(iq) {
+        var cmd  = $(iq).find('command').eq(0),
+            data = $(iq).find('x').eq(0),
+            from = $(iq).attr('from') || Gnosus.account().fullJid();
+        var msg_model = new Message($(iq).attr('to'), from, data, 'x', 'command', $(cmd).attr('node'), $(iq).attr('id'));
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
     },
-    findMessagesByJidAndType: function(jid, type) {
-        var jid_rexp = new RegExp(jid, 'g');
+    addCommandTextMessage: function(to, node, text, id) {
+        var msg_model = new Message(to, Gnosus.account().fullJid(), text, 'text', 'command', node, id);
+        Gnosus.messages.unshift(msg_model);  
+        return msg_model;      
+    },
+    findAllContactMessages: function() {
+        var acct = Gnosus.account();
+        if (acct) {
+            var jid_rexp = new RegExp(acct.jid, 'g');
+            return $.grep(Gnosus.messages, function(m) {
+                       return ((!m.from.match(jid_rexp) || !m.to.match(jid_rexp)))
+                   });   
+        } else {
+            return [];
+        }
+    },
+    findAllAccountMessages: function() {
+        var jid_rexp = new RegExp(Gnosus.account().jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
-                   return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == type)
+                   return ((m.from.match(jid_rexp) && m.to.match(jid_rexp)))
                });   
     },
     findAllSubscribedMessages: function() {
@@ -215,6 +236,12 @@ Gnosus = {
                    return (m.from.match(jid_rexp) && m.type == 'headline')
                });   
     },
+    findMessagesByJidAndType: function(jid, type) {
+        var jid_rexp = new RegExp(jid, 'g');
+        return $.grep(Gnosus.messages, function(m) {
+                   return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.type == type)
+               });   
+    },
     findMessagesByNode: function(node) {
         return $.grep(Gnosus.messages, function(m) {return (m.node == node);});         
     },
@@ -222,12 +249,6 @@ Gnosus = {
         var jid_rexp = new RegExp(jid, 'g');
         return $.grep(Gnosus.messages, function(m) {
                    return ((m.from.match(jid_rexp) || m.to.match(jid_rexp)) && m.content_type == content_type)
-               });   
-    },
-    findMessagesByAccount: function() {
-        var jid_rexp = new RegExp(Gnosus.account().jid, 'g');
-        return $.grep(Gnosus.messages, function(m) {
-                   return ((m.from.match(jid_rexp) && m.to.match(jid_rexp)))
                });   
     },
     /*-------------------------------------------------------------------------------
@@ -296,19 +317,6 @@ Gnosus = {
             }
         }
         return cmd;
-    },
-    addCommandXDataMessage: function(iq) {
-        var cmd  = $(iq).find('command').eq(0),
-            data = $(iq).find('x').eq(0),
-            from = $(iq).attr('from') || Gnosus.account().fullJid();
-        var msg_model = new Message($(iq).attr('to'), from, data, 'x', 'command', $(cmd).attr('node'), $(iq).attr('id'));
-        Gnosus.messages.unshift(msg_model);  
-        return msg_model;      
-    },
-    addCommandTextMessage: function(to, node, text, id) {
-        var msg_model = new Message(to, Gnosus.account().fullJid(), text, 'text', 'command', node, id);
-        Gnosus.messages.unshift(msg_model);  
-        return msg_model;      
     },
     /*-------------------------------------------------------------------------------
     subscription
@@ -812,14 +820,19 @@ GnosusXmpp = {
         }
         GnosusXmpp.connection.sendIQ(cmd_iq, 
             function(iq) {
-                var jid  = $(iq).attr('from'),
-                    x   = $(iq).find('x').eq(0),
+                var jid    = $(iq).attr('from'),
+                    x      = $(iq).find('x'),
                     x_type = 'result';
-                if (x) {x_type = $(x).attr('type')}
-                if (x_type == 'form') {
-                    $(document).trigger('command_form', iq);
+                if (x.length > 0) {
+                    x_type = $(x.eq(0)).attr('type')
+                    if (x_type == 'form') {
+                        $(document).trigger('command_form', iq);
+                    } else {
+                        $(document).trigger('command_result', Gnosus.addCommandXDataMessage(iq));
+                    }
                 } else {
-                    $(document).trigger('command_result', Gnosus.addCommandXDataMessage(iq));
+                    $(document).trigger('command_result', Gnosus.addCommandTextMessage(args['to'], args['node'], 
+                        $(iq).find('command').eq(0).attr('status')));
                 }
             },
             function(iq) {
