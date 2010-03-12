@@ -116,11 +116,15 @@ Gnosus = {
     ---------------------------------------------------------------------------------*/
     addResource: function(presence) {
         var from     = $(presence).attr('from'),
-            resource = null,
             bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.accounts[bare_jid]) {
-            resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
-            Gnosus.accounts[bare_jid].addResource(resource);
+            var resource = Gnosus.findResourceByJid(from);
+            if (resource) {
+                resource.updateWithPresence(presence);
+            } else {
+                resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
+                Gnosus.accounts[bare_jid].addResource(resource);
+            }
         }
         return resource;
     },
@@ -595,6 +599,11 @@ Resource.prototype = {
     },
     deleteCommands: function() {
         this.commands = null;
+    },
+    updateWithPresence: function(presence) {
+        this.jid    = $(presence).attr('from');
+        this.show   = $(presence).find('show').text();
+        this.status =  $(presence).find('status').text()
     },
     initCommands: function() {
         if (!this.commands) {
