@@ -578,8 +578,7 @@ ul.client-display-list {
 }
 ul.client-display-list li {
     font-size: 0.85em;
-    padding: 0px 0px 10px 0px;
-    margin: 10px 0px 0px 0px;
+    padding: 10px 0px 10px 0px;
     border-bottom: 1px solid #DDD;
 }
 .client-display-list.no-input{
@@ -847,6 +846,19 @@ ul.client-display-modes li {
     background-color: #000;
 }
 .command-dialog .commands .command {
+    color: #000;
+    background-color: #FFF;
+}
+/*******  contact-resource style *******/
+.contact-resources {
+}
+.contact-resources .selected {
+    color: #FFF;
+    background-color: #000;
+    cursor: pointer;
+}
+.contact-resource {
+    margin: 0px 0px 0px 10px;
 }
 /*******  publication-node style *******/
 .publication-nodes {

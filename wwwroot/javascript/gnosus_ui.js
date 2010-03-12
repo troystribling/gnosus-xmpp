@@ -19,6 +19,7 @@ function GnosusUi(num) {
     this.client_display_modes           = this.client+' .client-display-modes';
     this.client_display_input           = this.client+' .client-display-input';
     this.client_item_resource_contact   = this.client+' .client-item-resource-contact';
+    this.client_contact_resources       = this.client+' .contact-resources';
     this.item_dialog                    = '#item-dialog-'+num;
     this.showItems('contacts');
     this.history('contacts');
@@ -626,6 +627,15 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsResourcesDisplay: function(contact_name) {
+         var contact = Gnosus.findAccountByName(contact_name);
+         this.buildResourceContentList(contact.resources, 'no-input');
+         $(this.client_contact_resources+' li').hover(
+             function() {$(this).addClass('selected');},
+             function() {$(this).removeClass('selected');}
+         ); 
+         $(this.client_contact_resources+' li').click(function() {
+             this.addClientResourceContact(contact.jid)
+         }); 
      },               
 
      /*-------------------------------------------------------------------------------*/    
@@ -936,6 +946,19 @@ GnosusUi.prototype = {
                            '<div class="data">'+this.node+'</div>'+          
                            '<div class="node">'+this.name+'</div>'+
                        '</div></li>'
+            );
+        });
+        msgs.push('</ul>')
+        $(this.client_display_content).append(msgs.join(''));
+    },   
+              
+    /*-------------------------------------------------------------------------------*/ 
+     buildResourceContentList: function(content_list) {
+        var msgs = ['<ul class="client-display-list contact-resources">'];
+        $.each(content_list, function () {
+            msgs.push('<li><div class="contact-resource">'+
+                          Strophe.getResourceFromJid(this.jid) + 
+                      '</div></li>'
             );
         });
         msgs.push('</ul>')
