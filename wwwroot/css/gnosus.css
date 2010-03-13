@@ -519,13 +519,15 @@ tr.data-edit-select {
     z-index: 1;
     display: none;
 }
-/*******  resource-selected *********/
+/*******  resource selection *********/
 .resource-selected .name {
     font-size: .75em;
     color: #555;
 }
 .resource-selected .resource {
     padding: 0px;
+}
+.resource-contact {
 }
 /*******  client-item-buttons *******/
 .client-items-add {
@@ -758,6 +760,7 @@ ul.client-display-list li {
     color: #000;
     background-color: #DDD;
     text-align: center;
+    font-size: 0.85em;
     height: 35px;
     margin: 0px;
     padding: 5px 0px 0px 0px;
@@ -765,16 +768,45 @@ ul.client-display-list li {
 ul.client-display-modes {
     list-style-type: none;
     padding: 0px;
-    margin: 0px 10px 0px 10px;
+    margin: 4px 0px 0px 0px;;
 }
 ul.client-display-modes li {
     display: inline;
-    font-size: 0.85em;
     cursor: pointer;
     padding: 0px 10px 0px 10px;
-    margin: 10px 0px 0px 0px;
 }
 .client-display-modes .selected {
+    color: #DDD;
+    background-color: #000;
+}
+.client-display-toolbar .control {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+}
+.client-display-toolbar .control .add {
+    background-image:url('/images/item-add.png');
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+.client-display-toolbar .control .add:hover {
+    background-image:url('/images/item-add-hover.png');
+    background-color: #000;
+}
+.client-display-toolbar .jid {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    overflow: hidden;
+    text-align: left;
+    cursor: pointer;
+    color: #000;
+    background-color: #DDD;
+    margin: 0px 0px 0px -10px;;
+    padding: 0px 10px 0px 10px;
+}
+.client-display-toolbar .jid:hover {
     color: #DDD;
     background-color: #000;
 }
@@ -826,22 +858,6 @@ ul.client-display-modes li {
     margin-top: -1px;
 }
 
-/*******  client-display-toolbar .control *******/
-.client-display-toolbar div.control {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-}
-.client-display-toolbar div.control .add {
-    background-image:url('/images/item-add.png');
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-}
-.client-display-toolbar div.control .add:hover {
-    background-image:url('/images/item-add-hover.png');
-    background-color: #000;
-}
 /*******  command dialog style *******/
 .command-dialog {
 }

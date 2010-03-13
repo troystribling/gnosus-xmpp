@@ -15,7 +15,8 @@ function GnosusUi(num) {
     this.client_display_content         = this.client+' .client-display-content';
     this.client_display_list            = this.client+' .client-display-list';
     this.client_display_toolbar         = this.client+' .client-display-toolbar';
-    this.client_display_content_control = this.client+' .client-display-toolbar div.control';
+    this.client_display_toolbar_jid     = this.client+' .client-display-toolbar .jid';
+    this.client_display_toolbar_control = this.client+' .client-display-toolbar .control';
     this.client_display_modes           = this.client+' .client-display-modes';
     this.client_display_input           = this.client+' .client-display-input';
     this.client_item_resource_contact   = this.client+' .client-item-resource-contact';
@@ -131,6 +132,7 @@ GnosusUi.prototype = {
          });
          $(this.client_items_history).click(function() {            
              var item_type = client_ui.itemTypeSelected();
+             client_ui.removeSelectedResource();
              $(client_ui.client_items_content+' ul li').removeClass('open');
              client_ui.history(item_type);
          });
@@ -603,14 +605,14 @@ GnosusUi.prototype = {
      showContactsCommandsDisplay: function(contact_name) {
           var toolbar = '<div class="add"></div>',
               contact = Gnosus.findAccountByName(contact_name);
-         $(this.client_display_content_control).append(toolbar);
+         $(this.client_display_toolbar_control).append(toolbar);
          contact.deleteCommands();
          this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(contact.jid, 'command'), 'no-input');
          this.block('retrieving command list');
          $.each(contact.resources, function(j,r) {
              GnosusXmpp.getCommandList(r.jid);
          });
-         $(this.client_display_content_control+' .add').click(function() {
+         $(this.client_display_toolbar_control+' .add').click(function() {
              this.commandsDialog(contact.jid, contact.resources);
          }.bind(this));
          this.bindDisplayHandler('command_list_result', function (ev, jid) {
@@ -631,10 +633,20 @@ GnosusUi.prototype = {
              function() {$(this).removeClass('selected');}
          ); 
          $(this.client_contact_resources+' li').click(function() {
-             var resource = $(this).find('.contact-resource').text(),
-                 item     = $(client_ui.client_items_content+' ul li.open .item');
+             var resource    = $(this).find('.contact-resource').text(),
+                 contact_jid = '<div class="jid">'+contact.jid+'</div>',
+                 item        = $(client_ui.client_items_content+' ul li.open .item');
+             client_ui.addClientResourceContact(contact.jid)
+             client_ui.showResourcesToolbar();
+             client_ui.showResourcesContentDisplay(resource);
              item.addClass('resource-selected');
              item.append('<div class="resource">'+resource+'</div>');
+             $(client_ui.client_display_toolbar).prepend(contact_jid);
+             $(client_ui.client_display_toolbar_jid).click(function() {
+                 client_ui.removeSelectedResource();
+                 client_ui.showContactsToolbar('resources');
+                 client_ui.buildItemContentDisplay('contacts', contact_name)
+             });
          }); 
      },               
 
@@ -707,9 +719,10 @@ GnosusUi.prototype = {
      },               
 
     /*-------------------------------------------------------------------------------*/    
-    showContactsToolbar: function() {
-        var client_ui = this;
-        this.buildDisplayToolbar(['chat','commands','resources','publications'], 'chat', 'contacts', function() {
+    showContactsToolbar: function(select_mode) {
+        var set_mode  = select_mode || 'chat',
+            client_ui = this;
+        this.buildDisplayToolbar(['chat','commands','resources','publications'], set_mode, 'contacts', function() {
             return $(client_ui.client_items_content+' ul li.open').find('.name').text();                
         });
     }, 
@@ -752,14 +765,14 @@ GnosusUi.prototype = {
              acct_jid = this.clientResourceContact(),
              full_jid = acct_jid+'/'+resource,
              acct     = Gnosus.findAccountByJid(acct_jid);
-        $(this.client_display_content_control).append(toolbar);
+        $(this.client_display_toolbar_control).append(toolbar);
         acct.deleteCommands();
         this.buildMessageContentList(Gnosus.findMessagesByJidAndContentType(full_jid, 'command'), 'no-input');
         this.block('retrieving command list');
         $.each(acct.resources, function(j,r) {
             GnosusXmpp.getCommandList(r.jid);
         });
-        $(this.client_display_content_control+' .add').click(function() {
+        $(this.client_display_toolbar_control+' .add').click(function() {
             var resources = {};
             resources[full_jid] = Gnosus.findResourceByJid(full_jid);
             this.commandsDialog(full_jid, resources);
@@ -896,6 +909,13 @@ GnosusUi.prototype = {
      },     
 
      /*-------------------------------------------------------------------------------*/ 
+     removeSelectedResource: function() {
+          var item = $(this.client_items_content+' ul li.open .item');
+          item.removeClass('resource-selected');
+          item.find('.resource').remove();
+     },
+     
+     /*-------------------------------------------------------------------------------*/ 
      buildEnterMessage: function(send_msg) {
          var enter_msg = 'enter message',
              send_message = '<div class ="client-display-input">'+
@@ -1008,6 +1028,7 @@ GnosusUi.prototype = {
         ); 
         select_item.find('.item').click(function() {
             var item_type = client_ui.itemTypeSelected();
+            client_ui.removeSelectedResource();
             $(this).parents('li').siblings('.open').removeClass('open');
             $(this).parents('li').addClass('open')
             var item_name = '';
@@ -1061,7 +1082,7 @@ GnosusUi.prototype = {
         
     /*-------------------------------------------------------------------------------*/    
     buildItemContentDisplay: function(item_type, item) {
-        $(this.client_display_content_control).empty();
+        $(this.client_display_toolbar_control).empty();
         $(this.client_display_content).empty();
         this.displayUnbind();
         var display_type = this.clientDisplayMode();
