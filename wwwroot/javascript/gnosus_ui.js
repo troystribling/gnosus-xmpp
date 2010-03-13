@@ -78,11 +78,6 @@ GnosusUi.prototype = {
     toId: function(str) {return str.replace('#','');},
 
     /*-------------------------------------------------------------------------------*/    
-    clientItemOpen: function () {
-        return $(this.client_items_content+' ul li.open').children('.item').text();
-    },
-
-    /*-------------------------------------------------------------------------------*/    
     clientDisplayMode: function () {
         return $(this.client_display_modes+' li.selected').text();
     },
@@ -150,9 +145,10 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/  
      showContactsItems: function() {  
+         var contact_name = function(i) {return '<div class="name">'+i.name+'</div>';}
          var client_ui = this,
              build_list = function() {
-                 client_ui.buildListItems(Gnosus.findAllContacts(), 'contact', function(i){return i.name;}, function(i){return i.show();});
+                 client_ui.buildListItems(Gnosus.findAllContacts(), 'contact', contact_name, function(i){return i.show();});
              }
         if (Gnosus.findAllContacts().length > 0) {     
             build_list();
@@ -627,14 +623,18 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsResourcesDisplay: function(contact_name) {
-         var contact = Gnosus.findAccountByName(contact_name);
+         var contact   = Gnosus.findAccountByName(contact_name),
+             client_ui = this;
          this.buildResourceContentList(contact.resources, 'no-input');
          $(this.client_contact_resources+' li').hover(
              function() {$(this).addClass('selected');},
              function() {$(this).removeClass('selected');}
          ); 
          $(this.client_contact_resources+' li').click(function() {
-             this.addClientResourceContact(contact.jid)
+             var resource = $(this).find('.contact-resource').text(),
+                 item     = $(client_ui.client_items_content+' ul li.open .item');
+             item.addClass('resource-selected');
+             item.append('<div class="resource">'+resource+'</div>');
          }); 
      },               
 
@@ -708,7 +708,10 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     showContactsToolbar: function() {
-        this.buildDisplayToolbar(['chat','commands','resources','publications'], 'chat', 'contacts')
+        var client_ui = this;
+        this.buildDisplayToolbar(['chat','commands','resources','publications'], 'chat', 'contacts', function() {
+            return $(client_ui.client_items_content+' ul li.open').find('.name').text();                
+        });
     }, 
 
     /*-------------------------------------------------------------------------------  
@@ -1030,7 +1033,7 @@ GnosusUi.prototype = {
     },
         
     /*-------------------------------------------------------------------------------*/    
-    buildDisplayToolbar: function(items, select_item, item_type) {
+    buildDisplayToolbar: function(items, select_item, item_type, open_item_name) {
         $(this.client_display_toolbar).empty();
         var toolbar = '<ul class="client-display-modes">';
         $.each(items, function() {
@@ -1044,7 +1047,12 @@ GnosusUi.prototype = {
         $(this.client_display_toolbar).append(toolbar);
         var client_ui = this;
         $(this.client_display_modes+' li').click(function() {
-            var item_name = client_ui.clientItemOpen()
+            var item_name = '';
+            if (open_item_name) {
+                item_name = open_item_name();
+            } else {
+                item_name = $(client_ui.client_items_content+' ul li.open').children('.item').text();
+            }
             $(this).siblings('li.selected').removeClass('selected');
             $(this).addClass('selected');
             client_ui['show'+client_ui.capitalize(item_type)+'ContentDisplay'](item_name);

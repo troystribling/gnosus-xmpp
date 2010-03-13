@@ -519,6 +519,14 @@ tr.data-edit-select {
     z-index: 1;
     display: none;
 }
+/*******  resource-selected *********/
+.resource-selected .name {
+    font-size: .75em;
+    color: #555;
+}
+.resource-selected .resource {
+    padding: 0px;
+}
 /*******  client-item-buttons *******/
 .client-items-add {
     background-image:url('/images/item-add.png');
