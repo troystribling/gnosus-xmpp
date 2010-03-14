@@ -65,9 +65,9 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     camelize: function(str, del) {
-        var delmiter = del || '_',
-            client_ui = this;
-        return $.map(str.split(delmiter), function(s,i) {
+        var client_ui = this;
+        del = del || '_';
+        return $.map(str.split(del), function(s,i) {
                    return client_ui.capitalize(s);
                }).join('');
     },
@@ -583,6 +583,15 @@ GnosusUi.prototype = {
      },               
 
      /*-------------------------------------------------------------------------------*/    
+     showContactsToolbar: function(select_mode) {
+         var client_ui = this;
+         select_mode = select_mode || 'chat'     
+         this.buildDisplayToolbar(['chat','commands','resources','publications'], select_mode, 'contacts', function() {
+             return $(client_ui.client_items_content+' ul li.open').find('.name').text();                
+         });
+     }, 
+
+     /*-------------------------------------------------------------------------------*/    
      showContactsChatDisplay: function(contact_name) {
         var client_ui= this,
             contact = Gnosus.findAccountByName(contact_name);
@@ -637,7 +646,9 @@ GnosusUi.prototype = {
                  contact_jid = '<div class="jid">'+contact.jid+'</div>',
                  item        = $(client_ui.client_items_content+' ul li.open .item');
              client_ui.addClientResourceContact(contact.jid)
-             client_ui.showResourcesToolbar();
+             client_ui.showResourcesToolbar(function() {
+                 return $(client_ui.client_items_content+' ul li.open').find('.resource').text();                
+             });
              client_ui.showResourcesContentDisplay(resource);
              item.addClass('resource-selected');
              item.append('<div class="resource">'+resource+'</div>');
@@ -718,15 +729,6 @@ GnosusUi.prototype = {
         });
      },               
 
-    /*-------------------------------------------------------------------------------*/    
-    showContactsToolbar: function(select_mode) {
-        var set_mode  = select_mode || 'chat',
-            client_ui = this;
-        this.buildDisplayToolbar(['chat','commands','resources','publications'], set_mode, 'contacts', function() {
-            return $(client_ui.client_items_content+' ul li.open').find('.name').text();                
-        });
-    }, 
-
     /*-------------------------------------------------------------------------------  
      * resource display
      *-------------------------------------------------------------------------------*/    
@@ -740,6 +742,11 @@ GnosusUi.prototype = {
     showResourcesContentDisplay: function(resource) {
         this.buildItemContentDisplay('resources', resource)
     },               
+
+    /*-------------------------------------------------------------------------------*/    
+    showResourcesToolbar: function(open_item_name) {
+        this.buildDisplayToolbar(['chat','commands'], 'chat', 'resources', open_item_name)
+    }, 
 
     /*-------------------------------------------------------------------------------*/    
     showResourcesChatDisplay: function(resource) {
@@ -782,11 +789,6 @@ GnosusUi.prototype = {
         });
         this.addCommandEvents();
     },               
-
-    /*-------------------------------------------------------------------------------*/    
-    showResourcesToolbar: function() {
-        this.buildDisplayToolbar(['chat','commands'], 'chat', 'resources')
-    }, 
 
     /*-------------------------------------------------------------------------------
      * command forms 
@@ -1005,9 +1007,9 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildItemListItems: function (item, item_type, item_status, no_controls) { 
-        var status = item_status || '',  
-            item = '<li>' +
-                       '<div class="'+item_type+' item '+status+'">'+ 
+        item_status = item_status || ''
+        var item = '<li>' +
+                       '<div class="'+item_type+' item '+item_status+'">'+ 
                            item+
                        '</div>'
                        if (!no_controls) {

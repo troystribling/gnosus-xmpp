@@ -116,14 +116,27 @@ Gnosus = {
     ---------------------------------------------------------------------------------*/
     addResource: function(presence) {
         var from     = $(presence).attr('from'),
+            resource = null,
             bare_jid = Strophe.getBareJidFromJid(from);
         if (Gnosus.accounts[bare_jid]) {
-            var resource = Gnosus.findResourceByJid(from);
+            resource = Gnosus.findResourceByJid(from);
             if (resource) {
                 resource.updateWithPresence(presence);
             } else {
                 resource = new Resource(from, $(presence).find('show').text(), $(presence).find('status').text());
                 Gnosus.accounts[bare_jid].addResource(resource);
+            }
+        }
+        return resource;
+    },
+    updateWithClientVersion: function(version) {
+        var from     = $(presence).attr('from'),
+            resource = null,
+            bare_jid = Strophe.getBareJidFromJid(from);
+        if (Gnosus.accounts[bare_jid]) {
+            resource = Gnosus.findResourceByJid(from);
+            if (resource) {
+                resource.updateWithClientVersion(version);
             }
         }
         return resource;
@@ -592,13 +605,13 @@ function Resource(jid, show, status) {
 }
 
 Resource.prototype = {
-    setVersionAttributes: function(version) {
+    deleteCommands: function() {
+        this.commands = null;
+    },
+    updateWithClientVersion: function(version) {
         this.client_name = $(version).find('name').text() || 'none';
         this.client_version =  $(version).find('version').text() || 'none';
         this.client_os =  $(version).find('os').text() || 'none';
-    },
-    deleteCommands: function() {
-        this.commands = null;
     },
     updateWithPresence: function(presence) {
         this.jid    = $(presence).attr('from');
@@ -680,6 +693,8 @@ GnosusXmpp = {
     
     /*---------------------------------------------------------------------------*/
     connection: null,
+    client_version: '0.0',
+    client_name: 'gnos.us',
     
     /*-------------------------------------------------------------------------------
     pubsub nodes
@@ -1087,7 +1102,24 @@ GnosusXmpp = {
         var resp = $iq({type: 'error', to:$(iq).attr('from'), id:$(iq).attr('id')})
             .c('query', qattr).up().c('error', {type: 'cancel'}).c(err, {xmlns: Strophe.NS.STANZAS});
         this.connection.send(resp);            
-    }
+    },
+    
+    /*-------------------------------------------------------------------------------
+    client version
+    ---------------------------------------------------------------------------------*/
+    getClientVersion: function (to) {
+        var cv_iq = $iq({to:to, type:'get'}).c('query', {xmlns:Strophe.NS.CLIENT_VERSION});
+        GnosusXmpp.connection.sendIQ(cv_iq, 
+            function(iq) {
+                // $(document).trigger('client_version_result', Gnosus.updateWithClientVersion(iq));;                
+            }
+        );
+    },      
+    resultClientVersion: function (to) {
+        var cv_iq = $iq({to:to, type:'result'}).c('query', {xmlns:Strophe.NS.CLIENT_VERSION})
+            .c('name').t(GnosusXmpp.client_name).up().c('version').t(GnosusXmpp.client_version);
+        GnosusXmpp.connection.sendIQ(cv_iq);
+    },      
 }
 
 /**********************************************************************************
@@ -1181,6 +1213,7 @@ Strophe.addConnectionPlugin('roster', {
                 Gnosus.removeResources(jid);
                 $(document).trigger("presence_unsubscribed", acct);
             } else {
+                GnosusXmpp.getClientVersion(from);
                 $(document).trigger("presence", [acct, Gnosus.addResource(presence)]);
             }        
         } else if (ptype === 'subscribe') {
@@ -1306,3 +1339,30 @@ Strophe.addConnectionPlugin('pubsub', {
         }
     },
 });
+
+/**********************************************************************************
+client version
+**********************************************************************************/
+Strophe.addConnectionPlugin('client_version', {
+
+    /*-------------------------------------------------------------------------------*/
+    init: function (connection) {
+        this.connection = connection;
+        Strophe.addNamespace('CLIENT_VERSION', 'jabber:iq:version');
+    },
+ 
+    /*-------------------------------------------------------------------------------*/
+    statusChanged: function (status) {
+        if (status === Strophe.Status.CONNECTED) {
+        	this.connection.addHandler(this.onClientVersionGet.bind(this), Strophe.NS.CLIENT_VERSION, 'iq', 'get'); 
+        }
+    },
+ 
+    /*-------------------------------------------------------------------------------*/
+    onClientVersionGet: function (iq) {
+        GnosusXmpp.resultClientVersion($(iq).attr('from'))
+        return true;
+    },
+
+});
+
