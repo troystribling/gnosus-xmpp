@@ -208,7 +208,7 @@ Gnosus = {
                     msg_model = new Message(this.account_jid, from, entry.find('title').text(), 'headline', 'entry', node, null, id);
                 }
                 if (msg_model) { 
-                    this.messages.unshift(msg_model);
+                    Gnosus.messages.unshift(msg_model);
                     msgs.unshift(msg_model); 
                 }
             })    
