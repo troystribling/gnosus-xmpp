@@ -155,7 +155,7 @@ GnosusUi.prototype = {
         if (Gnosus.findAllContacts().length > 0) {     
             build_list();
         }
-         /*---- roster messages ----*/
+         /*---- session messages ----*/
          this.bindItemsHandler('session_init_result', function (ev, roster) {
              build_list();
              this.unblock();             
