@@ -203,9 +203,9 @@ Gnosus = {
                     xdata     = $(this).find('x').eq(0),
                     entry     = $(this).find('entry');
                 if (xdata.attr('xmlns') == Strophe.NS.XDATA) {
-                    msg_model = new Message(this.account_jid, from, xdata, 'headline', 'x', node, null, id);
+                    msg_model = new Message(Gnosus.account_jid, from, xdata, 'headline', 'x', node, null, id);
                 } else if (entry.attr('xmlns') == Strophe.NS.ENTRY) {
-                    msg_model = new Message(this.account_jid, from, entry.find('title').text(), 'headline', 'entry', node, null, id);
+                    msg_model = new Message(Gnosus.account_jid, from, entry.find('title').text(), 'headline', 'entry', node, null, id);
                 }
                 if (msg_model) { 
                     Gnosus.messages.unshift(msg_model);

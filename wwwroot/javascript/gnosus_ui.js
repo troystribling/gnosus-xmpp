@@ -34,17 +34,19 @@ GnosusUi.prototype = {
      * utils
      *-------------------------------------------------------------------------------*/    
     itemsUnbind: function() {
+        var client_ui= this;
         $.each(this.items_handlers, function(e, h) {
             $(document).unbind(e);
-            delete(h);
+            delete(client_ui.items_handlers[e]);
         });
     },
     
     /*-------------------------------------------------------------------------------*/    
     displayUnbind: function() {
+        var client_ui= this;
         $.each(this.display_handlers, function(e,h) {
             $(document).unbind(e);
-            delete(h);
+            delete(client_ui.display_handlers[e]);
         });
     },
 
@@ -902,6 +904,24 @@ GnosusUi.prototype = {
             this.errorDialog('command request failed for jid <strong>'+jid+'</strong> and node <strong>'+node+'</strong>');
         });
     },
+
+    /*-------------------------------------------------------------------------------  
+     * open items
+     *-------------------------------------------------------------------------------*/
+     open_contact: function() {
+     },    
+
+     /*-------------------------------------------------------------------------------*/ 
+     open_publication: function() {
+     },
+
+     /*-------------------------------------------------------------------------------*/ 
+     open_subscription: function() {
+     },
+
+     /*-------------------------------------------------------------------------------*/ 
+     open_resource: function() {
+     },
 
     /*-------------------------------------------------------------------------------
      * display utils 
