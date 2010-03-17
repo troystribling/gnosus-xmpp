@@ -970,19 +970,38 @@ GnosusXmpp = {
 
     /*-------------------------------------------------------------------------------*/
     setCreatePubSubNode: function(node) {
-        var jid       = Gnosus.account_jid;
+        var jid       = Gnosus.account_jid,
             full_node = GnosusXmpp.userPubsubNode(jid, node),
+            serv      = Gnosus.findPubSubServiceByJid(jid),
+            iq        = $iq({to:serv.jid, type: 'set'})
+                            .c('pubsub', {xmlns:Strophe.NS.PUBSUB})
+                            .c('create', {node:full_node}).up().c('configure');
+        this.connection.sendIQ(iq,
+            function(iq) {
+                $(document).trigger('create_pubsub_node_result',
+                    Gnosus.addPubSubNode(jid, serv, GnosusXmpp.userPubsubRoot(Gnosus.account_jid), full_node));
+            },
+            function(iq) {
+                $(document).trigger('create_pubsub_node_error', full_node);
+            }
+        );
+    },
+
+    /*-------------------------------------------------------------------------------*/
+    setCreateUserPubsubRoot: function() {
+        var jid       = Gnosus.account_jid,
+            full_node = GnosusXmpp.userPubsubRoot(jid),
             serv      = Gnosus.findPubSubServiceByJid(jid),
             iq        = $iq({to:serv.jid, type: 'set'})
                             .c('pubsub', {xmlns:Strophe.NS.PUBSUB})
                             .c('create', {node:full_node}).up().c('configure');
         this.connection.sendIQ(iq, 
             function(iq) {
-                $(document).trigger('create_pubsub_node_result', 
-                    Gnosus.addPubSubNode(jid, serv, GnosusXmpp.userPubsubRoot(Gnosus.account_jid), full_node));
+                Gnosus.addPubSubNode(jid, serv, GnosusXmpp.pubsubRoot(jid), full_node)
+                $(document).trigger('create_user_pub_root_result', full_node);
             },
             function(iq) {
-                $(document).trigger('create_pubsub_node_error',  full_node);
+                $(document).trigger('create_user_pub_root_error', full_node);
             }
         );
     },
@@ -1185,11 +1204,7 @@ Strophe.addConnectionPlugin('roster', {
                             $(document).trigger('session_init_result');
                         }.bind(this),
                         function() {
-                            $(document).trigger('session_init_error');
-                        }.bind(this),
-                        function() {
-                            var serv = Gnosus.findPubSubServiceByJid(Gnosus.account_jid);
-                            GnosusXmpp.setCreatePubSubNode(GnosusXmpp.userPubsubRoot(Gnosus.account_jid));
+                            GnosusXmpp.setCreateUserPubsubRoot();
                         }.bind(this)
                     )
                 },

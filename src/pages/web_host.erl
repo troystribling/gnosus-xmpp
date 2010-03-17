@@ -21,8 +21,15 @@ navigation() ->
 %%--------------------------------------------------------------------------------
 toolbar() ->
     Host = wf:get_path_info(),
-	#list{body=[ 
-        #listitem{body=#link{text="send user registration email", url=?HOST_USER_REGISTER(Host)}},
+    User = wf:user(),
+    HostsLink = case User#users.product of
+                    unlimited ->
+                        [#listitem{body=#link{text="hosts", url=?HOSTS}},
+                         #listitem{body=#image{image="/images/toolbar-separator.png"}}];
+                    _ -> []
+                end,
+	#list{body=HostsLink++[ 
+        #listitem{body=#link{text="send user registration", url=?HOST_USER_REGISTER(Host)}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},
         #listitem{body=#link{text="add user", url=?HOST_USER_ADD(Host)}},
         #listitem{body=#image{image="/images/toolbar-separator.png"}},

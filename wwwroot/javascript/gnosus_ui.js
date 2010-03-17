@@ -158,6 +158,14 @@ GnosusUi.prototype = {
             build_list();
         }
          /*---- session messages ----*/
+         this.bindItemsHandler('create_user_pubsub_root_result', function (ev, node) {
+             build_list();
+             this.unblock();             
+         });
+         this.bindItemsHandler('create_user_pubsub_root_error', function (ev, node) {
+             build_list();
+             this.errorDialog('failed to create pubsub root node <strong>'+node+'</strong>');
+         });
          this.bindItemsHandler('session_init_result', function (ev, roster) {
              build_list();
              this.unblock();             
@@ -166,7 +174,7 @@ GnosusUi.prototype = {
              this.unblock();             
              this.errorDialog('session initialization failed');
          });
-         
+     
          /**** received roster message ****/
          this.bindItemsHandler('roster_item_add', function (ev, contact) {
              var item = this.buildItemListItems(contact.name, 'contact', contact.show());
@@ -178,7 +186,7 @@ GnosusUi.prototype = {
          });
          this.bindItemsHandler('roster_item_update', function (ev, contact) {
          });
-         
+     
          /**** roster request response ****/
          this.bindItemsHandler('roster_item_add_result', function (ev, jid) {
              this.unblock();
@@ -194,7 +202,7 @@ GnosusUi.prototype = {
              this.unblock();
              this.errorDialog('failed to remove <strong>'+jid+'</strong>');
          });
-         
+     
          /*---- presence messages ----*/
          this.bindItemsHandler('presence', function (ev, acct) {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
@@ -274,28 +282,52 @@ GnosusUi.prototype = {
          });
      }, 
 
-     /*-------------------------------------------------------------------------------*/  
-     showPublicationsItems: function() { 
-         this.buildListItems(Gnosus.findPubNodesByJid(Gnosus.account().jid), 'publication', function(i){return GnosusXmpp.subNodeFromNode(i.node);});    
-         this.bindItemsHandler('create_pubsub_node_result', function (ev, pub) {
-             var item = this.buildItemListItems(GnosusXmpp.subNodeFromNode(pub.node), 'publication');
-             this.unblock();
-             $(this.client_items_content+' ul').append(item);
-             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
-         });
-         this.bindItemsHandler('create_pubsub_node_error', function (ev, node) {
-             this.unblock();
-             this.errorDialog('failed create publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
-         });
-         this.bindItemsHandler('delete_pubsub_node_result', function (ev, pub) {
-             this.unblock();
-             $(this.client_items_content+' ul li').find('.item:contains('+GnosusXmpp.subNodeFromNode(pub.node)+')').parent().remove();
-         });
-         this.bindItemsHandler('delete_pubsub_node_error', function (ev, node) {
-             this.unblock();
-             this.errorDialog('failed delete publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
-         });
-     }, 
+    /*-------------------------------------------------------------------------------*/  
+    showPublicationsItems: function() { 
+        this.buildListItems(Gnosus.findPubNodesByJid(Gnosus.account().jid), 'publication', function(i){return GnosusXmpp.subNodeFromNode(i.node);});    
+        this.bindItemsHandler('create_pubsub_node_result', function (ev, pub) {
+            var item = this.buildItemListItems(GnosusXmpp.subNodeFromNode(pub.node), 'publication');
+            this.unblock();
+            $(this.client_items_content+' ul').append(item);
+            this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+        });
+        this.bindItemsHandler('create_pubsub_node_error', function (ev, node) {
+            this.unblock();
+            this.errorDialog('failed create publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
+        });
+        this.bindItemsHandler('delete_pubsub_node_result', function (ev, pub) {
+            this.unblock();
+            $(this.client_items_content+' ul li').find('.item:contains('+GnosusXmpp.subNodeFromNode(pub.node)+')').parent().remove();
+        });
+        this.bindItemsHandler('delete_pubsub_node_error', function (ev, node) {
+            this.unblock();
+            this.errorDialog('failed delete publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
+        });
+    }, 
+
+    /*-------------------------------------------------------------------------------  
+    * open items
+    *-------------------------------------------------------------------------------*/
+    isOpenContact: function(jid) {
+        return $(this.client_items_content+' ul li.open').find('.name').text() == jid;
+    },    
+
+    /*-------------------------------------------------------------------------------*/ 
+    isOpenPublication: function(pub) {
+        return $(this.client_items_content+' ul li.open .item').text() == res;
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    isOpenSubscription: function(node) {
+        var jid = $(this.client_items_content+' ul li.open').find('.jid').text();
+        var sub_node = $(this.client_items_content+' ul li.open').find('.jid').text();
+        return ('/home/'+jid+'/'+sub_node) == node;
+    },
+
+    /*-------------------------------------------------------------------------------*/ 
+    isOpenResource: function(res) {
+        return $(this.client_items_content+' ul li.open .item').text() == res;
+    },
 
    /*-------------------------------------------------------------------------------  
     * history
@@ -355,6 +387,9 @@ GnosusUi.prototype = {
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting contact');
+            if (client_ui.isOpenContact(item)) {
+                client_ui.history('contacts');
+            }
             var contact = Gnosus.findAccountByName(item);
             GnosusXmpp.removeContact(contact.jid);
         });
@@ -368,6 +403,9 @@ GnosusUi.prototype = {
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting subscription');
+            if (client_ui.isOpenSubscription(item)) {
+                client_ui.history('subscriptions');
+            }
             $.each(Gnosus.findSubscriptionsByNodeAndSubscription(item, 'subscribed'), function() {
                 GnosusXmpp.setUnsubscribe(this.service, this.node, this.subid);
             });
@@ -380,6 +418,9 @@ GnosusUi.prototype = {
             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete publication?">'+ 
                         '<p>'+GnosusXmpp.subNodeFromNode(item)+'</p>'+
                      '</div>'; 
+        if (client_ui.isOpenPublication(item)) {
+            client_ui.history('publications');
+        }
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting publication');
             GnosusXmpp.setDeletePubSubNode(item);
@@ -680,7 +721,7 @@ GnosusUi.prototype = {
                     return pub_status;
                 });
                 $(this.client_display_content).find('.publication-node .status').click(function() {  
-                    var node = $(this).siblings('.data').text();
+                    var node = $(this).siblings('.client-data').text();
                     var service = Gnosus.findPubSubServiceByJid(contact.jid);
                     if ($(this).hasClass('not-subscribed')) {
                         GnosusXmpp.setSubscribe(service.jid, node);
@@ -905,24 +946,6 @@ GnosusUi.prototype = {
         });
     },
 
-    /*-------------------------------------------------------------------------------  
-     * open items
-     *-------------------------------------------------------------------------------*/
-     open_contact: function() {
-     },    
-
-     /*-------------------------------------------------------------------------------*/ 
-     open_publication: function() {
-     },
-
-     /*-------------------------------------------------------------------------------*/ 
-     open_subscription: function() {
-     },
-
-     /*-------------------------------------------------------------------------------*/ 
-     open_resource: function() {
-     },
-
     /*-------------------------------------------------------------------------------
      * display utils 
      *-------------------------------------------------------------------------------*/  
@@ -988,7 +1011,7 @@ GnosusUi.prototype = {
         $.each(content_list, function () {
             msgs.push('<li><div class="publication-node">'+
                            '<div class="status '+status(this.node)+'"></div>'+ 
-                           '<div class="data">'+this.node+'</div>'+          
+                           '<div class="client-data">'+this.node+'</div>'+          
                            '<div class="node">'+this.name+'</div>'+
                        '</div></li>'
             );
