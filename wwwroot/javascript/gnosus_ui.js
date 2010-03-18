@@ -177,12 +177,13 @@ GnosusUi.prototype = {
      
          /**** received roster message ****/
          this.bindItemsHandler('roster_item_add', function (ev, contact) {
-             var item = this.buildItemListItems(contact.name, 'contact', contact.show());
+             var item = this.buildItemListItems(contact_name(contact), 'contact', contact.show());
              $(this.client_items_content+' ul').append(item);
              this.addItemListEvents($(this.client_items_content+' ul li:last'));             
          });
          this.bindItemsHandler('roster_item_remove', function (ev, contact) {
-             $(this.client_items_content+' ul li').find('.item:contains('+contact.name+')').parent().remove();
+             client_ui.closeContactIfOpen(contact.name);
+             $(this.client_items_content+' ul li').find('.name:contains('+contact.name+')').parent().remove();
          });
          this.bindItemsHandler('roster_item_update', function (ev, contact) {
          });
@@ -204,11 +205,12 @@ GnosusUi.prototype = {
          });
      
          /*---- presence messages ----*/
-         this.bindItemsHandler('presence', function (ev, acct) {
+         this.bindItemsHandler('presence_available', function (ev, acct) {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
          });
-         this.bindItemsHandler('presence_unavailable', function (ev, acct) {
+         this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
+             this.closeContactResourceIfOpen(resource.jid);
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
          });
@@ -225,7 +227,7 @@ GnosusUi.prototype = {
      showResourcesItems: function() {          
          this.buildListItems(Gnosus.findAllResourcesByJid(Gnosus.account().jid), 'resource', 
             function(i){return Strophe.getResourceFromJid(i.jid);}, null, null, null, true);    
-         this.bindItemsHandler('presence', function (ev, acct, resource) {
+         this.bindItemsHandler('presence_available', function (ev, acct, resource) {
              var res = $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')');
              if (res.length == 0) {
                  var item = this.buildItemListItems(Strophe.getResourceFromJid(resource.jid), 'resource', null, true);
@@ -235,6 +237,7 @@ GnosusUi.prototype = {
          });
          this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
              var res = Strophe.getResourceFromJid(resource.jid);
+             this.closeResourceIfOpen(resource.jid);
              $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
          });
      }, 
@@ -255,8 +258,9 @@ GnosusUi.prototype = {
              return GnosusXmpp.userPubsubNode(jid, node);    
          }
          var delete_item_name = function(i) {
-             var node = $(i).parents('li').eq(0).find('.node').text(),
-                 jid  = $(i).parents('li').eq(0).find('.jid').text();
+             var litem = $(i).parents('li').eq(0),
+                 node  = litem.find('.node').text(),
+                 jid   = litem.find('.jid').text();
              return GnosusXmpp.userPubsubNode(jid, node);    
          }
          this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', sub_item, null, open_item_name, delete_item_name);    
@@ -274,6 +278,7 @@ GnosusUi.prototype = {
              this.unblock();
              var jid  = GnosusXmpp.userPubsubRootToJid(sub.node),
                  node = GnosusXmpp.subNodeFromNode(sub.node);
+             this.closeSubscriptionIfOpen(sub.node);
              $(this.client_items_content+' ul li').find('.jid:contains('+jid+')').siblings('.node:contains('+node+')').eq(0).parent().remove();
          });
          this.bindItemsHandler('unsubscribe_error', function (ev, service, node) {
@@ -296,8 +301,10 @@ GnosusUi.prototype = {
             this.errorDialog('failed create publication <strong>'+GnosusXmpp.subNodeFromNode(node)+'</strong>');
         });
         this.bindItemsHandler('delete_pubsub_node_result', function (ev, pub) {
+            var node = GnosusXmpp.subNodeFromNode(pub.node);
             this.unblock();
-            $(this.client_items_content+' ul li').find('.item:contains('+GnosusXmpp.subNodeFromNode(pub.node)+')').parent().remove();
+            this.closePublicationIfOpen(node);
+            $(this.client_items_content+' ul li').find('.item:contains('+GnosusXmpp.subNodeFromNode(node)+')').parent().remove();
         });
         this.bindItemsHandler('delete_pubsub_node_error', function (ev, node) {
             this.unblock();
@@ -308,25 +315,40 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------  
     * open items
     *-------------------------------------------------------------------------------*/
-    isOpenContact: function(jid) {
-        return $(this.client_items_content+' ul li.open').find('.name').text() == jid;
+    closeContactIfOpen: function(jid) {
+        if ($(this.client_items_content+' ul li.open').find('.name').text() == jid) {
+            this.history('contacts');
+        }
     },    
 
     /*-------------------------------------------------------------------------------*/ 
-    isOpenPublication: function(pub) {
-        return $(this.client_items_content+' ul li.open .item').text() == res;
+    closeContactResourceIfOpen: function(jid) {
+        if ($(this.client_items_content+' ul li.open').find('.resource').text() == Strophe.getResourceFromJid(jid)) {
+            this.history('contacts');
+        }
+    },    
+
+    /*-------------------------------------------------------------------------------*/ 
+    closePublicationIfOpen: function(pub) {
+        if ($(this.client_items_content+' ul li.open .item').text() == pub) {
+            this.history('publications');
+        }
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    isOpenSubscription: function(node) {
-        var jid = $(this.client_items_content+' ul li.open').find('.jid').text();
-        var sub_node = $(this.client_items_content+' ul li.open').find('.jid').text();
-        return ('/home/'+jid+'/'+sub_node) == node;
+    closeSubscriptionIfOpen: function(node) {
+        var item     =  $(this.client_items_content+' ul li.open'),
+            sub_node = GnosusXmpp.userPubsubNode(item.find('.jid').text(), item.find('.node').text());
+        if (sub_node == node) {
+            this.history('subscriptions');
+        }
     },
 
     /*-------------------------------------------------------------------------------*/ 
-    isOpenResource: function(res) {
-        return $(this.client_items_content+' ul li.open .item').text() == res;
+    closeResourceIfOpen: function(jid) {
+        if ($(this.client_items_content+' ul li.open .item').text() == Strophe.getResourceFromJid(jid)) {
+            this.history('resources');
+        }
     },
 
    /*-------------------------------------------------------------------------------  
@@ -387,9 +409,6 @@ GnosusUi.prototype = {
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting contact');
-            if (client_ui.isOpenContact(item)) {
-                client_ui.history('contacts');
-            }
             var contact = Gnosus.findAccountByName(item);
             GnosusXmpp.removeContact(contact.jid);
         });
@@ -403,9 +422,6 @@ GnosusUi.prototype = {
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting subscription');
-            if (client_ui.isOpenSubscription(item)) {
-                client_ui.history('subscriptions');
-            }
             $.each(Gnosus.findSubscriptionsByNodeAndSubscription(item, 'subscribed'), function() {
                 GnosusXmpp.setUnsubscribe(this.service, this.node, this.subid);
             });
@@ -418,9 +434,6 @@ GnosusUi.prototype = {
             dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete publication?">'+ 
                         '<p>'+GnosusXmpp.subNodeFromNode(item)+'</p>'+
                      '</div>'; 
-        if (client_ui.isOpenPublication(item)) {
-            client_ui.history('publications');
-        }
         this.deleteItemDialog(dialog, function() {
             client_ui.block('deleting publication');
             GnosusXmpp.setDeletePubSubNode(item);
@@ -702,6 +715,10 @@ GnosusUi.prototype = {
                  client_ui.buildItemContentDisplay('contacts', contact_name)
              });
          }); 
+         this.bindItemsHandler('presence_available', function (ev, acct, resource) {
+         });
+         this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
+         });
      },               
 
      /*-------------------------------------------------------------------------------*/    

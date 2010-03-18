@@ -121,7 +121,7 @@ Gnosus = {
         var from     = $(presence).attr('from'),
             resource = null,
             bare_jid = Strophe.getBareJidFromJid(from);
-        if (this.accounts[bare_jid]) {
+        if (this.accounts[bare_jid] && bare_jid != from) {
             resource = this.findResourceByJid(from);
             if (resource) {
                 resource.updateWithPresence(presence);
@@ -1264,7 +1264,7 @@ Strophe.addConnectionPlugin('roster', {
                 $(document).trigger("presence_unsubscribed", acct);
             } else {
                 if (from != Gnosus.accountFullJid()){GnosusXmpp.getClientVersion(from);}
-                $(document).trigger("presence", [acct, Gnosus.addResource(presence)]);
+                $(document).trigger("presence_available", [acct, Gnosus.addResource(presence)]);
             }        
         } else if (ptype === 'subscribe') {
             $(document).trigger("presence_subscribe", jid);
