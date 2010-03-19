@@ -135,7 +135,6 @@ GnosusUi.prototype = {
          $(this.client_items_history).click(function() {            
              var item_type = client_ui.itemTypeSelected();
              client_ui.removeSelectedResource();
-             $(client_ui.client_items_content+' ul li').removeClass('open');
              client_ui.history(item_type);
          });
          var type_choices = this.item_type_choices;
@@ -324,6 +323,7 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/ 
     closeContactResourceIfOpen: function(jid) {
         if ($(this.client_items_content+' ul li.open').find('.resource').text() == Strophe.getResourceFromJid(jid)) {
+            this.removeSelectedResource();
             this.history('contacts');
         }
     },    
@@ -358,6 +358,7 @@ GnosusUi.prototype = {
         this.displayUnbind();
         $(this.client_display_content).empty();
         $(this.client_display_toolbar).empty();
+        $(this.client_items_content+' ul li').removeClass('open');
         this['history'+this.camelize(item_type)]();
     },               
 
@@ -640,10 +641,15 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/    
      showContactsToolbar: function(select_mode) {
-         var client_ui = this;
-         select_mode = select_mode || 'chat'     
-         this.buildDisplayToolbar(['chat','commands','resources','publications'], select_mode, 'contacts', function() {
-             return $(client_ui.client_items_content+' ul li.open').find('.name').text();                
+         var client_ui    = this,
+             open_item    = $(client_ui.client_items_content+' ul li.open'),
+             select_modes = ['chat','commands','resources','publications'];
+         select_mode = select_mode || 'chat' 
+         if (open_item.find('.online').length == 0) {
+             select_modes = ['chat','publications'];
+         }    
+         this.buildDisplayToolbar(select_modes, select_mode, 'contacts', function() {
+             return open_item.find('.name').text();                
          });
      }, 
 
@@ -692,32 +698,16 @@ GnosusUi.prototype = {
      showContactsResourcesDisplay: function(contact_name) {
          var contact   = Gnosus.findAccountByName(contact_name),
              client_ui = this;
-         this.buildResourceContentList(contact.resources, 'no-input');
-         $(this.client_contact_resources+' li').hover(
-             function() {$(this).addClass('selected');},
-             function() {$(this).removeClass('selected');}
-         ); 
-         $(this.client_contact_resources+' li').click(function() {
-             var resource    = $(this).find('.contact-resource').text(),
-                 contact_jid = '<div class="jid">'+contact.jid+'</div>',
-                 item        = $(client_ui.client_items_content+' ul li.open .item');
-             client_ui.addClientResourceContact(contact.jid)
-             client_ui.showResourcesToolbar(function() {
-                 return $(client_ui.client_items_content+' ul li.open').find('.resource').text();                
-             });
-             client_ui.showResourcesContentDisplay(resource);
-             item.addClass('resource-selected');
-             item.append('<div class="resource">'+resource+'</div>');
-             $(client_ui.client_display_toolbar).prepend(contact_jid);
-             $(client_ui.client_display_toolbar_jid).click(function() {
-                 client_ui.removeSelectedResource();
-                 client_ui.showContactsToolbar('resources');
-                 client_ui.buildItemContentDisplay('contacts', contact_name)
-             });
-         }); 
-         this.bindItemsHandler('presence_available', function (ev, acct, resource) {
+         this.buildResourceContentList(contact_name, contact.jid, contact.resources);
+         this.bindDisplayHandler('presence_available', function (ev, acct, resource) {
+             var item = $(this.client_display_content).find('.contact-resource:contains('+Strophe.getResourceFromJid(resource.jid)+')');
+             if (item.length == 0) {
+                 $(this.client_display_list).prepend(this.buildResourceContent(resource));
+                 this.addResourceContentEvents(contact_name, contact.jid);
+             }
          });
-         this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
+         this.bindDisplayHandler('presence_unavailable', function (ev, acct, resource) {
+             $(this.client_display_content).find('.contact-resource:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
          });
      },               
 
@@ -1024,7 +1014,7 @@ GnosusUi.prototype = {
       
     /*-------------------------------------------------------------------------------*/ 
      buildPubNodeContentList: function(content_list, status) {
-        var msgs = ['<ul class="client-display-list publication-nodes">'];
+        var msgs = ['<ul class="client-display-list publication-nodes no-input">'];
         $.each(content_list, function () {
             msgs.push('<li><div class="publication-node">'+
                            '<div class="status '+status(this.node)+'"></div>'+ 
@@ -1038,18 +1028,51 @@ GnosusUi.prototype = {
     },   
               
     /*-------------------------------------------------------------------------------*/ 
-     buildResourceContentList: function(content_list) {
-        var msgs = ['<ul class="client-display-list contact-resources">'];
+     buildResourceContentList: function(contact_name, jid, content_list) {
+        var msgs      = ['<ul class="client-display-list contact-resources no-input">'],
+            client_ui = this;
         $.each(content_list, function () {
-            msgs.push('<li><div class="contact-resource">'+
-                          Strophe.getResourceFromJid(this.jid) + 
-                      '</div></li>'
-            );
+            msgs.push(client_ui.buildResourceContent(this));
         });
         msgs.push('</ul>')
         $(this.client_display_content).append(msgs.join(''));
+        this.addResourceContentEvents(contact_name, jid);
     },   
-              
+ 
+    /*-------------------------------------------------------------------------------*/ 
+    buildResourceContent: function(resource) {
+        return '<li><div class="contact-resource">'+
+                   Strophe.getResourceFromJid(resource.jid) + 
+               '</div></li>'
+    },   
+          
+    /*-------------------------------------------------------------------------------*/ 
+    addResourceContentEvents: function(contact_name, contact_jid) {
+        var client_ui = this;
+        $(this.client_contact_resources+' li').hover(
+            function() {$(this).addClass('selected');},
+            function() {$(this).removeClass('selected');}
+        ); 
+        $(this.client_contact_resources+' li').click(function() {
+            var resource        = $(this).find('.contact-resource').text(),
+                contact_jid_div = '<div class="jid">'+contact_jid+'</div>',
+                item            = $(client_ui.client_items_content+' ul li.open .item');
+            client_ui.addClientResourceContact(contact_jid)
+            client_ui.showResourcesToolbar(function() {
+                return $(client_ui.client_items_content+' ul li.open').find('.resource').text();                
+            });
+            client_ui.showResourcesContentDisplay(resource);
+            item.addClass('resource-selected');
+            item.append('<div class="resource">'+resource+'</div>');
+            $(client_ui.client_display_toolbar).prepend(contact_jid_div);
+            $(client_ui.client_display_toolbar_jid).click(function() {
+                client_ui.removeSelectedResource();
+                client_ui.showContactsToolbar('resources');
+                client_ui.buildItemContentDisplay('contacts', contact_name)
+            });
+        }); 
+    },
+                            
     /*-------------------------------------------------------------------------------*/ 
     buildListItems: function(items, item_type, item_name, item_status, open_item_name, delete_item_name, no_controls) {
         var list_items = '<ul>';
