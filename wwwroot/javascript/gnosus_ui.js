@@ -870,7 +870,7 @@ GnosusUi.prototype = {
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false, 
             buttons:{'cancel':this.cancelItemDialog.bind(this)},
-            dialogClass:'command-dialog', width:400, height:400}); 
+            dialogClass:'command-dialog', width:400, height:500}); 
         $(this.item_dialog+' .commands').accordion({collapsible: true});                
         $(this.item_dialog+' .command').click(function() {
             var name = $(this).text(),
@@ -887,9 +887,9 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     formDialog: function(form) {
-        var title   = $(form).find('title').text() || 'command form',
+        var title   = htmlEncode($(form).find('title').text()) || 'command form',
             dialog  = '<div id="'+this.toId(this.item_dialog)+'" title="'+title+'">',
-            inst    = $(form).find('instructions').text();
+            inst    = htmlEncode($(form).find('instructions').text());
             client_ui = this;
        if (inst) {
            dialog += '<div class="instructions">'+inst+'</div>';
@@ -918,7 +918,7 @@ GnosusUi.prototype = {
                               client_ui.block('command request pending');
                           }
                        }.bind(this)},
-           dialogClass:'x-form', width:400, height:400
+           dialogClass:'x-form', width:400, height:500
        });
        this.addJidValidation();        
     },
@@ -1272,7 +1272,7 @@ GnosusUi.prototype = {
     buildChatTextMessage: function(msg) {
         return '<li><div class="text-message">'+
                    this.messageInfo(msg)+
-                   '<div class="text">'+msg.text+'</div>'+
+                   '<div class="text">'+htmlEncode(msg.text)+'</div>'+
                '</div></li>';
     },
 
@@ -1281,7 +1281,7 @@ GnosusUi.prototype = {
         return '<li><div class="x-message">'+
                    this.messageInfo(msg)+
                    '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
-                   this.buildXDataBody(msg.text)+
+                   this.buildXDataBody(htmlEncode(msg.text))+
                '</div></li>';
     },
 
@@ -1290,7 +1290,7 @@ GnosusUi.prototype = {
         return '<li><div class="text-message">'+
                    this.messageInfo(msg)+
                    '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
-                   '<div class="entry">'+msg.text+'</div>'+
+                   '<div class="entry">'+htmlEncode(msg.text)+'</div>'+
                '</div></li>';
     },
 
@@ -1301,7 +1301,7 @@ GnosusUi.prototype = {
         return '<li><div class="command-request-message">'+
                    this.messageInfo(msg)+
                    '<div class="header">'+msg.node+'</div>'+
-                   '<div class="node">'+msg.text+'</div>'+
+                   '<div class="node">'+htmlEncode(msg.text)+'</div>'+
                '</div></li>';
     },
     
@@ -1330,13 +1330,13 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildXDataScalar: function(data) {
-        return '<div class="scalar">'+this.getXDataValues(data)+'</div>';
+        return '<div class="scalar">'+htmlEncode(this.getXDataValues(data))+'</div>';
     },
 
     /*-------------------------------------------------------------------------------*/ 
     getXDataValues: function(field) {
         return $.map($(field).find('value'), function(v,i) {
-                   return $(v).text();
+                   return htmlEncode($(v).text());
                }).join(', ');
     },
     
@@ -1383,15 +1383,25 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------
      * x data form controls 
      *-------------------------------------------------------------------------------*/ 
+     getNameFromField: function(field) {
+         return htmlEncode($(field).attr('var'));
+     },
+     
+     /*-------------------------------------------------------------------------------*/ 
+     getLabelFromField: function(field) {
+         return htmlEncode($(field).attr('label'));
+     },
+
+     /*-------------------------------------------------------------------------------*/ 
     buildFixedControl: function(field) {
-        var label   = $(field).find('value').eq(0).text()
+        var label   = htmlEncode($(field).find('value').eq(0).text());
         return '<div class="fixed">'+label+'</div>';
     },
  
     /*-------------------------------------------------------------------------------*/ 
     buildBooleanControl: function(field) {
-        var name    = $(field).attr('var'),
-            label   = $(field).attr('label'),
+        var name    = this.getNameFromField(field),
+            label   = this.getLabelFromField(field),
             control = '<div class="boolean">';
         control += '<input type="checkbox" name="'+name+'"/>'; 
         if (label) {control += '<label>'+label+'</label>';}  
@@ -1401,8 +1411,8 @@ GnosusUi.prototype = {
     
     /*-------------------------------------------------------------------------------*/ 
     buildListSingleControl: function(field) {
-        var name    = $(field).attr('var'),
-            label   = $(field).attr('label'),
+        var name    = this.getNameFromField(field),
+            label   = this.getLabelFromField(field),
             control = '<div class="list-single">';
         if (label) {control += '<label>'+label+'</label>';}    
         control += '<select name="'+name+'">'
@@ -1430,8 +1440,8 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/ 
     buildInputControl: function(field, type, klass) {
-        var name    = $(field).attr('var'),
-            label   = $(field).attr('label'),
+        var name    = this.getNameFromField(field),
+            label   = this.getLabelFromField(field),
             control = '<div class="input-single '+klass+'">';
         if (label) {control += '<label>'+label+'</label>';}    
         control += '<input type="'+type+'" name="'+name+'"/></br></div>'; 
@@ -1440,8 +1450,8 @@ GnosusUi.prototype = {
     
     /*-------------------------------------------------------------------------------*/ 
     buildTextMultiControl: function(field) {
-        var name    = $(field).attr('var'),
-            label   = $(field).attr('label'),
+        var name    = this.getNameFromField(field),
+            label   = this.getLabelFromField(field),
             control = '<div class="text-multi">';
         if (label) {control += '<label>'+label+'</label>';}    
         control += '<textarea name="'+name+'"/></br></div>'; 
@@ -1475,9 +1485,25 @@ GnosusUi.prototype = {
     }
 };
 
-/**********************************************************************************
+/*---------------------------------------------------------------------------------------
+ * encode/decode html
+ *---------------------------------------------------------------------------------------*/ 
+function htmlEncode(value){ 
+    if (value) {
+        return $('<div/>').text(value).html(); 
+    }
+} 
+
+/*---------------------------------------------------------------------------------------*/ 
+function htmlDecode(value){ 
+    if (value) {
+        return $('<div/>').html(value).text(); 
+    }
+}
+
+/******************************************************************************************
  plugins
-/**********************************************************************************/
+/******************************************************************************************/
 (function($){    
     $.fn.autoResize = function() {
         this.filter('textarea').each(function(){

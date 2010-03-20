@@ -39,13 +39,11 @@ body() ->
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
-      #is_required{text="uid required"},
-      #max_length{text="uid cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
+      #is_required{text="uid required"}
     ]}),
 
     wf:wire(loginButton, passwordTextBox, #validate {validators=[
-      #is_required{text="password required"},
-      #max_length{text="password cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
+      #is_required{text="password required"}
     ]}),
 
     wf:render(Body).
