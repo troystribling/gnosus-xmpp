@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() ->
-    #literal{text="<h1>update user: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
+    #literal{text="<h1>update user: <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -40,8 +40,8 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(update_user) -> 
-    EMail = wf:get_path_info(),
-    User = user_model:find_by_email(EMail),
+    EMail = wf:html_encode(wf:get_path_info()),
+    User = wf:html_encode(user_model:find_by_email(EMail)),
     [FormEMail] = wf:q(emailTextBox),
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),
@@ -74,22 +74,6 @@ event(cancel) ->
 event(_) -> ok.
 
 %%================================================================================
-email_available(_Tag, _Value) ->
-    true.
-
-%%--------------------------------------------------------------------------------
-uid_available(_Tag, _Value) ->
-    true.
-
-%%--------------------------------------------------------------------------------
-uid_present(_Tag, _Value) ->
-    true.
-    
-%%--------------------------------------------------------------------------------
-confirmation_password_present(_Tag, _Value) ->
-    true.
-    
-%%--------------------------------------------------------------------------------
 user_form(User) ->
     Body = [
         #p{body=[
@@ -98,7 +82,7 @@ user_form(User) ->
         ], class="form user-add"},
 
         #p{body=[
-            #label{text="user id"},
+            #label{text="uid"},
             #textbox {id=uidTextBox, next=emailTextBox}
         ], class="form user-add"},
 
@@ -136,15 +120,18 @@ user_form(User) ->
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"},
         #custom{text="email address registered", function=fun email_available/2}
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
-        #custom{text="user id required", function=fun uid_present/2},       
-        #custom{text="user id is not available", function=fun uid_available/2}        
+        #custom{text="uid required", function=fun uid_present/2},       
+        #custom{text="uid is not available", function=fun uid_available/2},       
+        #max_length{text="uid cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
+        #max_length{text="password cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
@@ -153,3 +140,21 @@ user_form(User) ->
     ]}),
 
     wf:render(Body).
+
+%%================================================================================
+%% validatitors
+email_available(_Tag, _Value) ->
+    true.
+
+%%--------------------------------------------------------------------------------
+uid_available(_Tag, _Value) ->
+    true.
+
+%%--------------------------------------------------------------------------------
+uid_present(_Tag, _Value) ->
+    true.
+
+%%--------------------------------------------------------------------------------
+confirmation_password_present(_Tag, _Value) ->
+    true.
+

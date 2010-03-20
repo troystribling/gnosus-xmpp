@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1>add user: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
+    #literal{text="<h1>add user: <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -53,11 +53,13 @@ body() ->
 
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"},
         #is_email{text="invalid email address"}
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
         #is_required{text="uid required"},
+        #max_length{text="uid cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"},
         #custom{text="user id is not available", function=fun uid_available/2}        
     ]}),
 
@@ -78,10 +80,10 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(add_user) -> 
-    Host = wf:get_path_info(),
+    Host = wf:html_encode(wf:get_path_info()),
     User = wf:user(),    
-    [EMail] = wf:q(emailTextBox),
-    [Uid] = wf:q(uidTextBox),
+    [EMail] = wf:html_encode(wf:q(emailTextBox)),
+    [Uid] = wf:html_encode(wf:q(uidTextBox)),
     [Password] = wf:q(passwordTextBox),
     case ejabberd:add_user(Host, Uid, Password) of
         ok ->

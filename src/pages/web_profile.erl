@@ -34,7 +34,7 @@ event(logout) ->
 event(update_user) -> 
     User = wf:user(),
     Uid = User#users.uid,
-    [EMail] = wf:q(emailTextBox),
+    [EMail] = wf:html_encode(wf:q(emailTextBox)),
     if 
         EMail =:= User#users.email -> ok;
         true -> user_model:delete(Uid)
@@ -92,10 +92,12 @@ user_form() ->
     wf:wire(updateButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"},
         #custom{text="email address registered", tag=some_tag, function=fun email_available/2}
     ]}),
 
     wf:wire(updateButton, passwordTextBox, #validate {validators=[
+        #max_length{text="password cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
     ]}),
 
     wf:wire(updateButton, confirmPasswordTextBox, #validate {validators=[

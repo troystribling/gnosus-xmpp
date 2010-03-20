@@ -34,7 +34,7 @@ event(logout) ->
 event(update_user) -> 
     User = wf:user(),
     {Host, Uid} = User#client_users.jid,
-    [EMail] = wf:q(emailTextBox),
+    [EMail] = wf:html_encode(wf:q(emailTextBox)),
     case client_user_model:update(Host, Uid, EMail, User#client_users.status) of
         ok ->
             wf:user(client_user_model:find(Host, Uid)), 
@@ -64,7 +64,8 @@ user_form() ->
 
     wf:wire(updateButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
-        #is_email{text="invalid email address"}
+        #is_email{text="invalid email address"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"}
     ]}),
 
     wf:render(Body).

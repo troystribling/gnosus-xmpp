@@ -44,6 +44,7 @@ body() ->
     wf:wire(registerButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"},
         #custom{text="email address registered", tag=some_tag, function=fun email_available/2}
     ]}),
 
@@ -51,7 +52,7 @@ body() ->
 	
 %%================================================================================
 event(register) ->
-    [EMail] = wf:q(emailTextBox),
+    [EMail] = wf:html_encode(wf:q(emailTextBox)),
     case user_model:register(EMail) of
         ok -> 
             gnosus_logger:message({user_registeration_succeeded, EMail}),

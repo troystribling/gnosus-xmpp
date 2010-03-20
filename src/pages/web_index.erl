@@ -24,7 +24,7 @@ navigation() ->
 body() ->
     Body = [
         #p{body=[
-            #label{text="username" },
+            #label{text="uid" },
             #textbox{id=userTextBox, next=passwordTextBox }
         ], class="form login"},
 
@@ -39,18 +39,20 @@ body() ->
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[
-      #is_required{text="username required"}
+      #is_required{text="uid required"},
+      #max_length{text="uid cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
     ]}),
 
     wf:wire(loginButton, passwordTextBox, #validate {validators=[
-      #is_required{text="password required"}
+      #is_required{text="password required"},
+      #max_length{text="password cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
     ]}),
 
     wf:render(Body).
 	
 %%================================================================================
 event(login) ->
-    [Uid] = wf:q(userTextBox),
+    [Uid] = wf:html_encode(wf:q(userTextBox)),
     [Password] = wf:q(passwordTextBox),
     case user_model:authenticate(Uid, Password) of
         true ->

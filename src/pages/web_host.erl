@@ -38,7 +38,7 @@ toolbar() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1> users: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
+    #literal{text="<h1><em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() -> 

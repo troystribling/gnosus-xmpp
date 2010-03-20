@@ -38,6 +38,7 @@ body() ->
 
     wf:wire(addHostButton, hostTextBox, #validate {validators=[
         #is_required{text="host name required"},
+        #max_length{text="host cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"},
         #custom{text="host not available", function=fun host_available/2}
     ]}),
 
@@ -49,7 +50,7 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(add_host) ->
-    [Host] = wf:q(hostTextBox), 
+    [Host] = wf:html_encode(wf:q(hostTextBox)), 
     gnosus_utils:add_host(Host++"."++gnosus_model:tld());
 
 %%--------------------------------------------------------------------------------

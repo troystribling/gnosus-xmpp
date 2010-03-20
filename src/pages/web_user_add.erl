@@ -65,16 +65,19 @@ body() ->
     wf:wire(addButton, emailTextBox, #validate {validators=[
         #is_required{text="email address required"},
         #is_email{text="invalid email address"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"},
         #custom{text="email address registered", function=fun email_available/2}
     ]}),
 
     wf:wire(addButton, uidTextBox, #validate {validators=[
         #is_required{text="uid required"},
-        #custom{text="user id is not available", function=fun uid_available/2}        
+        #max_length{text="uid cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"},
+        #custom{text="uid is not available", function=fun uid_available/2}        
     ]}),
 
     wf:wire(addButton, passwordTextBox, #validate {validators=[
-        #is_required{text="password required"}
+        #is_required{text="password required"},
+        #max_length{text="password cannot have more than "++integer_to_list(?MAX_INPUT_LENGTH)++" characters"}
     ]}),
 
     wf:wire(addButton, confirmPasswordTextBox, #validate {validators=[
@@ -90,8 +93,8 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(add_user) -> 
-    [EMail] = wf:q(emailTextBox),
-    [Uid] = wf:q(uidTextBox),
+    [EMail] = wf:html_encode(wf:q(emailTextBox)),
+    [Uid] = wf:html_encode(wf:q(uidTextBox)),
     [Password] = wf:q(passwordTextBox),
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),

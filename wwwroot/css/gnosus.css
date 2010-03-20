@@ -422,7 +422,7 @@ tr.data-edit-select {
     position: relative;
     -moz-box-shadow: 0px 0px 25px #aaa;
     -webkit-box-shadow: 0px 0px 25px #aaa;
-    height: 300px;
+    height: 500px;
 }
 /*******  client-items *******/
 .client-items {
@@ -431,7 +431,7 @@ tr.data-edit-select {
     border-right: 5px solid #DDD;
 }
 .client-items-content {
-    height: 260px;
+    height: 460px;
 	overflow: auto;
 }
 .client-items-toolbar  {
@@ -592,10 +592,10 @@ ul.client-display-list li {
     border-bottom: 1px solid #DDD;
 }
 .client-display-list.no-input{
-    height: 260px;
+    height: 460px;
 }
 .client-display-list.input{
-    height: 194px;
+    height: 394px;
 }
 /*******  message-info *******/
 .message-info {

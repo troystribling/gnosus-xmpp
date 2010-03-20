@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1>register user: <em>"++wf:get_path_info()++"</em></h1>", html_encode=false}.
+    #literal{text="<h1>register user: <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -38,6 +38,7 @@ body() ->
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[
         #is_email{text="invalid email address"},
+        #max_length{text="email cannot have more than "++integer_to_list(?MAX_EMAIL_LENGTH)++" characters"},
         #is_required{text="email address required"}
     ]}),
 
@@ -49,8 +50,8 @@ event(logout) ->
 
 %%--------------------------------------------------------------------------------
 event(register) -> 
-    Host = wf:get_path_info(),
-    [EMail] = wf:q(emailTextBox),
+    Host = wf:html_encode(wf:get_path_info()),
+    [EMail] = wf:html_encode(wf:q(emailTextBox)),
     case client_user_model:register(Host, EMail) of
         ok -> 
             gnosus_logger:message({host_user_registration_succeeded, [Host, EMail]}),

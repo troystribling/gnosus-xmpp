@@ -4,6 +4,11 @@
     io:format("~p~n", [Args])).
 
 %%================================================================================
+%% constants
+-define(MAX_INPUT_LENGTH, 20).
+-define(MAX_EMAIL_LENGTH, 100).
+
+%%================================================================================
 %% paths
 -define(LOGIN, "/").
 -define(REGISTER, "/register").
