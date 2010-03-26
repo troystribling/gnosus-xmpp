@@ -2,8 +2,7 @@
 cd `dirname $0`
 HOST=`hostname` 
 
-dev()
-{
+dev() {
     exec erl \
 	-sname gnosus@$HOST \
 	-setcookie 12345 \
@@ -13,8 +12,7 @@ dev()
 	-s gnosus
 }
 
-prod() 
-{
+prod() {
     exec erl \
 	-noinput -detached \
 	-sname gnosus@$HOST \
@@ -26,8 +24,7 @@ prod()
 	-s gnosus
 }
 
-create_tables()
-{
+create_tables() {
     exec erl \
 	-sname gnosus@$HOST \
 	-setcookie 12345 \
@@ -36,6 +33,17 @@ create_tables()
 	-boot start_sasl \
 	-s mnesia \
 	-s gnosus create_tables
+}
+
+create_admin() {
+    exec erl \
+	-sname gnosus@$HOST \
+	-setcookie 12345 \
+	-pa $PWD/ebin $PWD/include \
+	-config $PWD/src/gnosus \
+	-boot start_sasl \
+	-s mnesia \
+	-s gnosus create_admin
 }
 
 usage()
@@ -51,5 +59,6 @@ case $1 in
     prod) prod;;
     shell) shell;;
     create_tables) create_tables;;
+    create_admin) create_admin;;
     *) usage;;
 esac

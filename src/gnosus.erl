@@ -5,7 +5,8 @@
 -export([
 	start/0, 
 	stop/0,
-	create_tables/0
+	create_tables/0,
+	create_admin/0
 ]).
 
 %% include
@@ -27,6 +28,12 @@ create_tables() ->
     do_create_ejabberd_tables(),
     do_create_tables(),
     wait_for_tables(),
+    init:stop().
+ 
+%%--------------------------------------------------------------------------------
+create_admin() ->
+    wait_for_tables(),
+    user_model:new_admin("gnosus@gnos.us","admin","gnosus"),
     init:stop().
  
 %%================================================================================
