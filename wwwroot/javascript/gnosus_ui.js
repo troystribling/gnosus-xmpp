@@ -153,9 +153,10 @@ GnosusUi.prototype = {
              build_list = function() {
                  client_ui.buildListItems(Gnosus.findAllContacts(), 'contact', contact_name, function(i){return i.show();});
              }
-        if (Gnosus.findAllContacts().length > 0) {     
-            build_list();
-        }
+         if (Gnosus.findAllContacts().length > 0) {     
+             build_list();
+         }
+         this.addRosterEvents();
          /*---- session messages ----*/
          this.bindItemsHandler('create_user_pubsub_root_result', function (ev, node) {
              build_list();
@@ -172,19 +173,6 @@ GnosusUi.prototype = {
          this.bindItemsHandler('session_init_error', function (ev, roster) {
              this.unblock();             
              this.errorDialog('session initialization failed');
-         });
-     
-         /**** received roster message ****/
-         this.bindItemsHandler('roster_item_add', function (ev, contact) {
-             var item = this.buildItemListItems(contact_name(contact), 'contact', contact.show());
-             $(this.client_items_content+' ul').append(item);
-             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
-         });
-         this.bindItemsHandler('roster_item_remove', function (ev, contact) {
-             client_ui.closeContactIfOpen(contact.name);
-             $(this.client_items_content+' ul li').find('.name:contains('+contact.name+')').parent().remove();
-         });
-         this.bindItemsHandler('roster_item_update', function (ev, contact) {
          });
      
          /**** roster request response ****/
@@ -226,6 +214,7 @@ GnosusUi.prototype = {
      showResourcesItems: function() {          
          this.buildListItems(Gnosus.findAllResourcesByJid(Gnosus.account().jid), 'resource', 
             function(i){return Strophe.getResourceFromJid(i.jid);}, null, null, null, true);    
+         this.addRosterEvents();
          this.bindItemsHandler('presence_available', function (ev, acct, resource) {
              var res = $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')');
              if (res.length == 0) {
@@ -262,6 +251,7 @@ GnosusUi.prototype = {
                  jid   = litem.find('.jid').text();
              return GnosusXmpp.userPubsubNode(jid, node);    
          }
+         this.addRosterEvents();
          this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', sub_item, null, open_item_name, delete_item_name);    
          this.bindItemsHandler('subscribe_result', function (ev, sub) {
              var item = this.buildItemListItems(sub_item(sub), 'subscription');
@@ -288,6 +278,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/  
     showPublicationsItems: function() { 
+        this.addRosterEvents();
         this.buildListItems(Gnosus.findPubNodesByJid(Gnosus.account().jid), 'publication', function(i){return GnosusXmpp.subNodeFromNode(i.node);});    
         this.bindItemsHandler('create_pubsub_node_result', function (ev, pub) {
             var item = this.buildItemListItems(GnosusXmpp.subNodeFromNode(pub.node), 'publication');
@@ -1141,6 +1132,21 @@ GnosusUi.prototype = {
         }
     },
         
+    /*-------------------------------------------------------------------------------*/   
+    addRosterEvents: function() {
+        this.bindItemsHandler('roster_item_add', function (ev, contact) {
+            var item = this.buildItemListItems(contact_name(contact), 'contact', contact.show());
+            $(this.client_items_content+' ul').append(item);
+            this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+        });
+        this.bindItemsHandler('roster_item_remove', function (ev, contact) {
+            client_ui.closeContactIfOpen(contact.name);
+            $(this.client_items_content+' ul li').find('.name:contains('+contact.name+')').parent().remove();
+        });
+        this.bindItemsHandler('roster_item_update', function (ev, contact) {
+        });
+    },
+
     /*-------------------------------------------------------------------------------*/    
     buildDisplayToolbar: function(items, select_item, item_type, open_item_name) {
         $(this.client_display_toolbar).empty();
