@@ -156,7 +156,6 @@ GnosusUi.prototype = {
          if (Gnosus.findAllContacts().length > 0) {     
              build_list();
          }
-         this.addRosterEvents();
          /*---- session messages ----*/
          this.bindItemsHandler('create_user_pubsub_root_result', function (ev, node) {
              build_list();
@@ -190,7 +189,18 @@ GnosusUi.prototype = {
              this.unblock();
              this.errorDialog('failed to remove <strong>'+jid+'</strong>');
          });
-     
+         /**** roster update messages****/
+         this.bindItemsHandler('roster_item_add', function (ev, contact) {
+             var item = this.buildItemListItems(contact_name(contact), 'contact', contact.show());
+             $(this.client_items_content+' ul').append(item);
+             this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+         });
+         this.bindItemsHandler('roster_item_remove', function (ev, contact) {
+             client_ui.closeContactIfOpen(contact.name);
+             $(this.client_items_content+' ul li').find('.name:contains('+contact.name+')').parent().remove();
+         });
+         this.bindItemsHandler('roster_item_update', function (ev, contact) {
+         });     
          /*---- presence messages ----*/
          this.bindItemsHandler('presence_available', function (ev, acct) {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
@@ -201,32 +211,34 @@ GnosusUi.prototype = {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
          });
-         this.bindItemsHandler('presence_subscribe', function (ev, jid) {
-             this.subscriptionRequestDialog(jid);
-         });
          this.bindItemsHandler('presence_unsubscribed', function (ev, acct) {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
          });
+         this.addContactRequestEvent();
      },
 
      /*-------------------------------------------------------------------------------*/  
      showResourcesItems: function() {          
          this.buildListItems(Gnosus.findAllResourcesByJid(Gnosus.account().jid), 'resource', 
             function(i){return Strophe.getResourceFromJid(i.jid);}, null, null, null, true);    
-         this.addRosterEvents();
+         this.addContactRequestEvent();
          this.bindItemsHandler('presence_available', function (ev, acct, resource) {
-             var res = $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')');
-             if (res.length == 0) {
-                 var item = this.buildItemListItems(Strophe.getResourceFromJid(resource.jid), 'resource', null, true);
-                 $(this.client_items_content+' ul').append(item);
-                 this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+             if (resource && acct.jid == Gnosus.account_jid) {
+                 var res = $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')');
+                 if (res.length == 0) {
+                     var item = this.buildItemListItems(Strophe.getResourceFromJid(resource.jid), 'resource', null, true);
+                     $(this.client_items_content+' ul').append(item);
+                     this.addItemListEvents($(this.client_items_content+' ul li:last'));             
+                }
             }
          });
          this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
-             var res = Strophe.getResourceFromJid(resource.jid);
-             this.closeResourceIfOpen(resource.jid);
-             $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
+             if (acct.jid == Gnosus.account_jid) {
+                 var res = Strophe.getResourceFromJid(resource.jid);
+                 this.closeResourceIfOpen(resource.jid);
+                 $(this.client_items_content+' ul li').find('.item:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
+             }
          });
      }, 
 
@@ -251,7 +263,7 @@ GnosusUi.prototype = {
                  jid   = litem.find('.jid').text();
              return GnosusXmpp.userPubsubNode(jid, node);    
          }
-         this.addRosterEvents();
+         this.addContactRequestEvent();
          this.buildListItems(Gnosus.findAllSubscriptions(), 'subscription', sub_item, null, open_item_name, delete_item_name);    
          this.bindItemsHandler('subscribe_result', function (ev, sub) {
              var item = this.buildItemListItems(sub_item(sub), 'subscription');
@@ -278,7 +290,7 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/  
     showPublicationsItems: function() { 
-        this.addRosterEvents();
+        this.addContactRequestEvent();
         this.buildListItems(Gnosus.findPubNodesByJid(Gnosus.account().jid), 'publication', function(i){return GnosusXmpp.subNodeFromNode(i.node);});    
         this.bindItemsHandler('create_pubsub_node_result', function (ev, pub) {
             var item = this.buildItemListItems(GnosusXmpp.subNodeFromNode(pub.node), 'publication');
@@ -552,7 +564,6 @@ GnosusUi.prototype = {
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false, width:380,
             buttons:{'accept':function() {
-                                  this.block('adding contact')
                                   GnosusXmpp.addContact(jid, null, []);
                                   GnosusXmpp.acceptSubscriptionRequest($(this.item_dialog+' p').text());
                                   this.cancelItemDialog();            
@@ -1133,17 +1144,9 @@ GnosusUi.prototype = {
     },
         
     /*-------------------------------------------------------------------------------*/   
-    addRosterEvents: function() {
-        this.bindItemsHandler('roster_item_add', function (ev, contact) {
-            var item = this.buildItemListItems(contact_name(contact), 'contact', contact.show());
-            $(this.client_items_content+' ul').append(item);
-            this.addItemListEvents($(this.client_items_content+' ul li:last'));             
-        });
-        this.bindItemsHandler('roster_item_remove', function (ev, contact) {
-            client_ui.closeContactIfOpen(contact.name);
-            $(this.client_items_content+' ul li').find('.name:contains('+contact.name+')').parent().remove();
-        });
-        this.bindItemsHandler('roster_item_update', function (ev, contact) {
+    addContactRequestEvent: function() {
+        this.bindItemsHandler('presence_subscribe', function (ev, jid) {
+            this.subscriptionRequestDialog(jid);
         });
     },
 
