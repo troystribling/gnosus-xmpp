@@ -316,6 +316,7 @@ GnosusUi.prototype = {
     *-------------------------------------------------------------------------------*/
     closeContactIfOpen: function(jid) {
         if ($(this.client_items_content+' ul li.open').find('.name').text() == jid) {
+            this.unblock();
             this.history('contacts');
         }
     },    
@@ -324,6 +325,7 @@ GnosusUi.prototype = {
     closeContactResourceIfOpen: function(jid) {
         if ($(this.client_items_content+' ul li.open').find('.resource').text() == Strophe.getResourceFromJid(jid)) {
             this.removeSelectedResource();
+            this.unblock();
             this.history('contacts');
         }
     },    
@@ -347,6 +349,7 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/ 
     closeResourceIfOpen: function(jid) {
         if ($(this.client_items_content+' ul li.open .item').text() == Strophe.getResourceFromJid(jid)) {
+            this.unblock();
             this.history('resources');
         }
     },

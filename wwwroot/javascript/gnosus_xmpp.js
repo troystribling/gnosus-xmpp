@@ -1,14 +1,14 @@
 /**********************************************************************************
 logging
 **********************************************************************************/
-// function rawInput(data) {
-//     console.log('RECV: ' + data);
-// }
-// 
-// function rawOutput(data) {
-//     console.log('SENT: ' + data);
-// }
-// 
+function rawInput(data) {
+    console.log('RECV: ' + data);
+}
+
+function rawOutput(data) {
+    console.log('SENT: ' + data);
+}
+
 // Strophe.log = function (level, msg) {
 //     console.log('LOG: ' + msg);
 // }
@@ -21,8 +21,8 @@ function connect(service, jid, password) {
 	Gnosus.account_jid = Strophe.getBareJidFromJid(jid);
 	Gnosus.account_resource = Strophe.getResourceFromJid(jid);
     var conn = new Strophe.Connection(service);
-    // conn.rawInput = rawInput;
-    // conn.rawOutput = rawOutput;
+    conn.rawInput = rawInput;
+    conn.rawOutput = rawOutput;
 	GnosusXmpp.connection = conn;
 	conn.connect(jid, password, onConnect);
 }
@@ -998,10 +998,10 @@ GnosusXmpp = {
         this.connection.sendIQ(iq, 
             function(iq) {
                 Gnosus.addPubSubNode(jid, serv, GnosusXmpp.pubsubRoot(jid), full_node)
-                $(document).trigger('create_user_pub_root_result', full_node);
+                $(document).trigger('create_user_pubsub_root_result', full_node);
             },
             function(iq) {
-                $(document).trigger('create_user_pub_root_error', full_node);
+                $(document).trigger('create_user_pubsub_root_error', full_node);
             }
         );
     },

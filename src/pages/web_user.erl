@@ -41,7 +41,7 @@ event(logout) ->
 %%--------------------------------------------------------------------------------
 event(update_user) -> 
     EMail = wf:html_encode(wf:get_path_info()),
-    User = wf:html_encode(user_model:find_by_email(EMail)),
+    User = user_model:find_by_email(EMail),
     [FormEMail] = wf:q(emailTextBox),
     [Status] = wf:q(statusDropdown),
     [Role] = wf:q(roleDropdown),
@@ -83,7 +83,7 @@ user_form(User) ->
 
         #p{body=[
             #label{text="uid"},
-            #textbox {id=uidTextBox, next=emailTextBox}
+            #textbox {id=uidTextBox, text=User#users.uid, next=emailTextBox}
         ], class="form user-add"},
 
         #p{body=[

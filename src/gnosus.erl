@@ -6,7 +6,7 @@
 	start/0, 
 	stop/0,
 	create_tables/0,
-	create_admin/0
+	create_super/0
 ]).
 
 %% include
@@ -31,9 +31,9 @@ create_tables() ->
     init:stop().
  
 %%--------------------------------------------------------------------------------
-create_admin() ->
+create_super() ->
     wait_for_tables(),
-    user_model:new_admin("gnosus@gnos.us","admin","gnosus"),
+    user_model:new_admin("gnosus@gnos.us","super","gnosus"),
     init:stop().
  
 %%================================================================================

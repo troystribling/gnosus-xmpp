@@ -213,7 +213,7 @@ stop_modules(Host) ->
 
 %%--------------------------------------------------------------------------------
 ejabberd() ->   
-    gnosus_model:ejabberd().
+    list_to_atom("ejabberd@"++string:strip(os:cmd("hostname"), right, $\n)).
 
 %%--------------------------------------------------------------------------------
 add_to_remove(MethodList) ->

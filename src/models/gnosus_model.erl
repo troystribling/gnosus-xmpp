@@ -11,7 +11,6 @@
     find/1,
     start_modules/1,
     stop_modules/1,
-    ejabberd/0,
     tld/0,
     excluded_hosts/0,
     load_config_file/0
@@ -81,11 +80,6 @@ stop_modules(_Host) ->
     DefMods = find(default_modules),
     OptMods = find(optional_modules),
     DefMods#gnosus.value++OptMods#gnosus.value.
-
-%%--------------------------------------------------------------------------------
-ejabberd() ->   
-    Ejabberd = find(ejabberd),
-    Ejabberd#gnosus.value.
 
 %%--------------------------------------------------------------------------------
 tld() ->   

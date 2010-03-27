@@ -35,7 +35,7 @@ create_tables() {
 	-s gnosus create_tables
 }
 
-create_admin() {
+create_super() {
     exec erl \
 	-sname gnosus@$HOST \
 	-setcookie 12345 \
@@ -43,7 +43,7 @@ create_admin() {
 	-config $PWD/src/gnosus \
 	-boot start_sasl \
 	-s mnesia \
-	-s gnosus create_admin
+	-s gnosus create_super
 }
 
 usage()
@@ -59,6 +59,6 @@ case $1 in
     prod) prod;;
     shell) shell;;
     create_tables) create_tables;;
-    create_admin) create_admin;;
+    create_super) create_super;;
     *) usage;;
 esac
