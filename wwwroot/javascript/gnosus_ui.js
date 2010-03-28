@@ -157,14 +157,6 @@ GnosusUi.prototype = {
              build_list();
          }
          /*---- session messages ----*/
-         this.bindItemsHandler('create_user_pubsub_root_result', function (ev, node) {
-             build_list();
-             this.unblock();             
-         });
-         this.bindItemsHandler('create_user_pubsub_root_error', function (ev, node) {
-             build_list();
-             this.errorDialog('failed to create pubsub root node <strong>'+node+'</strong>');
-         });
          this.bindItemsHandler('session_init_result', function (ev, roster) {
              build_list();
              this.unblock();             

@@ -998,10 +998,11 @@ GnosusXmpp = {
         this.connection.sendIQ(iq, 
             function(iq) {
                 Gnosus.addPubSubNode(jid, serv, GnosusXmpp.pubsubRoot(jid), full_node)
-                $(document).trigger('create_user_pubsub_root_result', full_node);
+                GnosusXmpp.initialPresence();
+                $(document).trigger('session_init_result');
             },
             function(iq) {
-                $(document).trigger('create_user_pubsub_root_error', full_node);
+                $(document).trigger('session_init_error');
             }
         );
     },
