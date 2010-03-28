@@ -1,6 +1,6 @@
 #!/bin/sh
 cd `dirname $0`
-HOST=`hostname` 
+echo $HOST
 
 dev() {
     exec erl \
@@ -28,7 +28,7 @@ create_tables() {
     exec erl \
 	-sname gnosus@$HOST \
 	-setcookie 12345 \
-	-mnesia extra_db_nodes "['ejabberd@ubuntu']" \
+	-mnesia extra_db_nodes "['ejabberd@$HOST']" \
 	-pa $PWD/ebin $PWD/deps/*/ebin \
 	-boot start_sasl \
 	-s mnesia \
@@ -46,8 +46,11 @@ create_super() {
 	-s gnosus create_super
 }
 
-usage()
-{
+stop() {
+    pkill -f 'beam.*sname gnosus' 
+}
+
+usage() {
     echo "gnosus.sh prod|dev|create_tables"
     exit
 }
@@ -60,5 +63,6 @@ case $1 in
     shell) shell;;
     create_tables) create_tables;;
     create_super) create_super;;
+    stop) stop;;
     *) usage;;
 esac
