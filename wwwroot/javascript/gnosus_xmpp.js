@@ -59,7 +59,7 @@ Gnosus = {
     contacts
     ---------------------------------------------------------------------------------*/
     addContact: function(item) {
-        var groups = item.find('group').map(function (g, i) {g.text();}),
+        var groups = $.map(item.find('group'), function (g, i) {return $(g).text();}),
             jid = item.attr('jid');
         if (!this.accounts[jid]) {   
             this.accounts[jid] = new Contact(item.attr('jid'), item.attr('name'), item.attr('ask'), item.attr('subscription'), groups);
@@ -309,12 +309,14 @@ Gnosus = {
         var bare_jid = Strophe.getBareJidFromJid(jid);
         var all_commands = {};
         var addCommandHash = function (cmds) {
-            $.each(cmds, function() {
-                if (!all_commands[this.name]) {
-                    all_commands[this.name] = [];
-                }
-                all_commands[this.name].push($(this));
-            });
+            if (cmds) {
+                $.each(cmds, function() {
+                    if (!all_commands[this.name]) {
+                        all_commands[this.name] = [];
+                    }
+                    all_commands[this.name].push($(this));
+                });
+            }
         };
         if (bare_jid == jid) {
             $.each(this.findAllResourcesByJid(jid), function() {
@@ -579,7 +581,7 @@ Contact.prototype = {
         this.name =  item.attr('name') || this.jid;
         this.ask = item.attr('ask') || '';
         this.subscription = item.attr('subscription') || 'none';
-        this.groups = item.find('group').map(function (g, i) {g.text();});
+        this.groups = $.map(item.find('group'), function (g, i) {return $(g).text();});
     },
     removeResource: function(jid) {
         var resource = this.resources[jid];
@@ -822,6 +824,7 @@ GnosusXmpp = {
                 $(document).trigger('command_list_result', jid);
             },
             function(iq) {
+                var jid = $(iq).attr('from');
                 $(document).trigger('command_list_error', jid);
             }
         );

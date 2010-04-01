@@ -841,7 +841,7 @@ GnosusUi.prototype = {
      * command forms 
      *-------------------------------------------------------------------------------*/  
     commandsDialog: function(jid, resources) {
-        var commands  = Gnosus.findAllCommandsByJid(jid),
+        var commands  = Gnosus.findAllCommandsByJid(jid) ,
             dialog    = '<div id="'+this.toId(this.item_dialog)+'" title="commands">'+'<div class="commands">',
             cats      = {},
             client_ui = this;
