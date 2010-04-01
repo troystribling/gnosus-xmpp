@@ -1285,7 +1285,7 @@ GnosusUi.prototype = {
         return '<li><div class="x-message">'+
                    this.messageInfo(msg)+
                    '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
-                   this.buildXDataBody(htmlEncode(msg.text))+
+                   this.buildXDataBody(msg.text)+
                '</div></li>';
     },
 
