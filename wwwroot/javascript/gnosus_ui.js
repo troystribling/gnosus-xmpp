@@ -194,18 +194,30 @@ GnosusUi.prototype = {
          this.bindItemsHandler('roster_item_update', function (ev, contact) {
          });     
          /*---- presence messages ----*/
-         this.bindItemsHandler('presence_available', function (ev, acct) {
+         this.bindItemsHandler('presence_available', function (ev, acct, resource) {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
+             if (this.clientDisplayMode() == 'resources') {
+                 var item = $(this.client_display_content).find('.contact-resource:contains('+Strophe.getResourceFromJid(resource.jid)+')');
+                 if (item.length == 0) {
+                     $(this.client_display_list).prepend(this.buildResourceContent(resource));
+                     this.addResourceContentEvents(contact_name, acct.jid);
+                 }
+             }
          });
          this.bindItemsHandler('presence_unavailable', function (ev, acct, resource) {
              this.closeContactResourceIfOpen(resource.jid);
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
+             if (acct.show() == 'offline') {client_ui.closeContactIfOpen(acct.name);}
+             if (this.clientDisplayMode() == 'resources') {
+                 $(this.client_display_content).find('.contact-resource:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
+             }
          });
          this.bindItemsHandler('presence_unsubscribed', function (ev, acct) {
              $(this.client_items_content+' ul li').find('.item:contains('+acct.name+')')
                 .removeClass('online').removeClass('offline').addClass(acct.show());
+             client_ui.closeContactIfOpen(contact.name);
          });
          this.addContactRequestEvent();
      },
@@ -696,16 +708,6 @@ GnosusUi.prototype = {
          var contact   = Gnosus.findAccountByName(contact_name),
              client_ui = this;
          this.buildResourceContentList(contact_name, contact.jid, contact.resources);
-         this.bindDisplayHandler('presence_available', function (ev, acct, resource) {
-             var item = $(this.client_display_content).find('.contact-resource:contains('+Strophe.getResourceFromJid(resource.jid)+')');
-             if (item.length == 0) {
-                 $(this.client_display_list).prepend(this.buildResourceContent(resource));
-                 this.addResourceContentEvents(contact_name, contact.jid);
-             }
-         });
-         this.bindDisplayHandler('presence_unavailable', function (ev, acct, resource) {
-             $(this.client_display_content).find('.contact-resource:contains('+Strophe.getResourceFromJid(resource.jid)+')').parent().remove();
-         });
      },               
 
      /*-------------------------------------------------------------------------------*/    
