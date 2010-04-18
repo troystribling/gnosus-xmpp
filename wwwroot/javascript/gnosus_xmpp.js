@@ -856,6 +856,9 @@ GnosusXmpp = {
         } else {
             cmd_attr['action'] = 'execute';
         }
+        if (args['sessionid']) {
+            cmd_attr['sessionid'] = args['sessionid'];
+        }
         var cmd_iq = $iq({to:args['to'], type: 'set'}).c('command', cmd_attr);
         if (args['payload']) {
             cmd_iq.cnode(args['payload']);

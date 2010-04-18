@@ -909,10 +909,12 @@ GnosusUi.prototype = {
                          }.bind(this),
                'send':function() {
                           if (!client_ui.dialogButtonIsDisabled()) {
-                              var jid  = $(form).attr('from'),
-                                  node = $(form).find('command').eq(0).attr('node');
+                              var jid       = $(form).attr('from'),
+                                  cmd       = $(form).find('command').eq(0),
+                                  node      = cmd.attr('node'),
+                                  sessionid = cmd.attr('sessionid');
                               $(client_ui.client_display_list).prepend(client_ui.buildXCommandMessage(GnosusXmpp.setCommand(
-                                  {to:jid, node:node, action:'submit', payload:GnosusXmpp.buildFormXDataPayload(client_ui.readForm())})));
+                                  {to:jid, node:node, action:'submit', sessionid:sessionid, payload:GnosusXmpp.buildFormXDataPayload(client_ui.readForm())})));
                               this.cancelItemDialog();            
                               client_ui.block('command request pending');
                           }
