@@ -950,7 +950,7 @@ GnosusUi.prototype = {
         });
         this.bindDisplayHandler('command_error', function (ev, jid, node, msg) {
             this.unblock();
-            this.errorDialog('command request failed for jid <strong>'+jid+'</strong> and node <strong>'+node+'</strong>\n\n'+msg);
+            this.errorDialog('command request failed for jid <strong>'+jid+'</strong> and node <strong>'+node+'</strong><p>'+msg+'</p>');
         });
     },
 

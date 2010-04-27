@@ -885,8 +885,7 @@ GnosusXmpp = {
             },
             function(iq) {
                 var from = $(iq).attr('from'),
-                    cmd  = $(iq).find('command').eq(0),
-                    node = cmd.attr('node'),
+                    node = $(iq).find('command').eq(0).attr('node'),
                     msg  = $(iq).find('text').text();
                 $(document).trigger('command_error', [from, node, msg]);
             }
