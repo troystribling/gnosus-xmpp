@@ -948,9 +948,9 @@ GnosusUi.prototype = {
             $(this.client_display_list).prepend(display_message);
             this.unblock();
         });
-        this.bindDisplayHandler('command_error', function (ev, jid, node) {
+        this.bindDisplayHandler('command_error', function (ev, jid, node, msg) {
             this.unblock();
-            this.errorDialog('command request failed for jid <strong>'+jid+'</strong> and node <strong>'+node+'</strong>');
+            this.errorDialog('command request failed for jid <strong>'+jid+'</strong> and node <strong>'+node+'</strong>\n\n'+msg);
         });
     },
 

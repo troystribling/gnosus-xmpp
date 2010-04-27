@@ -884,7 +884,11 @@ GnosusXmpp = {
                 }
             },
             function(iq) {
-                $(document).trigger('command_error', [$(iq).attr('from'), cmd  = $(iq).find('command').eq(0).attr('node')]);
+                var from = $(iq).attr('from'),
+                    cmd  = $(iq).find('command').eq(0),
+                    node = cmd.attr('node'),
+                    msg  = cmd.find('text').text()
+                $(document).trigger('command_error', [from, node, msg]);
             }
         );
         return msg;
