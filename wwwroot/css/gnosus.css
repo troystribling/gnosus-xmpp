@@ -678,7 +678,7 @@ ul.client-display-list li {
 }
 .x-message table.array-hash td {
     padding: 5px 15px;
-    text-align: center;
+    text-align: left;
     font-size: 0.9em;
     border: 1px solid #BBB;
 }
