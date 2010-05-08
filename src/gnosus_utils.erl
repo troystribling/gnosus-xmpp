@@ -132,8 +132,8 @@ navigation(Current) ->
                          end
                 end,
 	UserItem = case Current of
-	                profile -> #listitem{body=("<strong>"++User#users.uid++"</strong>")};	                         
-	                _ -> #listitem{body=#link{text=User#users.uid, url=?PROFILE}}
+	                account -> #listitem{body=("<strong>account</strong>")};	                         
+	                _ -> #listitem{body=#link{text="account", url=?ACCOUNT}}
                 end,
 	#list{body=(AdminItem++[UserItem,HostItem,#listitem{body=#link{text="logout", postback=logout}}])}.
 
@@ -145,8 +145,8 @@ client_navigation(Current) ->
 	                 _ -> #listitem{body=#link{text="client", url=?CLIENT}}
                  end,
 	UserItem = case Current of
-	               profile -> #listitem{body=("<strong>"++Jid++"</strong>")};	                         
-	               _ -> #listitem{body=#link{text=Jid, url=?CLIENT_PROFILE}}
+	               account -> #listitem{body=("<strong>account</strong>")};	                         
+	               _ -> #listitem{body=#link{text="account", url=?CLIENT_ACCOUNT}}
                end,
 	#list{body=([ClientItem, UserItem, #listitem{body=#link{text="logout", postback=logout}}])}.
 
