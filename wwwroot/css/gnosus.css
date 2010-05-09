@@ -75,12 +75,12 @@ img {
 #footer-wrapper {
     margin: 0 auto;
     margin-top: 15px;
+    height: 45px;
     width: 1000px;
     text-align: left;
 }
 #footer {
-    width: 30%;
-    float: left;
+    float: right;
 }
 /******* title style *******/
 #title h1 {
@@ -420,7 +420,6 @@ tr.data-edit-select {
 /*******  client *******/
 .client {
     position: relative;
-    height: 500px;
     border: 2px solid #DDD;
 }
 /*******  client-items *******/
@@ -456,7 +455,7 @@ tr.data-edit-select {
 /*  item states */
 .client-items-content .selected {
     color: #000;
-    background-color: #DDD;
+    background-color: #EEE;
 } 
 .client-items-content .open {
     color: #FFF;
@@ -467,7 +466,7 @@ tr.data-edit-select {
 }
 .client-items-content .selected .online {
     color: #000;
-    background-color: #DDD;
+    background-color: #EEE;
 } 
 .client-items-content .open .online {
     color: #FFF;
@@ -479,7 +478,7 @@ tr.data-edit-select {
 }
 .client-items-content .selected .offline {
     color: #000;
-    background-color: #DDD;
+    background-color: #EEE;
 } 
 .client-items-content .open .offline {
     color: #CCC;
@@ -568,7 +567,7 @@ tr.data-edit-select {
     cursor: pointer;
 }
 .client-item-type-selected:hover {
-    color: #DDD;
+    color: #EEE;
     background-color: #000;
 }
 /*******  client-display *******/
@@ -671,7 +670,7 @@ ul.client-display-list li {
     border-collapse: collapse; 
 }
 .x-message table.array-hash th {
-    background-color: #DDD;
+    background-color: #EEE;
     padding: 5px 15px;
     text-align: center;
     border: 1px solid #BBB;
@@ -778,7 +777,7 @@ ul.client-display-modes li {
     padding: 0px 10px 0px 10px;
 }
 .client-display-modes .selected {
-    color: #DDD;
+    color: #EEE;
     background-color: #000;
 }
 .client-display-toolbar .control {

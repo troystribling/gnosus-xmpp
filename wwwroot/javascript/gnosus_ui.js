@@ -22,6 +22,9 @@ function GnosusUi(num) {
     this.client_item_resource_contact   = this.client+' .client-item-resource-contact';
     this.client_contact_resources       = this.client+' .contact-resources';
     this.item_dialog                    = '#item-dialog-'+num;
+    this.client_height                  = 500;
+    this.toolbar_offset                 = 42;
+    this.setDisplaySize();
     this.showItems('contacts');
     this.history('contacts');
     this.block('connecting')
@@ -48,6 +51,32 @@ GnosusUi.prototype = {
             $(document).unbind(e);
             delete(client_ui.display_handlers[e]);
         });
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    setDisplaySize: function() {
+        var win_height = $(window).height(),
+            win_width = $(window).width(),
+            nav_offset = $('#navigation-wrapper').height() + parseInt($('#subtitle-wrapper').css('marginBottom').substr(0,2)) + 2,
+            footer_offset =  $('#footer-wrapper').height() + parseInt($('#footer-wrapper').css('marginTop').substr(0,2)),
+            client_border = 4;
+        this.toolbar_offset = $(this.client_items_toolbar).height() + parseInt($(this.client_items_toolbar).css('paddingTop').substr(0,2)) + 2,
+        this.client_height = win_height-client_border-nav_offset-footer_offset;
+        $(this.client).height(this.client_height);
+        $(this.client_items_content).height(this.client_height-this.toolbar_offset);
+    },
+
+    /*-------------------------------------------------------------------------------*/    
+    getClientDisplayListHeight: function(type) {
+        var height = this.client_height-this.toolbar_offset;
+        if (type == 'input') {
+            var offset  = $(this.client_display_input+' textarea').height(),
+                border  = 4,
+                margin  = 2*parseInt($(this.client_display_input+' textarea').css('marginTop').substr(0,2));
+                padding = parseInt($(this.client_display_input+' textarea').css('paddingTop').substr(0,2));
+            height = height-offset-margin-border-padding;
+        }
+        return height;
     },
 
     /*-------------------------------------------------------------------------------*/ 
@@ -1004,8 +1033,9 @@ GnosusUi.prototype = {
 
      /*-------------------------------------------------------------------------------*/ 
      buildMessageContentList: function(content_list, list_type) {
-        var msgs = ['<ul class="client-display-list '+list_type+'">'];
-        var client_ui = this;
+        var height    = this.getClientDisplayListHeight(list_type),
+            msgs      = ['<ul class="client-display-list" style="height:'+height+'px">'],
+            client_ui = this;
         $.each(content_list, function () {
             msgs.push(client_ui['build'+client_ui.camelize(this.type)+client_ui.camelize(this.content_type)+'Message'](this));
         });
@@ -1015,7 +1045,8 @@ GnosusUi.prototype = {
       
     /*-------------------------------------------------------------------------------*/ 
      buildPubNodeContentList: function(content_list, status) {
-        var msgs = ['<ul class="client-display-list publication-nodes no-input">'];
+        var height = this.getClientDisplayListHeight('no-input'),
+            msgs   = ['<ul class="client-display-list publication-nodes" style="height:'+height+'px">'];
         $.each(content_list, function () {
             msgs.push('<li><div class="publication-node">'+
                            '<div class="status '+status(this.node)+'"></div>'+ 
@@ -1030,7 +1061,8 @@ GnosusUi.prototype = {
               
     /*-------------------------------------------------------------------------------*/ 
      buildResourceContentList: function(contact_name, jid, content_list) {
-        var msgs      = ['<ul class="client-display-list contact-resources no-input">'],
+        var height    = this.getClientDisplayListHeight('no-input'),
+            msgs      = ['<ul class="client-display-list contact-resources" style="height:'+height+'px">'],
             client_ui = this;
         $.each(content_list, function () {
             msgs.push(client_ui.buildResourceContent(this));
