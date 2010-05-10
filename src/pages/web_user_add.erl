@@ -57,8 +57,8 @@ body() ->
         ], class="form user-add"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}},
-            #listitem{body=#link{id=addButton, text="add", postback=add_user, class="up-button"}}
+            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
+            #listitem{body=#link{id=addButton, text="add", postback=add_user}, class="button"}
     	]}, class="form form-buttons user-add-buttons"}
     ],
 

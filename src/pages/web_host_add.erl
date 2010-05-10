@@ -22,18 +22,18 @@ navigation() ->
 body() ->
     CancelButton = case wf:session(hosts) of
                        [] -> [];
-                       _ -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}}]
+                       _ -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"}]
                    end,
     Body = [
         #p{body=[
             #label{text="host"},
             #textbox {id=hostTextBox, next=addHostButton},
             #span{text="."++gnosus_model:tld()}
-        ], class="form host-add host-add-text"},
+        ], class="form host-add-text"},
 
         #panel{body= #list{body=CancelButton++[
-            #listitem{body=#link{id=addHostButton, text="add", postback=add_host, class="up-button"}}]}, 
-            class="form form-buttons host-add-buttons"}
+            #listitem{body=#link{id=addHostButton, text="add", postback=add_host}, class="button"}]}, 
+            class="form form-buttons"}
     ],
 
     wf:wire(addHostButton, hostTextBox, #validate {validators=[

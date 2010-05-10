@@ -11,6 +11,12 @@ body {
 .spacer {
     height: 5px;
 }
+.float-left {
+    float: left;    
+}
+.float-right {
+    float: right;    
+}
 img {
     border-style: none;
 }
@@ -75,37 +81,40 @@ img {
 #footer-wrapper {
     margin: 0 auto;
     margin-top: 15px;
-    height: 45px;
-    width: 1000px;
+    height: 30px;
     text-align: left;
 }
 #footer {
-    float: right;
+}
+.footer-deco {
+    width: 60%;
+    border-top: 1px dotted #CCC;
 }
 /******* title style *******/
 #title h1 {
     padding: 0px;
-    margin: 0px 0px 15px 0px;
+    width: 60%;
+    margin: 0px 0px 10px 0px;
+    border-top: 1px dotted #CCC;
+    border-bottom: 1px dotted #CCC;
     font-size: 1.2em;
+}
+#title em {
+    color: #CCC;
 }
 /******* toolbar style *******/
 #toolbar a {
-    color: #888;
+    color: #CCC;
     margin:0px;
     outline: none;
     text-decoration: none;
 }
 #toolbar a:visited {
-    color: #888;
+    color: #CCC;
     outline: none;
     text-decoration: none;
 }
 #toolbar a:hover {
-    color: #00F;
-    outline: none;
-    text-decoration: none;
-}
-#toolbar a:visited:hover {
     color: #00F;
     outline: none;
     text-decoration: none;
@@ -142,10 +151,6 @@ img {
     color: #00F;
     text-decoration: none;
 }
-#navigation a:visited:hover {
-    color: #00F;
-    text-decoration: none;
-}
 #navigation ul {
     list-style-type: none;
     float: right;
@@ -158,12 +163,11 @@ img {
     margin: 0px;
     margin-left: 15px;
 } 
-/******* up-button style *******/
-.up-button {
+/******* button style *******/
+.button {
     height:32px;
-    background-image:url('/images/button-up-background.png');
-    background-repeat:repeat-x;
-    border: 1px solid #999;
+    background-color: #EEE;
+    border: 1px solid #DDD;
     font-size: inherit;
     font-weight: inherit;
     margin-top: 10px;
@@ -172,17 +176,30 @@ img {
     text-align: right;
     clear: both;
 }
-.up-button:hover {
-    border-color: #39F;
+.button:hover {
+    border-color: #000;
+    background-color: #000;
+}
+.button a {
+    color: #AAA;
+    outline: none;
+    text-decoration: none;
+}
+.button a:visited {
+    outline: none;
+    text-decoration: none;
+}
+.button a:hover {
+    color: #EEE;
+    outline: none;
+    text-decoration: none;
 }
 /*******  form style    *******/
 .form label {
-    float: left;
-    clear: left;
     font-size: inherit;
     font-weight: lighter;
-    text-align: right;
-    margin-right: 10px;
+    color: #BBB;
+    text-align: left;
     margin-top: 15px
 }
 p.form {
@@ -192,113 +209,28 @@ p.form {
     width: 12.5em;
     font-size: inherit;
     font-weight: inherit;
-    margin: 10px 0px
 }
 .form select {
     font-size: 16px;
     font-weight: normal;
-    margin-top: 20px
 }
 .form-buttons ul {
     list-style-type: none;
-    float: right;
-    margin-top: 15px;
+    margin-top: 20px;
+    padding: 0px;
     margin-bottom: 0px;
 }
 .form-buttons li {
     display: inline;
     font-size: 1.0em;
     margin: 0px;
-    margin-left: 10px;
+    margin-right: 10px;
 } 
-.form a {
-    color: #000;
-    outline: none;
-    text-decoration: none;
-}
-.form a:visited {
-    color: #000;
-    outline: none;
-    text-decoration: none;
-}
-.form a:hover {
-    color: #000;
-    outline: none;
-    text-decoration: none;
-}
-.form a:visited:hover {
-    color: #000;
-    outline: none;
-    text-decoration: none;
+.footer-buttons-deco {
+    width: 60%;
+    border-top: 1px dotted #CCC;
 }
 .form-text span {
-    padding-left: 2px;
-}
-/*******  login style   *******/
-.login label {
-    width: 4.5em;
-}
-.login-buttons {
-    width: 17.65em;
-}
-/******* register style *******/
-.register label {
-    width: 2.5em;
-}
-.register-buttons {
-    width: 15.6em;
-}
-/******* add user style *******/
-.user-add label {
-    width: 7.75em;
-}
-.user-add-buttons {
-    width: 20.9em;
-} 
-/******* host user style *******/
-.host-user label {
-    width: 4.85em;
-}
-.host-user-buttons {
-    width: 15em;
-}
-/******* profile style *******/
-.profile label {
-    width: 4.85em;
-}
-.profile-buttons {
-    width: 15em;
-}
-/******* client profile style *******/
-.client-profile label {
-    width: 2.45em;
-}
-.client-profile-buttons {
-    width: 15.6em;
-}
-/******* host add style *******/
-.host-add label {
-    width: 1.85em;
-}
-.host-add-buttons {
-    width: 15.0em;
-}
-.host-add-text .LV_validation_message {
-    margin-left: 3.0em;
-}
-/******* add host user style *******/
-.host-user-add label {
-    width: 7.75em;
-}
-.host-user-add-buttons {
-    width: 20.90em;
-}
-/******* host user register style *******/
-.host-user-register label {
-    width: 3.0em;
-}
-.host-user-register-buttons {
-    width: 16.2em;
 }
 /******* data table style *******/
 .data table {
@@ -333,11 +265,6 @@ p.form {
     outline: none;
     text-decoration: none;
 }
-.data a:visited:hover {
-    color: #00F;
-    outline: none;
-    text-decoration: none;
-}
 tr.data-edit-select {
     background-color: #000;
     color: #999;
@@ -368,12 +295,7 @@ tr.data-edit-select {
 .data-edit-select a:hover {
     color: #FFF;
     outline: none;
-    text-decoration: underline;
-}
-.data-edit-select a:visited:hover {
-    color: #FFF;
-    outline: none;
-    text-decoration: underline;
+    text-decoration: none;
 }
 /******* validation messages *******/
 .LV_invalid { 
@@ -386,6 +308,11 @@ tr.data-edit-select {
 .LV_validation_message { 
     margin-top: 13px;
     margin-left: 2px;
+}
+.host-add-text .LV_validation_message {
+    margin-top: 8px;
+    padding: 0px;
+    margin-left: 3.0em;
 }
 /******* flash messages *******/
 .flash_container {
@@ -408,11 +335,6 @@ tr.data-edit-select {
     text-decoration: none;
 }
 .flash a:hover {
-    color: #00F;
-    outline: none;
-    text-decoration: none;
-}
-.flash a:visited:hover {
     color: #00F;
     outline: none;
     text-decoration: none;

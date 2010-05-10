@@ -58,8 +58,8 @@ user_form() ->
         ], class="form client-profile"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=updateButton, text="update", postback=update_user, class="up-button"}}
-    	]}, class="form form-buttons client-profile-buttons"}
+            #listitem{body=#link{id=updateButton, text="update", postback=update_user}, class="button"}
+    	]}, class="form form-buttons"}
     ],
 
     wf:wire(updateButton, emailTextBox, #validate {validators=[

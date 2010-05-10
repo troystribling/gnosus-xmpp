@@ -26,7 +26,7 @@ navigation() ->
 body() ->
     CancelButton = case wf:user() of
                        undefined -> [];
-                       #users{role=admin} -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}}];
+                       #users{role=admin} -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="button"}}];
                        _ -> []
                    end,
     
@@ -37,8 +37,8 @@ body() ->
         ], class="form register"},
 
         #panel{body= #list{body=CancelButton++[ 
-            #listitem{body=#link{ id=registerButton, text="register", postback=register, class="up-button"}}
-    	]}, class="form form-buttons register-buttons"}
+            #listitem{body=#link{ id=registerButton, text="register", postback=register}, class="button"}
+    	]}, class="form form-buttons"}
     ],
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[

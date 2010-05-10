@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() ->
-    #literal{text="<h1>update user: <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
+    #literal{text="<h1>update user <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -112,8 +112,8 @@ user_form(User) ->
         ], class="form user-add"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}},
-            #listitem{body=#link{id=addButton, text="update", postback=update_user, class="up-button"}}
+            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
+            #listitem{body=#link{id=addButton, text="update", postback=update_user}, class="button"}
     	]}, class="form form-buttons user-add-buttons"}
     ],
 

@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1>add user: <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
+    #literal{text="<h1>add user <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -46,9 +46,9 @@ body() ->
         ], class="form host-user-add"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}},
-            #listitem{body=#link{id=addButton, text="add", postback=add_user, class="up-button"}}
-    	]}, class="form form-buttons host-user-add-buttons"}
+            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
+            #listitem{body=#link{id=addButton, text="add", postback=add_user}, class="button"}
+    	]}, class="form form-buttons"}
     ],
 
     wf:wire(addButton, emailTextBox, #validate {validators=[

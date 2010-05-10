@@ -72,21 +72,21 @@ user_form() ->
         #p{body=[
             #label{text="email"},
             #textbox {id=emailTextBox, text=User#users.email, next=passwordTextBox}
-        ], class="form user-add"},
+        ], class="form"},
 
         #p{body=[
             #label{text="password" },
             #password{id=passwordTextBox, next=confirmPasswordTextBox }
-        ], class="form user-add"},
+        ], class="form"},
 
         #p{body=[
             #label{text="confirm password" },
             #password{id=confirmPasswordTextBox, next=addButton }
-        ], class="form user-add"},
+        ], class="form"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=updateButton, text="update", postback=update_user, class="up-button"}}
-    	]}, class="form form-buttons user-add-buttons"}
+            #listitem{body=#link{id=updateButton, text="update", postback=update_user}, class="button"}
+    	]}, class="form form-buttons"}
     ],
 
     wf:wire(updateButton, emailTextBox, #validate {validators=[

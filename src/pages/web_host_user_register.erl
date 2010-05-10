@@ -20,7 +20,7 @@ navigation() ->
 
 %%--------------------------------------------------------------------------------
 title() -> 
-    #literal{text="<h1>register user: <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
+    #literal{text="<h1>register user <em>"++wf:html_encode(wf:get_path_info())++"</em></h1>", html_encode=false}.
 
 %%--------------------------------------------------------------------------------
 body() ->
@@ -28,12 +28,12 @@ body() ->
         #p{body=[
             #label{text="email"},
             #textbox {id=emailTextBox, next=cancelButton}
-        ], class="form host-user-register"},
+        ], class="form"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="up-button"}},
-            #listitem{body=#link{id=registerButton, text="send email", postback=register, class="up-button"}}
-    	]}, class="form form-buttons host-user-register-buttons"}
+            #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
+            #listitem{body=#link{id=registerButton, text="send email", postback=register}, class="button"}
+    	]}, class="form form-buttons"}
     ],
 
     wf:wire(registerButton, emailTextBox, #validate {validators=[

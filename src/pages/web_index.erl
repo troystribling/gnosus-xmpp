@@ -34,8 +34,8 @@ body() ->
         ], class="form login"},
 
         #panel{body= #list{body=[ 
-            #listitem{body=#link{id=loginButton, text="login", postback=login, class="up-button"}}
-    	]}, class="form form-buttons login-buttons"}
+            #listitem{body=#link{id=loginButton, text="login", postback=login}, class="button"}
+    	]}, class="form form-buttons"}
     ],
 
     wf:wire(loginButton, userTextBox, #validate { validators=[

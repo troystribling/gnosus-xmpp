@@ -55,9 +55,9 @@ GnosusUi.prototype = {
 
     /*-------------------------------------------------------------------------------*/    
     setDisplaySize: function() {
-        var win_height = $(window).height(),
-            win_width = $(window).width(),
-            nav_offset = $('#navigation-wrapper').height() + parseInt($('#subtitle-wrapper').css('marginBottom').substr(0,2)) + 2,
+        var win_height    = $(window).height(),
+            win_width     = $(window).width(),
+            nav_offset    = $('#navigation-wrapper').height() + parseInt($('#subtitle-wrapper').css('marginBottom').substr(0,2)) + 2,
             footer_offset =  $('#footer-wrapper').height() + parseInt($('#footer-wrapper').css('marginTop').substr(0,2)),
             client_border = 4;
         this.toolbar_offset = $(this.client_items_toolbar).height() + parseInt($(this.client_items_toolbar).css('paddingTop').substr(0,2)) + 2,
