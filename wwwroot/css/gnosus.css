@@ -200,7 +200,7 @@ img {
     font-weight: lighter;
     color: #BBB;
     text-align: left;
-    margin-top: 15px
+    margin-top: 10px
 }
 p.form {
     margin: 0px;
@@ -228,6 +228,8 @@ p.form {
 } 
 .footer-buttons-deco {
     width: 60%;
+    margin-top: 15px;
+    padding-bottom: 5px;
     border-top: 1px dotted #CCC;
 }
 .form-text span {

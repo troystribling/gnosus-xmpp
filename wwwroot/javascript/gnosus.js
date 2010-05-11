@@ -32,7 +32,7 @@ function setPageSize() {
     if (title_margin) {
         page_height = page_height - parseInt(title_margin.substr(0,2));              
     }  
-    $('#page-wrapper').height(page_height);
+    // $('#page-wrapper').height(page_height);
     $('#page-wrapper').width(page_width);
     $('#title-wrapper').width(page_width);
     $('#toolbar-wrapper').width(page_width);

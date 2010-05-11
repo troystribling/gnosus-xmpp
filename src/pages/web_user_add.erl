@@ -59,7 +59,7 @@ body() ->
         #panel{body= #list{body=[ 
             #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
             #listitem{body=#link{id=addButton, text="add", postback=add_user}, class="button"}
-    	]}, class="form form-buttons user-add-buttons"}
+    	]}, class="form form-buttons footer-buttons-deco"}
     ],
 
     wf:wire(addButton, emailTextBox, #validate {validators=[

@@ -26,7 +26,7 @@ navigation() ->
 body() ->
     CancelButton = case wf:user() of
                        undefined -> [];
-                       #users{role=admin} -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel, class="button"}}];
+                       #users{role=admin} -> [#listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"}];
                        _ -> []
                    end,
     

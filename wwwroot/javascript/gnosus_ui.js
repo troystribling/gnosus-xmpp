@@ -59,11 +59,15 @@ GnosusUi.prototype = {
             win_width     = $(window).width(),
             nav_offset    = $('#navigation-wrapper').height() + parseInt($('#subtitle-wrapper').css('marginBottom').substr(0,2)) + 2,
             footer_offset =  $('#footer-wrapper').height() + parseInt($('#footer-wrapper').css('marginTop').substr(0,2)),
+            page_width    = 0.75*win_width,
             client_border = 4;
         this.toolbar_offset = $(this.client_items_toolbar).height() + parseInt($(this.client_items_toolbar).css('paddingTop').substr(0,2)) + 2,
         this.client_height = win_height-client_border-nav_offset-footer_offset;
         $(this.client).height(this.client_height);
         $(this.client_items_content).height(this.client_height-this.toolbar_offset);
+        $('#footer-wrapper').width(page_width);
+        $('#navigation').width(page_width);
+        $('#subtitle').width(page_width);
     },
 
     /*-------------------------------------------------------------------------------*/    
