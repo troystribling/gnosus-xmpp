@@ -12,7 +12,7 @@
 
 %%================================================================================
 main() -> 
-	#template{file="./wwwroot/template.html"}.
+	#template{file="./wwwroot/form_template.html"}.
 
 %%--------------------------------------------------------------------------------
 navigation() ->
@@ -114,7 +114,7 @@ user_form(User) ->
         #panel{body= #list{body=[ 
             #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
             #listitem{body=#link{id=addButton, text="update", postback=update_user}, class="button"}
-    	]}, class="form form-buttons"}
+    	]}, class="form form-buttons footer-buttons-deco"}
     ],
 
     wf:wire(addButton, emailTextBox, #validate {validators=[

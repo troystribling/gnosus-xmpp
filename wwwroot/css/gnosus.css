@@ -27,6 +27,7 @@ img {
 #navigation-wrapper {
     color: #000;
     background-color: #EEE;
+    margin-bottom: 30px;
     height: 55px;
     font-weight: lighter;
     letter-spacing: -1px;
@@ -37,30 +38,21 @@ img {
     width: 1000px;
     text-align: left;
 }
-#subtitle-wrapper {
-    margin-bottom: 30px;
-    text-align: left;
-}
-#subtitle {
-    margin: 0 auto;
-    width: 1000px;
-    padding-left: 100px;
-}
 #title-wrapper {
-    margin: 0 auto;
+    margin: 0 auto 10px;
+    height: 40px;
     width: 1000px;
     text-align: left;
 }
 #title {
-    margin: 0px;
 }
 #toolbar-wrapper {
     margin: 0 auto;
+    height: 30px;
     width: 1000px;
     text-align: left;
 }
 #toolbar {
-    margin: 0px;
 }
 #breadcrumbs-wrapper {
     margin: 0 auto;
@@ -79,8 +71,7 @@ img {
     margin: 0px;
 }
 #footer-wrapper {
-    margin: 0 auto;
-    margin-top: 15px;
+    margin: 30px auto 0px;
     height: 30px;
     text-align: left;
 }
@@ -94,7 +85,7 @@ img {
 #title h1 {
     padding: 0px;
     width: 60%;
-    margin: 0px 0px 10px 0px;
+    margin: 0px;
     border-top: 1px dotted #CCC;
     border-bottom: 1px dotted #CCC;
     font-size: 1.2em;
@@ -216,7 +207,7 @@ p.form {
 }
 .form-buttons ul {
     list-style-type: none;
-    margin-top: 20px;
+    margin-top: 10px;
     padding: 0px;
     margin-bottom: 0px;
 }
@@ -228,9 +219,10 @@ p.form {
 } 
 .footer-buttons-deco {
     width: 60%;
-    margin-top: 15px;
-    padding-bottom: 5px;
+    margin-top: 25px;
+    padding-bottom: 10px;
     border-top: 1px dotted #CCC;
+    border-bottom: 1px dotted #CCC;
 }
 .form-text span {
 }
@@ -727,7 +719,7 @@ ul.client-display-modes li {
     text-align: left;
     cursor: pointer;
     color: #000;
-    background-color: #DDD;
+    background-color: #EEE;
     margin: 0px 0px 0px -10px;;
     padding: 0px 10px 0px 10px;
 }

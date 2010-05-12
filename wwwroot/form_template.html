@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>gnos.us xmpp server hosting</title>
+        <script src='/nitrogen/jquery.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/nitrogen/jquery-ui.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/nitrogen/livevalidation.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/nitrogen/nitrogen.js' type='text/javascript' charset='utf-8'></script>
+        <script src='/javascript/gnosus.js' type='text/javascript' charset='utf-8'></script>
+        <link rel="stylesheet" href="/nitrogen/jquery-ui/jquery-ui.css" type="text/css" media="screen" charset="utf-8">
+        <link rel="stylesheet" href="/nitrogen/elements.css" type="text/css" media="screen" charset="utf-8">
+        <link rel="stylesheet" href="/css/gnosus.css" type="text/css" media="screen" charset="utf-8">
+    </head>
+    <body>
+        <div id="navigation-wrapper">
+          <div id="navigation">
+              <img src="/images/logo-banner.png">
+              [[[page:navigation()]]]
+          </div>
+        </div>
+        [[[element_flash:render()]]]
+        <div id="title-wrapper">
+          <div id="title">
+              [[[page:title()]]]
+          </div>
+        </div>
+        <div id="page-wrapper">
+          <div id="page">
+              [[[page:body()]]]
+          </div>
+        </div>
+        <div id="footer-wrapper">
+          <div id="footer" class="float-left footer-deco">
+              <a href="http://planbresearch.com"><img src="/images/planbresearch-logo.png"></a>
+              [[[page:footer()]]]
+          </div>
+        </div>
+        <script>
+            setPageSize();
+            [[[script]]]
+        </script>
+    </body>
+</html>

@@ -21,18 +21,26 @@ function setPageSize() {
         page_height    = $('#page-wrapper').height(),
         win_height     = $(window).height(),
         win_width      = $(window).width(),
-        flash_offset   = $('#page__flash').height(),
-        toolbar_offset = $('#toolbar-wrapper').height(),
-        title_margin   = $('#title-wrapper h1').css('marginBottom'),
-        title_offset   = $('#title-wrapper').height(),
-        nav_offset     = $('#navigation-wrapper').height() + parseInt($('#subtitle-wrapper').css('marginBottom').substr(0,2)) + 2,
-        footer_offset  = $('#footer-wrapper').height() + parseInt($('#footer-wrapper').css('marginTop').substr(0,2)) + 1,
-        page_width     = 0.75*win_width,
-        page_height    = doc_height-nav_offset-footer_offset-flash_offset-toolbar_offset-title_offset;  
-    if (title_margin) {
-        page_height = page_height - parseInt(title_margin.substr(0,2));              
-    }  
-    // $('#page-wrapper').height(page_height);
+        title_height   = $('#title-wrapper').height(),
+        title_offset   = 0,
+        toolbar_height = $('#toolbar-wrapper').height(),
+        toolbar_offset = 0,
+        nav_offset     = 87,
+        footer_offset  = 61,
+        page_width = 0.75*win_width;  
+    if (title_height) {
+        title_offset = 50;
+    } 
+    if (toolbar_height) {
+        toolbar_offset = 30;
+        var browser = navigator.appVersion;
+        var webkit_match = new RegExp("WebKit");
+        if (webkit_match.test(browser)) {
+            footer_offset  = 71;
+        }        
+    }
+    var page_height    = doc_height-nav_offset-footer_offset-toolbar_offset-title_offset;  
+    $('#page-wrapper').height(page_height);
     $('#page-wrapper').width(page_width);
     $('#title-wrapper').width(page_width);
     $('#toolbar-wrapper').width(page_width);

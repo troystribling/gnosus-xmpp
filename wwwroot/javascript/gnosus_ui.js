@@ -7,11 +7,13 @@ function GnosusUi(num) {
     this.item_type_choices = {publications:['contacts', true], contacts:['resources', false], 
         resources:['subscriptions', true], subscriptions:['publications', true]};
     this.client                         = '#client-'+num;
+    this.client_items                   = this.client+' .client-items';
     this.client_items_content           = this.client+' .client-items-content';
     this.client_items_toolbar           = this.client+' .client-items-toolbar';
     this.client_item_type_selected      = this.client+' .client-item-type-selected';
     this.client_items_add               = this.client+' .client-items-add';
     this.client_items_history           = this.client+' .client-items-history';
+    this.client_display                 = this.client+' .client-display';
     this.client_display_content         = this.client+' .client-display-content';
     this.client_display_list            = this.client+' .client-display-list';
     this.client_display_toolbar         = this.client+' .client-display-toolbar';
@@ -19,6 +21,7 @@ function GnosusUi(num) {
     this.client_display_toolbar_control = this.client+' .client-display-toolbar .control';
     this.client_display_modes           = this.client+' .client-display-modes';
     this.client_display_input           = this.client+' .client-display-input';
+    this.client_display_input_textarea  = this.client+' .client-display-input textarea';
     this.client_item_resource_contact   = this.client+' .client-item-resource-contact';
     this.client_contact_resources       = this.client+' .contact-resources';
     this.item_dialog                    = '#item-dialog-'+num;
@@ -57,19 +60,30 @@ GnosusUi.prototype = {
     setDisplaySize: function() {
         var win_height    = $(window).height(),
             win_width     = $(window).width(),
-            nav_offset    = $('#navigation-wrapper').height() + parseInt($('#subtitle-wrapper').css('marginBottom').substr(0,2)) + 2,
-            footer_offset =  $('#footer-wrapper').height() + parseInt($('#footer-wrapper').css('marginTop').substr(0,2)),
+            nav_offset    = 87,
+            footer_offset = 61,
             page_width    = 0.75*win_width,
-            client_border = 4;
+            client_border = 4,
+            item_width    = 0.25*page_width,
+            display_width = page_width - item_width - client_border;
         this.toolbar_offset = $(this.client_items_toolbar).height() + parseInt($(this.client_items_toolbar).css('paddingTop').substr(0,2)) + 2,
         this.client_height = win_height-client_border-nav_offset-footer_offset;
         $(this.client).height(this.client_height);
         $(this.client_items_content).height(this.client_height-this.toolbar_offset);
+        $('#page-wrapper').width(page_width)
         $('#footer-wrapper').width(page_width);
         $('#navigation').width(page_width);
-        $('#subtitle').width(page_width);
+        $(this.client_items).width(item_width);
+        $(this.client_display).width(display_width);
+        $(this.client_display).css('left', item_width+'px');
+        $(this.client_display_input_textarea).width(display_width-50);
     },
 
+    /*-------------------------------------------------------------------------------*/    
+    setDisplayInputTextareaSize: function() {
+        
+    },
+    
     /*-------------------------------------------------------------------------------*/    
     getClientDisplayListHeight: function(type) {
         var height = this.client_height-this.toolbar_offset;
