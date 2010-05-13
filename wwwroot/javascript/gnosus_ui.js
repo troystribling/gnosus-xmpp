@@ -468,7 +468,8 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     deleteSubscriptionDialog: function(item) {
         var client_ui = this,
-            dialog = '<div id="'+this.toId(this.item_dialog)+'" title="delete subscription?">'+ 
+            dialog = '<div id="'+this.toId(this.item_dialog)+'" class="subscription-delete" title="delete subscription?">'+             
+                        '<p>'+GnosusXmpp.userPubsubRootToJid(item)+'</p>'+
                         '<p>'+GnosusXmpp.subNodeFromNode(item)+'</p>'+
                      '</div>'; 
         this.deleteItemDialog(dialog, function() {
