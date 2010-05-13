@@ -27,7 +27,7 @@ function setPageSize() {
         toolbar_offset = 0,
         nav_offset     = 87,
         footer_offset  = 61,
-        page_width = 0.75*win_width;  
+        page_width = 0.70*win_width;  
     if (title_height) {
         title_offset = 50;
     } 
