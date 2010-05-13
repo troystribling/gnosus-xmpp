@@ -114,7 +114,7 @@ user_form(User) ->
         #panel{body= #list{body=[ 
             #listitem{body=#link{id=cancelButton, text="cancel", postback=cancel}, class="button"},
             #listitem{body=#link{id=addButton, text="update", postback=update_user}, class="button"}
-    	]}, class="form form-buttons footer-buttons-deco"}
+    	], class="footer-buttons-deco"}, class="form form-buttons"}
     ],
 
     wf:wire(addButton, emailTextBox, #validate {validators=[

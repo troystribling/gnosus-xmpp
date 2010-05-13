@@ -71,9 +71,14 @@ img {
     margin: 0px;
 }
 #footer-wrapper {
-    margin: 30px auto 0px;
     height: 30px;
     text-align: left;
+}
+.footer-admin {
+    margin: 30px auto 0px;
+}
+.footer-client {
+    margin: 10px auto 0px;
 }
 #footer {
 }
@@ -156,15 +161,10 @@ img {
 } 
 /******* button style *******/
 .button {
-    height:32px;
     background-color: #EEE;
     border: 1px solid #DDD;
-    font-size: inherit;
-    font-weight: inherit;
-    margin-top: 10px;
     padding-left: 10px;
     padding-right: 10px;
-    text-align: right;
     clear: both;
 }
 .button:hover {
@@ -187,8 +187,8 @@ img {
 }
 /*******  form style    *******/
 .form label {
-    font-size: inherit;
     font-weight: lighter;
+    font-size: inherit;
     color: #BBB;
     text-align: left;
     margin-top: 10px
@@ -207,20 +207,17 @@ p.form {
 }
 .form-buttons ul {
     list-style-type: none;
-    margin-top: 10px;
-    padding: 0px;
-    margin-bottom: 0px;
+    padding-left: 0px;
+    margin-top: 20px;
 }
 .form-buttons li {
     display: inline;
-    font-size: 1.0em;
     margin: 0px;
     margin-right: 10px;
 } 
 .footer-buttons-deco {
     width: 60%;
-    margin-top: 25px;
-    padding-bottom: 10px;
+    padding: 10px 0px;
     border-top: 1px dotted #CCC;
     border-bottom: 1px dotted #CCC;
 }
@@ -341,7 +338,6 @@ tr.data-edit-select {
 /*******  client-items *******/
 .client-items {
     position: absolute;
-    width: 275px;
     border-right: 2px solid #DDD;
 }
 .client-items-content {
@@ -434,6 +430,32 @@ tr.data-edit-select {
     z-index: 1;
     display: none;
 }
+/*******  client form *********/
+.client-form label {
+    font-weight: lighter;
+    font-size: inherit;
+    display: block;
+    color: #000;
+    text-align: left;
+    margin-top: 10px
+}
+p.client-form {
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0px;
+}
+.client-form input {
+    width: 15.8em;
+}
+/*******  dialog-error style  *******/
+.dialog-error {
+    color: #F00;
+    width: 15.1em;
+    background-color: #F0D0D0;
+    border: 1px solid #F00;
+    margin: 5px 0px 10px 0px;
+    padding: 10px 10px 10px 10px;
+}
 /*******  resource selection *********/
 .resource-selected .name {
     font-size: .75em;
@@ -491,7 +513,6 @@ tr.data-edit-select {
     position: absolute;
     top: 0px;
     left: 277px;
-    width: 719px;
 }
 .client-display-content {
 }
@@ -660,7 +681,7 @@ ul.client-display-list li {
     margin: 10px;
     padding: 8px 10px 0px 10px;
     height: 30px;
-    width: 669px; 
+    width: 94.75%; 
     border: 1px solid #DDD; 
     background-color: #EEE;
 }
@@ -726,35 +747,6 @@ ul.client-display-modes li {
 .client-display-toolbar .jid:hover {
     color: #DDD;
     background-color: #000;
-}
-/*******  dialog-error style  *******/
-.dialog-error {
-    color: #F00;
-    background-color: #F0D0D0;
-    border: 1px solid #F00;
-    margin: 0px 0px 10px 0px;
-    padding: 10px 10px 10px 10px;
-}
-/*******  add contact dialog style  *******/
-.add-contact-dialog label {
-    width: 1.1em;
-}
-.add-contact-dialog input {
-    width: 14.0em;
-}
-/*******  add subscription dialog style  *******/
-.add-subscription-dialog label {
-    width: 2.0em;
-}
-.add-subscription-dialog input {
-    width: 13.1em;
-}
-/*******  add publication dialog style  *******/
-.add-publication-dialog label {
-    width: 2.0em;
-}
-.add-publication-dialog input {
-    width: 13.1em;
 }
 /*******  jquery-ui *******/
 .ui-widget-header {

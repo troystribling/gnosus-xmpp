@@ -21,7 +21,6 @@ function GnosusUi(num) {
     this.client_display_toolbar_control = this.client+' .client-display-toolbar .control';
     this.client_display_modes           = this.client+' .client-display-modes';
     this.client_display_input           = this.client+' .client-display-input';
-    this.client_display_input_textarea  = this.client+' .client-display-input textarea';
     this.client_item_resource_contact   = this.client+' .client-item-resource-contact';
     this.client_contact_resources       = this.client+' .contact-resources';
     this.item_dialog                    = '#item-dialog-'+num;
@@ -61,11 +60,11 @@ GnosusUi.prototype = {
         var win_height    = $(window).height(),
             win_width     = $(window).width(),
             nav_offset    = 87,
-            footer_offset = 61,
+            footer_offset = 41,
             page_width    = 0.75*win_width,
             client_border = 4,
             item_width    = 0.25*page_width,
-            display_width = page_width - item_width - client_border;
+            display_width = page_width - item_width - client_border - 2;
         this.toolbar_offset = $(this.client_items_toolbar).height() + parseInt($(this.client_items_toolbar).css('paddingTop').substr(0,2)) + 2,
         this.client_height = win_height-client_border-nav_offset-footer_offset;
         $(this.client).height(this.client_height);
@@ -75,15 +74,9 @@ GnosusUi.prototype = {
         $('#navigation').width(page_width);
         $(this.client_items).width(item_width);
         $(this.client_display).width(display_width);
-        $(this.client_display).css('left', item_width+'px');
-        $(this.client_display_input_textarea).width(display_width-50);
+        $(this.client_display).css('left', item_width+2+'px');
     },
 
-    /*-------------------------------------------------------------------------------*/    
-    setDisplayInputTextareaSize: function() {
-        
-    },
-    
     /*-------------------------------------------------------------------------------*/    
     getClientDisplayListHeight: function(type) {
         var height = this.client_height-this.toolbar_offset;
@@ -515,13 +508,13 @@ GnosusUi.prototype = {
      * add
      *-------------------------------------------------------------------------------*/    
     addContactDialog: function() {
-        var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+ 
+        var dialog = '<div id="'+this.toId(this.item_dialog)+'" title="add contact">'+ 
                          '<div class="validate-jid">'+  
-                            '<label for="jid">jid</label><input type="text" name="jid" class="required"/></br>'+
+                            '<p class="client-form" ><label for="jid">jid</label><input type="text" name="jid" class="required"/></p>'+
                          '</div>'+
                      '</div>'; 
         var client_ui = this;             
-        this.addItemDialog(dialog, 'add-contact-dialog', function() {
+        this.addItemDialog(dialog, function() {
             if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields()) {
                 var jid = $(client_ui.item_dialog+' input').val();
                 client_ui.cancelItemDialog(); 
@@ -535,12 +528,12 @@ GnosusUi.prototype = {
     addSubscriptionDialog: function() {
         var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add subscription">'+ 
                          '<div class="validate-jid">'+  
-                            '<label for="jid">jid</label><input type="text" name="jid" class="required"/></br>'+
+                            '<p class="client-form" ><label for="jid">jid</label><input type="text" name="jid" class="required"/></p>'+
                          '</div>'+
-                         '<label for="node">node</label><input type="text" name="node" class="required"/></br>'+
+                         '<p class="client-form" ><label for="node">node</label><input type="text" name="node" class="required"/></p>'+
                      '</div>'; 
         var client_ui = this;             
-        this.addItemDialog(dialog, 'add-subscription-dialog', function() {
+        this.addItemDialog(dialog, function() {
             if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields()) {
                 var jid       = $(client_ui.item_dialog+" input[name='jid']").val(),
                     node      = $(client_ui.item_dialog+" input[name='node']").val(),
@@ -574,10 +567,10 @@ GnosusUi.prototype = {
     /*-------------------------------------------------------------------------------*/    
     addPublicationDialog: function() {
         var dialog = '<div id="'+this.toId(this.item_dialog)+'" class="form" title="add contact">'+ 
-                         '<label for="node">node</label><input type="text" name="node" class="required"/></br>'+
+                         '<p class="client-form" ><label for="node">node</label><input type="text" name="node" class="required"/></p>'+
                      '</div>'; 
         var client_ui = this;             
-        this.addItemDialog(dialog, 'add-publication-dialog', function() {
+        this.addItemDialog(dialog, function() {
             if (!client_ui.dialogButtonIsDisabled() && client_ui.validateRequiredFields()) {
                 var node = $(client_ui.item_dialog+' input').val();
                 client_ui.cancelItemDialog(); 
@@ -588,13 +581,13 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
-    addItemDialog: function(dialog, dialog_class, add_item) {
+    addItemDialog: function(dialog, add_item) {
         $(this.item_dialog).remove();            
         $(this.client).append(dialog); 
         $(this.item_dialog).dialog({modal:true, resizable:false,
             buttons:{'cancel':this.cancelItemDialog.bind(this), 
                      'send':add_item.bind(this)},
-            dialogClass:dialog_class, width:380}); 
+            width:380}); 
         this.addJidValidation('send');                               
     },
     
