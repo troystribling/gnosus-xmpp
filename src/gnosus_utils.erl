@@ -139,7 +139,6 @@ navigation(Current) ->
 
 %%--------------------------------------------------------------------------------
 client_navigation(Current) ->
-    Jid = client_user_model:bare_jid(wf:user()),
 	ClientItem = case Current of
 	                 client -> #listitem{body=("<strong>client</strong>")};	                         
 	                 _ -> #listitem{body=#link{text="client", url=?CLIENT}}
