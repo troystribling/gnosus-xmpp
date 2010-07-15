@@ -64,7 +64,7 @@ usage() {
 case $1 in
     dev) dev;;
     prod) prod;;
-    shell) shell;;
+    pid) pid;;
     create_tables) create_tables;;
     create_super) create_super;;
     stop) stop;;
