@@ -50,8 +50,12 @@ stop() {
     pkill -f 'beam.*sname gnosus' 
 }
 
+pid() {
+    pgrep -f 'beam.*sname gnosus' 
+}
+
 usage() {
-    echo "gnosus.sh prod|dev|create_tables"
+    echo "gnosus.sh prod|dev|create_tables|create_super"
     exit
 }
 
