@@ -2,16 +2,6 @@
 cd `dirname $0`
 HOST=`hostname`
 
-dev() {
-    exec erl \
-	-sname gnosus@$HOST \
-	-setcookie 12345 \
-	-pa $PWD/ebin $PWD/include \
-	-boot start_sasl \
-	-s mnesia \
-	-s gnosus
-}
-
 prod() {
     exec erl \
 	-noinput -detached \
@@ -19,6 +9,28 @@ prod() {
 	-setcookie 12345 \
 	-pa $PWD/ebin $PWD/include \
 	-config $PWD/src/gnosus \
+	-boot start_sasl \
+	-s mnesia \
+	-s gnosus
+}
+
+create_tables_and_start() {
+    exec erl \
+    -noinput -detached \
+	-sname gnosus@$HOST \
+	-setcookie 12345 \
+	-mnesia extra_db_nodes "['ejabberd@$HOST']" \
+	-pa $PWD/ebin $PWD/deps/*/ebin \
+	-boot start_sasl \
+	-s mnesia \
+	-s gnosus create_tables_and_start
+}
+
+dev() {
+    exec erl \
+	-sname gnosus@$HOST \
+	-setcookie 12345 \
+	-pa $PWD/ebin $PWD/include \
 	-boot start_sasl \
 	-s mnesia \
 	-s gnosus
@@ -33,17 +45,6 @@ create_tables() {
 	-boot start_sasl \
 	-s mnesia \
 	-s gnosus create_tables
-}
-
-create_super() {
-    exec erl \
-	-sname gnosus@$HOST \
-	-setcookie 12345 \
-	-pa $PWD/ebin $PWD/include \
-	-config $PWD/src/gnosus \
-	-boot start_sasl \
-	-s mnesia \
-	-s gnosus create_super
 }
 
 stop() {
@@ -66,7 +67,7 @@ case $1 in
     prod) prod;;
     pid) pid;;
     create_tables) create_tables;;
-    create_super) create_super;;
+    create_tables_and_start) create_tables_and_start;;
     stop) stop;;
     *) usage;;
 esac

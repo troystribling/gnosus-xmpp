@@ -6,7 +6,7 @@
 	start/0, 
 	stop/0,
 	create_tables/0,
-	create_super/0
+	create_tables_and_start/0
 ]).
 
 %% include
@@ -24,20 +24,24 @@ stop() ->
 
 %%================================================================================
 create_tables() ->
-    mnesia:change_table_copy_type(schema, node(), disc_copies),
-    do_create_ejabberd_tables(),
     do_create_tables(),
-    wait_for_tables(),
     init:stop().
- 
+
 %%--------------------------------------------------------------------------------
-create_super() ->
-    wait_for_tables(),
-    user_model:new_admin("gnosus@gnos.us","super","gnosus"),
-    init:stop().
+create_tables_and_start() ->
+    do_create_tables(),
+    start().
  
 %%================================================================================
 do_create_tables() ->
+    mnesia:change_table_copy_type(schema, node(), disc_copies),
+    do_create_ejabberd_tables(),
+    do_create_local_tables(),
+    wait_for_tables(),
+    do_create_super().
+
+%%--------------------------------------------------------------------------------
+do_create_local_tables() ->
     user_model:create_table(),
     client_user_model:create_table(),
     gnosus_model:create_table(),
@@ -48,6 +52,11 @@ do_create_ejabberd_tables() ->
     mnesia:add_table_copy(acl, node(), ram_copies),
     mnesia:add_table_copy(passwd, node(), ram_copies).
     
+%%--------------------------------------------------------------------------------
+do_create_super() ->
+    wait_for_tables(),
+    user_model:new_admin("gnosus@gnos.us","super","gnosus").
+
 %%--------------------------------------------------------------------------------
 local_tables() ->
     mnesia:system_info(local_tables).
