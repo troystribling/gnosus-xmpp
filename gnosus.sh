@@ -56,7 +56,7 @@ pid() {
 }
 
 usage() {
-    echo "gnosus.sh prod|dev|create_tables|create_super"
+    echo "gnosus.sh prod|dev|pid|create_tables|create_tables_and_start"
     exit
 }
 
