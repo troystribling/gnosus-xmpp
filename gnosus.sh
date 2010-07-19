@@ -6,7 +6,6 @@ prod() {
     exec erl \
 	-noinput -detached \
 	-sname gnosus@$HOST \
-	-setcookie 12345 \
 	-pa $PWD/ebin $PWD/include \
 	-config $PWD/src/gnosus \
 	-boot start_sasl \
@@ -18,7 +17,6 @@ create_tables_and_start() {
     exec erl \
     -noinput -detached \
 	-sname gnosus@$HOST \
-	-setcookie 12345 \
 	-mnesia extra_db_nodes "['ejabberd@$HOST']" \
 	-pa $PWD/ebin $PWD/deps/*/ebin \
 	-boot start_sasl \
@@ -29,7 +27,6 @@ create_tables_and_start() {
 dev() {
     exec erl \
 	-sname gnosus@$HOST \
-	-setcookie 12345 \
 	-pa $PWD/ebin $PWD/include \
 	-boot start_sasl \
 	-s mnesia \
@@ -39,7 +36,6 @@ dev() {
 create_tables() {
     exec erl \
 	-sname gnosus@$HOST \
-	-setcookie 12345 \
 	-mnesia extra_db_nodes "['ejabberd@$HOST']" \
 	-pa $PWD/ebin $PWD/deps/*/ebin \
 	-boot start_sasl \
