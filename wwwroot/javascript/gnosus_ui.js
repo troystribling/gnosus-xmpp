@@ -661,6 +661,7 @@ GnosusUi.prototype = {
       * subscriptions display
       *-------------------------------------------------------------------------------*/    
       showSubscriptionsDisplay: function(node) {
+          this.showGeolocToolbar(node);
           $(this.client_display_content).empty();
           this.displayUnbind();
           this.buildMessageContentList(Gnosus.findMessagesByNode(node), 'no-input');
@@ -675,6 +676,24 @@ GnosusUi.prototype = {
           });         
       },               
 
+      /*-------------------------------------------------------------------------------  
+       * geoloc
+       *-------------------------------------------------------------------------------*/    
+      showGeolocToolbar: function(open_item_name) {
+          if (open_item_name.match(new RegExp('geoloc', 'g'))) {
+              this.buildDisplayToolbar(['events','map'], 'events', 'Geoloc', open_item_name);
+          } else {
+              $(this.client_display_toolbar).empty();              
+          }
+      }, 
+
+      /*-------------------------------------------------------------------------------*/
+      showGeolocEventsDisplay: function(node) {          
+      },
+
+      /*-------------------------------------------------------------------------------*/
+      showGeolocMapDisplay: function(node) {          
+      },
 
     /*-------------------------------------------------------------------------------  
      * contacts display
