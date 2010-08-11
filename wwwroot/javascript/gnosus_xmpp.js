@@ -1,17 +1,17 @@
 /**********************************************************************************
 logging
 **********************************************************************************/
-// function rawInput(data) {
-//     console.log('RECV: ' + data);
-// }
-// 
-// function rawOutput(data) {
-//     console.log('SENT: ' + data);
-// }
-// 
-// Strophe.log = function (level, msg) {
-//     console.log('LOG: ' + msg);
-// }
+function rawInput(data) {
+    console.log('RECV: ' + data);
+}
+
+function rawOutput(data) {
+    console.log('SENT: ' + data);
+}
+
+Strophe.log = function (level, msg) {
+    // console.log('LOG: ' + msg);
+}
 
 /**********************************************************************************
 connection
@@ -21,8 +21,8 @@ function connect(service, jid, password) {
 	Gnosus.account_jid = Strophe.getBareJidFromJid(jid);
 	Gnosus.account_resource = Strophe.getResourceFromJid(jid);
     var conn = new Strophe.Connection(service);
-    // conn.rawInput = rawInput;
-    // conn.rawOutput = rawOutput;
+    conn.rawInput = rawInput;
+    conn.rawOutput = rawOutput;
 	GnosusXmpp.connection = conn;
 	conn.connect(jid, password, onConnect);
 }
@@ -201,9 +201,12 @@ Gnosus = {
                 var msg_model = null,
                     id        = $(this).attr('id'),
                     xdata     = $(this).find('x').eq(0),
+                    geoloc    = $(this).find('geoloc').eq(0),
                     entry     = $(this).find('entry');
                 if (xdata.attr('xmlns') == Strophe.NS.XDATA) {
                     msg_model = new Message(Gnosus.account_jid, from, xdata, 'headline', 'x', node, null, id);
+                } else if (geoloc.attr('xmlns') == Strophe.NS.GEOLOC) {
+                    msg_model = new Message(Gnosus.account_jid, from, geoloc, 'headline', 'geoloc', node, null, id);
                 } else if (entry.attr('xmlns') == Strophe.NS.ENTRY) {
                     msg_model = new Message(Gnosus.account_jid, from, entry.find('title').text(), 'headline', 'entry', node, null, id);
                 }
@@ -1403,6 +1406,7 @@ Strophe.addConnectionPlugin('pubsub', {
             Strophe.addNamespace('PUBSUB', 'http://jabber.org/protocol/pubsub');
             Strophe.addNamespace('PUBSUB_OWNER', 'http://jabber.org/protocol/pubsub#owner');
             Strophe.addNamespace('ENTRY', 'http://www.w3.org/2005/Atom');
+            Strophe.addNamespace('GEOLOC', 'http://jabber.org/protocol/geoloc');
         }
     },
 });

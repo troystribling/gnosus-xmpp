@@ -1,4 +1,5 @@
 #*
+.erlang.cookie
 database/*
 logs/*
 db/*

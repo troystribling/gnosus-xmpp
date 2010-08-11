@@ -1338,12 +1338,36 @@ GnosusUi.prototype = {
     },
 
     /*-------------------------------------------------------------------------------*/    
+    buildHeadlineGeolocMessage: function(msg) {
+        return '<li><div class="x-message">'+
+                   this.messageInfo(msg)+
+                   '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
+                   this.buildGeolocBody(msg.text)+
+               '</div></li>';
+    },
+
+    /*-------------------------------------------------------------------------------*/    
     buildHeadlineEntryMessage: function(msg) {
         return '<li><div class="text-message">'+
                    this.messageInfo(msg)+
                    '<div class="node">'+GnosusXmpp.subNodeFromNode(msg.node)+'</div>'+
                    '<div class="entry">'+htmlEncode(msg.text)+'</div>'+
                '</div></li>';
+    },
+
+    /*-------------------------------------------------------------------------------
+     * geoloc 
+     *-------------------------------------------------------------------------------*/ 
+    buildGeolocBody: function(data) {
+        var client_ui = this;
+        return '<table class="hash">'+ 
+                   $.map($(data).children(), function(c,i) {
+                          return '<tr>'+
+                                     '<td class="attr">'+htmlEncode($(c).get(0).tagName)+'</td>'+
+                                     '<td class="val">'+htmlEncode($(c).text())+'</td>'+
+                                 '</tr>';
+                   }).join('')+
+               '</table>';
     },
 
     /*-------------------------------------------------------------------------------
