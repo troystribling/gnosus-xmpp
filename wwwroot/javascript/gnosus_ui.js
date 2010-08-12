@@ -681,14 +681,31 @@ GnosusUi.prototype = {
        *-------------------------------------------------------------------------------*/    
       showGeolocToolbar: function(open_item_name) {
           if (open_item_name.match(new RegExp('geoloc', 'g'))) {
-              this.buildDisplayToolbar(['events','map'], 'events', 'Geoloc', open_item_name);
+              this.buildDisplayToolbar(['events','map'], 'events', 'geoloc', function() {
+                   return 'geoloc';                
+               });
           } else {
               $(this.client_display_toolbar).empty();              
           }
       }, 
 
       /*-------------------------------------------------------------------------------*/
+      showGeolocContentDisplay: function(node) {
+          this.buildItemContentDisplay('geoloc', node)
+      },
+      
+      /*-------------------------------------------------------------------------------*/
       showGeolocEventsDisplay: function(node) {          
+          this.buildMessageContentList(Gnosus.findMessagesByNode(node), 'no-input');
+          this.bindDisplayHandler('headline', function (ev, msgs) {
+              var client_ui = this,
+                  reg_exp = new RegExp(node, 'g');
+              $.each(msgs, function() {
+                  if (this.node.match(reg_exp)) {
+                      client_ui.prependMessage(this);
+                  }
+              });
+          });         
       },
 
       /*-------------------------------------------------------------------------------*/
