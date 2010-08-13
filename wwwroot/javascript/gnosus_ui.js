@@ -682,7 +682,7 @@ GnosusUi.prototype = {
       showGeolocToolbar: function(open_item_name) {
           if (open_item_name.match(new RegExp('geoloc', 'g'))) {
               this.buildDisplayToolbar(['events','map'], 'events', 'geoloc', function() {
-                   return 'geoloc';                
+                   return open_item_name;                
                });
           } else {
               $(this.client_display_toolbar).empty();              
