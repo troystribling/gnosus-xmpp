@@ -4,6 +4,7 @@ ui displays
 function GnosusUi(num) {
     this.items_handlers = {},
     this.display_handlers = {},
+    this.cloudmade = new CM.Tiles.CloudMade.Web({key: 'BC9A493B41014CAABB98F0471D759707', styleId:22125});
     this.item_type_choices = {publications:['contacts', true], contacts:['resources', false], 
         resources:['subscriptions', true], subscriptions:['publications', true]};
     this.client                         = '#client-'+num;
@@ -23,8 +24,11 @@ function GnosusUi(num) {
     this.client_display_input           = this.client+' .client-display-input';
     this.client_item_resource_contact   = this.client+' .client-item-resource-contact';
     this.client_contact_resources       = this.client+' .contact-resources';
+    this.client_display_map             = this.client+' .client-display-map';
     this.item_dialog                    = '#item-dialog-'+num;
+    this.geoloc_map                     = '#geoloc-map-'+num;
     this.client_height                  = 500;
+    this.client_width                   = 1000;
     this.toolbar_offset                 = 42;
     this.setDisplaySize();
     this.showItems('contacts');
@@ -67,6 +71,7 @@ GnosusUi.prototype = {
             display_width = page_width - item_width - client_border - 2;
         this.toolbar_offset = $(this.client_items_toolbar).height() + parseInt($(this.client_items_toolbar).css('paddingTop').substr(0,2)) + 2,
         this.client_height = win_height-client_border-nav_offset-footer_offset;
+        this.client_width = page_width; 
         $(this.client).height(this.client_height);
         $(this.client_items_content).height(this.client_height-this.toolbar_offset);
         $('#page-wrapper').width(page_width)
@@ -679,11 +684,13 @@ GnosusUi.prototype = {
       /*-------------------------------------------------------------------------------  
        * geoloc
        *-------------------------------------------------------------------------------*/    
-      showGeolocToolbar: function(open_item_name) {
-          if (open_item_name.match(new RegExp('geoloc', 'g'))) {
-              this.buildDisplayToolbar(['events','map'], 'events', 'geoloc', function() {
-                   return open_item_name;                
-               });
+      showGeolocToolbar: function(node) {
+          if (node.match(new RegExp('geoloc', 'g'))) {
+              $(this.client_display_toolbar).append('<div class="control"></div>');
+              $(this.client_display_toolbar_control).append('<div class="geoloc-map">map</div>');
+              $(this.client_display_toolbar_control+' .geoloc-map').click(function() {
+                  this.showGeolocMapDisplay(node);
+              }.bind(this));
           } else {
               $(this.client_display_toolbar).empty();              
           }
@@ -709,7 +716,21 @@ GnosusUi.prototype = {
       },
 
       /*-------------------------------------------------------------------------------*/
-      showGeolocMapDisplay: function(node) {          
+      showGeolocMapDisplay: function(node) {   
+          $(this.geoloc_map).remove();            
+          var map_dialog = '<div id="'+this.toId(this.geoloc_map)+'/>'; 
+          $(this.client).append(map_dialog); 
+          $(this.geoloc_map).dialog({modal:true, resizable:false,
+              buttons:{'close':function() {
+                           $(this).dialog("close");        
+                           $(this).remove();            
+                       }},
+              width:0.9*this.client_width, height:this.client_height}); 
+          var map = new CM.Map(this.toId(this.geoloc_map), this.cloudmade);
+          map.setCenter(new CM.LatLng(38.9143, -77.0390), 15);
+          var topRight = new CM.ControlPosition(CM.TOP_RIGHT, new CM.Size(50, 20));
+          map.addControl(new CM.LargeMapControl());
+          map.addControl(new CM.ScaleControl());
       },
 
     /*-------------------------------------------------------------------------------  
