@@ -268,6 +268,17 @@ Gnosus = {
     findMessagesByNode: function(node) {
         return $.grep(this.messages, function(m) {return (m.node == node);});         
     },
+    findFirstMessageByNode: function(node) {
+        var msg = null;
+        for (var m in this.messages) {
+            var chk = this.messages[m];
+            if (chk.node == node) {
+                msg = chk;
+                break;
+            } 
+        }
+        return msg;         
+    },
     findMessagesByJidAndContentType: function(jid, content_type) {
         var jid_rexp = new RegExp(jid, 'g');
         return $.grep(this.messages, function(m) {
@@ -1312,7 +1323,8 @@ Strophe.addConnectionPlugin('messages', {
         if (type == "chat" && body) {
     	    $(document).trigger('chat', Gnosus.addIncomingChatTextMessage(msg));            
 	    } else if (type =='headline') {
-	        $(document).trigger('headline', [Gnosus.addHeadlineMessages(msg)])
+	        var msgs = Gnosus.addHeadlineMessages(msg);
+	        $(document).trigger('headline', [msgs]);
 	    }
         return true;
     }

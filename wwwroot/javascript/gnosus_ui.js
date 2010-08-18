@@ -4,6 +4,7 @@ ui displays
 function GnosusUi(num) {
     this.items_handlers = {},
     this.display_handlers = {},
+    this.map = null;
     this.cloudmade = new CM.Tiles.CloudMade.Web({key: 'BC9A493B41014CAABB98F0471D759707', styleId:22125});
     this.item_type_choices = {publications:['contacts', true], contacts:['resources', false], 
         resources:['subscriptions', true], subscriptions:['publications', true]};
@@ -677,6 +678,9 @@ GnosusUi.prototype = {
                   if (this.node.match(reg_exp)) {
                       client_ui.prependMessage(this);
                   }
+                  if (this.map) {
+                     this.setGeolocMapCenter(this); 
+                  }
               });
           });         
       },               
@@ -685,14 +689,13 @@ GnosusUi.prototype = {
        * geoloc
        *-------------------------------------------------------------------------------*/    
       showGeolocToolbar: function(node) {
+          $(this.client_display_toolbar).empty();              
           if (node.match(new RegExp('geoloc', 'g'))) {
               $(this.client_display_toolbar).append('<div class="control"></div>');
               $(this.client_display_toolbar_control).append('<div class="geoloc-map">map</div>');
               $(this.client_display_toolbar_control+' .geoloc-map').click(function() {
                   this.showGeolocMapDisplay(node);
               }.bind(this));
-          } else {
-              $(this.client_display_toolbar).empty();              
           }
       }, 
 
@@ -723,15 +726,33 @@ GnosusUi.prototype = {
           $(this.geoloc_map).dialog({modal:true, resizable:false,
               buttons:{'close':function() {
                            $(this).dialog("close");        
-                           $(this).remove();            
+                           $(this).remove(); 
+                           this.map = null;           
                        }},
               width:0.9*this.client_width, height:this.client_height}); 
-          var map = new CM.Map(this.toId(this.geoloc_map), this.cloudmade);
-          map.setCenter(new CM.LatLng(38.9143, -77.0390), 15);
+          this.map   = new CM.Map(this.toId(this.geoloc_map), this.cloudmade);
+          var geoloc = Gnosus.findFirstMessageByNode(node),
+              center = new CM.LatLng(38.9143, -77.0390);
+          this.map.setCenter(center, 15);                
+          if (geoloc) {
+              this.setGeolocMapCenter(geoloc);
+          } 
           var topRight = new CM.ControlPosition(CM.TOP_RIGHT, new CM.Size(50, 20));
-          map.addControl(new CM.LargeMapControl());
-          map.addControl(new CM.ScaleControl());
+          this.map.addControl(new CM.LargeMapControl());
+          this.map.addControl(new CM.ScaleControl());
       },
+
+    /*-------------------------------------------------------------------------------*/
+    setGeolocMapCenter: function(msg) {
+        var lat = parseFloat($(msg.text).find('lat').text());
+        var lon = parseFloat($(msg.text).find('lon').text());
+        center = new CM.LatLng(lat, lon);
+        var marker = new CM.Marker(center, {
+        	title: "Current Location"
+        });
+        this.map.setCenter(center, 15);                
+        this.map.addOverlay(marker);
+    },
 
     /*-------------------------------------------------------------------------------  
      * contacts display
