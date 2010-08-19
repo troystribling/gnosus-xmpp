@@ -678,8 +678,8 @@ GnosusUi.prototype = {
                   if (this.node.match(reg_exp)) {
                       client_ui.prependMessage(this);
                   }
-                  if (this.map) {
-                     this.setGeolocMapCenter(this); 
+                  if (client_ui.map) {
+                     client_ui.setGeolocMapCenter(this); 
                   }
               });
           });         
@@ -730,9 +730,9 @@ GnosusUi.prototype = {
                            this.map = null;           
                        }},
               width:0.9*this.client_width, height:this.client_height}); 
-          this.map   = new CM.Map(this.toId(this.geoloc_map), this.cloudmade);
           var geoloc = Gnosus.findFirstMessageByNode(node),
               center = new CM.LatLng(38.9143, -77.0390);
+          this.map = new CM.Map(this.toId(this.geoloc_map), this.cloudmade);
           this.map.setCenter(center, 15);                
           if (geoloc) {
               this.setGeolocMapCenter(geoloc);
